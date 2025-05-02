@@ -1,0 +1,49 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+[application]
+
+config/name="BulletHellJam6"
+run/main_scene="res://scenes/main.tscn"
+config/icon="res://assets/textures/icon.png"
+
+[debug]
+
+settings/stdout/print_fps=true
+
+[display]
+
+window/size/width=1920
+window/size/height=1080
+
+[global]
+
+icon=false
+
+[gui]
+
+common/drop_mouse_on_gui_input_disabled=true
+
+[mono]
+
+runtime/unhandled_exception_policy=1
+project/assembly_name="BulletHellJam6"
+
+[physics]
+
+common/enable_pause_aware_picking=true
+2d/default_gravity=0
+
+[rendering]
+
+quality/driver/driver_name="GLES2"
+vram_compression/import_etc=true
+vram_compression/import_etc2=false
+environment/default_environment="res://default_env.tres"
