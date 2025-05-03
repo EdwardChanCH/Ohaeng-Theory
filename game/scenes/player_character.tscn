@@ -10,9 +10,10 @@ radius = 36.0555
 
 [node name="player_character" type="KinematicBody2D"]
 position = Vector2( 1, 0 )
+collision_layer = 2
 script = ExtResource( 2 )
 MoveSpeed = 400.0
-MaxTargetLocation = 500.0
+HealthComponentPath = NodePath("HealthComponent")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
@@ -24,7 +25,11 @@ texture = ExtResource( 1 )
 script = ExtResource( 4 )
 
 [node name="HitboxComponent" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 24
 script = ExtResource( 3 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent"]
 shape = SubResource( 1 )
+
+[connection signal="body_entered" from="HitboxComponent" to="." method="_OnHitboxBodyEntered"]

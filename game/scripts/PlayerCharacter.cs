@@ -18,24 +18,26 @@ public class PlayerCharacter : KinematicBody2D
     //[Export]
     //public Vector2 MaxMovementBound { get; private set; } = Vector2.Zero;
 
-    //[Export]
-    //public NodePath HealthComponentPath = new NodePath();
-    //private HealthComponent _healthComponent;
+    [Export]
+    public NodePath HealthComponentPath = new NodePath();
+    private HealthComponent _healthComponent;
+
 
     protected int PlayerScore = 0;
 
 
     public Vector2 TargetLocation { get; private set; }
-    //public Vector2 ClampedTargetLocation { get; private set; }
-
-    //[Export]
-    //public float MaxTargetLocation { get; private set; } = 200.0f;
 
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        
+        _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        if (_healthComponent == null)
+        {
+            GD.PrintErr("Error: Player Controller Contrain Invalid Path");
+            return;
+        }
     }
 
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -55,12 +57,11 @@ public class PlayerCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        if (body is IHarmful projectile)
+        if (body is IHarmful damageSource)
         {
-            //projectile.Kill();
-            EmitSignal("DamageTaken", 1);
-            //_healthComponent.ApplyDamage(1);
+            _healthComponent.ApplyDamage(damageSource);
+            //EmitSignal("DamageTaken", 1);
+            GD.Print("Hurt");
         }
     }
-
 }
