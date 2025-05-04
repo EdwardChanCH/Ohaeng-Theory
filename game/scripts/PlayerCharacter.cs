@@ -7,6 +7,9 @@ public class PlayerCharacter : KinematicBody2D
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
     private HealthComponent _healthComponent;
 
+    [Export]
+    public NodePath HealthBarPath { get; private set; } = new NodePath();
+    private ProgressBar _healthBar;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; }= true;
@@ -37,6 +40,7 @@ public class PlayerCharacter : KinematicBody2D
 
     private bool _shouldShoot = false;
 
+    // Need a timer component
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
@@ -44,7 +48,8 @@ public class PlayerCharacter : KinematicBody2D
     public override void _Ready()
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
-        if (_healthComponent == null)
+        _healthBar = GetNode<ProgressBar>(HealthBarPath);
+        if (_healthComponent == null || _healthBar == null)
         {
             GD.PrintErr("Error: Player Controller Contrain Invalid Path");
             return;
@@ -141,14 +146,28 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful damageSource)
         {
             _healthComponent.ApplyDamage(damageSource);
-            GD.Print("Hurt");
+            body.QueueFree();
+            //GD.Print("Hurt");
         }
     }
-    
+
+    public void _OnHealthUpdate(int newHealth)
+    {
+        GD.Print("Hurt");
+        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+    }
+
+    public void _OnHealthDepleted()
+    {
+        QueueFree();
+    }
+
     private void UpdateSetting()
     {
         _shouldShoot = false;
     }
+
+
 
     public void TestShoot()
     {
@@ -157,6 +176,7 @@ public class PlayerCharacter : KinematicBody2D
         testBullet.Position = this.Position;
         testBullet.Damage = 1;
         testBullet.InitialDirection = Vector2.Right;
+        testBullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
         GetTree().Root.CallDeferred("add_child", testBullet);
         // - - - Should be done by projectie manager - - -
     }
