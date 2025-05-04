@@ -32,6 +32,9 @@ public class PlayerCharacter : KinematicBody2D
             GD.PrintErr("Error: Player Controller Contrain Invalid Path");
             return;
         }
+
+        // TODO: test code
+        TestShoot();
     }
 
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -96,5 +99,16 @@ public class PlayerCharacter : KinematicBody2D
             _healthComponent.ApplyDamage(damageSource);
             GD.Print("Hurt");
         }
+    }
+
+    public void TestShoot()
+    {
+        // - - - Should be done by projectie manager - - -
+        Bullet testBullet = GD.Load<PackedScene>("res://scenes/test_bullet.tscn").Instance<Bullet>();
+        testBullet.Position = this.Position;
+        testBullet.Damage = 1;
+        testBullet.InitialDirection = Vector2.Left;
+        GetTree().Root.CallDeferred("add_child", testBullet);
+        // - - - Should be done by projectie manager - - -
     }
 }

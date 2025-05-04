@@ -33,6 +33,12 @@ public class HealthComponent : Node
         }
     }
 
+    // comment: This can probably be just 1 line
+    // i.e. public void ApplyDamage(IHarmful source)
+    // {
+    //      ApplyDamage(source.Damage);
+    // }
+
     public void ApplyDamage(IHarmful source)
     {
         CurrentHealth -= source.GetDamage();
