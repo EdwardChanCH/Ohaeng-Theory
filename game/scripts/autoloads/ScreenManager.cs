@@ -6,6 +6,15 @@ using System.Collections.Generic;
 // Note: Godot autoload requires Node type.
 public class ScreenManager : Node
 {
+    // Screen paths
+    public const string TitleScreenPath = "TODO";
+    public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
+    public const string PauseScreenPath = "TODO"; // popup?
+    public const string WinScreenPath = "TODO"; // popup?
+    public const string LoseScreenPath = "TODO"; // popup?
+
+    public const string SettingsScreenPath = "TODO"; // popup?
+
     public static ScreenManager Singleton { get; private set; }
 
     // The current loaded screen (not a popup) (may add popups as children)
