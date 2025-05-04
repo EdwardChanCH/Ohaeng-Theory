@@ -4,7 +4,7 @@
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/damage_testing.tscn" type="PackedScene" id=3]
 
-[node name="gameplay_screen" type="Node2D"]
+[node name="GameplayScreen" type="Node2D"]
 
 [node name="Background" type="Sprite" parent="."]
 position = Vector2( 936, 532 )

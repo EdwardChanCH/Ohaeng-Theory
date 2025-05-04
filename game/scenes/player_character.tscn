@@ -7,11 +7,12 @@
 [sub_resource type="CircleShape2D" id=1]
 radius = 36.0555
 
-[node name="player_character" type="KinematicBody2D"]
+[node name="PlayerCharacter" type="KinematicBody2D"]
 position = Vector2( 1, 0 )
 collision_layer = 2
 script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
+UseToggleShootInput = false
 MoveSpeed = 400.0
 
 [node name="HealthComponent" type="Node" parent="."]
