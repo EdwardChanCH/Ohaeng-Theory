@@ -4,16 +4,28 @@ using System;
 public class PlayerCharacter : KinematicBody2D
 {
     [Export]
-    public NodePath HealthComponentPath = new NodePath();
+    public NodePath HealthComponentPath { get; private set; } = new NodePath();
     private HealthComponent _healthComponent;
 
+
     [Export]
-    public bool UseMouseDirectedInput = true;
+    public bool UseMouseDirectedInput { get; set; }= true;
+
+    [Export]
+    public bool UseToggleShootInput { get; set; } = true;
+
 
     [Export]
     public float MoveSpeed { get; set; } = 100.0f;
     public Vector2 MoveDirection { get; private set; } = new Vector2();
 
+    // Ever unit is 0.01 seonds
+    [Export(PropertyHint.Range, "-100,100")]
+    public int FireSpeed { get; set; } = 1;
+
+    [Export(PropertyHint.Range, "0.01,100")]
+    public float TimeSubtractionPerFireSpeedUnit { get; set; } = 0.01f;
+   
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -22,6 +34,11 @@ public class PlayerCharacter : KinematicBody2D
     // Use to control movement at _PhysicsProcess()
     private float _yAxisMovement = 0;
     private float _xAxisMovement = 0;
+
+    private bool _shouldShoot = false;
+
+    private float _fireDelay;
+    private float _fireTimer = 0.0f;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -33,11 +50,12 @@ public class PlayerCharacter : KinematicBody2D
             return;
         }
 
+        _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
         // TODO: test code
-        TestShoot();
+        //TestShoot();
     }
 
-    //  // Called every frame. 'delta' is the elapsed time since the previous frame.
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(float delta)
     {
         if (UseMouseDirectedInput)
@@ -72,6 +90,32 @@ public class PlayerCharacter : KinematicBody2D
 
             MoveDirection = new Vector2(_xAxisMovement, _yAxisMovement);
         }
+
+        if(!UseToggleShootInput)
+        {
+            _shouldShoot = Input.IsActionPressed("Shoot");
+        }
+            //GD.Print(_shouldShoot);
+
+
+        _fireTimer += delta;
+        if(_fireTimer >= _fireDelay && _shouldShoot)
+        {
+            _fireTimer = 0;
+            GD.Print("Shoot");
+            //TestShoot();
+        }
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        //base._Input(@event);
+
+        //_shouldShoot = @event.IsAction("Shoot");
+        if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
+        {
+            _shouldShoot = !_shouldShoot;
+        }
     }
 
     public override void _PhysicsProcess(float delta)
@@ -88,7 +132,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * MoveSpeed;
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
-        GD.Print(Velocity.Length());
+        //GD.Print(Velocity.Length());
         MoveAndSlide(Velocity);
     }
 
@@ -99,6 +143,11 @@ public class PlayerCharacter : KinematicBody2D
             _healthComponent.ApplyDamage(damageSource);
             GD.Print("Hurt");
         }
+    }
+    
+    private void UpdateSetting()
+    {
+        _shouldShoot = false;
     }
 
     public void TestShoot()
