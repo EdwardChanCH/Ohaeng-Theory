@@ -41,8 +41,8 @@ public class HealthComponent : Node
 
     public void ApplyDamage(IHarmful source)
     {
-        CurrentHealth -= source.Damage;
-        EmitSignal("DamageApplied", source.Damage);
+        CurrentHealth -= source.GetDamage();
+        EmitSignal("DamageApplied", source.GetDamage());
 
         if (CurrentHealth <= 0)
         {

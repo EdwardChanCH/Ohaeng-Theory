@@ -11,8 +11,8 @@ radius = 36.0555
 position = Vector2( 1, 0 )
 collision_layer = 2
 script = ExtResource( 2 )
-MoveSpeed = 400.0
 HealthComponentPath = NodePath("HealthComponent")
+MoveSpeed = 400.0
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 4 )

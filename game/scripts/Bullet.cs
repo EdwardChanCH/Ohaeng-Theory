@@ -33,4 +33,9 @@ public class Bullet : KinematicBody2D, IHarmful
     {
         MoveAndSlide(_movementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
+
+    public int GetDamage()
+    {
+        return Damage;
+    }
 }
