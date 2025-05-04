@@ -102,8 +102,8 @@ public class PlayerCharacter : KinematicBody2D
         if(_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
-            GD.Print("Shoot");
-            //TestShoot();
+            //GD.Print("Shoot");
+            TestShoot();
         }
     }
 
@@ -153,10 +153,10 @@ public class PlayerCharacter : KinematicBody2D
     public void TestShoot()
     {
         // - - - Should be done by projectie manager - - -
-        Bullet testBullet = GD.Load<PackedScene>("res://scenes/test_bullet.tscn").Instance<Bullet>();
+        Bullet testBullet = GD.Load<PackedScene>("res://scenes/test_bullet_2.tscn").Instance<Bullet>();
         testBullet.Position = this.Position;
         testBullet.Damage = 1;
-        testBullet.InitialDirection = Vector2.Left;
+        testBullet.InitialDirection = Vector2.Right;
         GetTree().Root.CallDeferred("add_child", testBullet);
         // - - - Should be done by projectie manager - - -
     }
