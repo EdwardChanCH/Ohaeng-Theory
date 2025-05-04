@@ -63,7 +63,7 @@ public class ScreenManager : Node
     }
 
     // Load a new screen and mark as current screen, unload the current screen and clears screen history.
-    public static void ResetScreen(string scenePath, Node attachTo)
+    public static void RebaseScreen(string scenePath, Node attachTo)
     {
         // Free the current scene (if exist)
         CurrentScreen?.QueueFree();
@@ -75,7 +75,7 @@ public class ScreenManager : Node
     }
 
     // Reload the current scene.
-    public static void Reload()
+    public static void ReloadCurrentScreen()
     {
         if (CurrentScreen == null)
         {
