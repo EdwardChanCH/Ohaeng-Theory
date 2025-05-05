@@ -58,6 +58,7 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
+        AudioManager.SetChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -124,22 +125,12 @@ public class PlayerCharacter : KinematicBody2D
 
         if (@event.IsActionPressed("Previous_Element"))
         {
-            if((int)_currentElement <= 1)
-            {
-                _currentElement = Globals.Element.Earth;
-                return;
-            }
-            _currentElement--;
+            _currentElement = Globals.PreviousElement(_currentElement);
         }
 
         if (@event.IsActionPressed("Next_Element"))
         {
-            if ((int)_currentElement >= 5)
-            {
-                _currentElement = Globals.Element.Metal;
-                return;
-            }
-            _currentElement++;
+            _currentElement = Globals.NextElement(_currentElement);
         }
 
     }
@@ -193,12 +184,13 @@ public class PlayerCharacter : KinematicBody2D
     public void TestShoot()
     {
         // - - - Should be done by projectie manager - - -
-        Bullet testBullet = GD.Load<PackedScene>("res://scenes/test_bullet_2.tscn").Instance<Bullet>();
+        Bullet testBullet = GD.Load<PackedScene>("res://scenes/projectiles/metal_bullet.tscn").Instance<Bullet>();
         testBullet.Position = this.Position;
         testBullet.Damage = 1;
         testBullet.InitialDirection = Vector2.Right;
         testBullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
         GetTree().Root.CallDeferred("add_child", testBullet);
+        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
         // - - - Should be done by projectie manager - - -
     }
 }
