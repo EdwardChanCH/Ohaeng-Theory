@@ -7,6 +7,9 @@ public class PlayerCharacter : KinematicBody2D
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
     private HealthComponent _healthComponent;
 
+    [Export]
+    public NodePath HealthBarPath { get; private set; } = new NodePath();
+    private ProgressBar _healthBar;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; }= true;
@@ -37,14 +40,18 @@ public class PlayerCharacter : KinematicBody2D
 
     private bool _shouldShoot = false;
 
+    // Need a timer component
     private float _fireDelay;
     private float _fireTimer = 0.0f;
+
+    private Globals.Element _currentElement = Globals.Element.Metal;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
-        if (_healthComponent == null)
+        _healthBar = GetNode<ProgressBar>(HealthBarPath);
+        if (_healthComponent == null || _healthBar == null)
         {
             GD.PrintErr("Error: Player Controller Contrain Invalid Path");
             return;
@@ -116,6 +123,27 @@ public class PlayerCharacter : KinematicBody2D
         {
             _shouldShoot = !_shouldShoot;
         }
+
+        if (@event.IsActionPressed("Previous_Element"))
+        {
+            if((int)_currentElement <= 1)
+            {
+                _currentElement = Globals.Element.Earth;
+                return;
+            }
+            _currentElement--;
+        }
+
+        if (@event.IsActionPressed("Next_Element"))
+        {
+            if ((int)_currentElement >= 5)
+            {
+                _currentElement = Globals.Element.Metal;
+                return;
+            }
+            _currentElement++;
+        }
+
     }
 
     public override void _PhysicsProcess(float delta)
@@ -132,7 +160,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * MoveSpeed;
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
-        //GD.Print(Velocity.Length());
+        //GD.Print(_currentElement);
         MoveAndSlide(Velocity);
     }
 
@@ -141,14 +169,28 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful damageSource)
         {
             _healthComponent.ApplyDamage(damageSource);
-            GD.Print("Hurt");
+            body.QueueFree();
+            //GD.Print("Hurt");
         }
     }
-    
+
+    public void _OnHealthUpdate(int newHealth)
+    {
+        GD.Print("Hurt");
+        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+    }
+
+    public void _OnHealthDepleted()
+    {
+        QueueFree();
+    }
+
     private void UpdateSetting()
     {
         _shouldShoot = false;
     }
+
+
 
     public void TestShoot()
     {
@@ -157,6 +199,7 @@ public class PlayerCharacter : KinematicBody2D
         testBullet.Position = this.Position;
         testBullet.Damage = 1;
         testBullet.InitialDirection = Vector2.Right;
+        testBullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
         GetTree().Root.CallDeferred("add_child", testBullet);
         // - - - Should be done by projectie manager - - -
     }

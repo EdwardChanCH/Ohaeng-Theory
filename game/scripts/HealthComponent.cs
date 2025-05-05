@@ -10,6 +10,9 @@ public class HealthComponent : Node
     public delegate void HealApplied(int heal);
 
     [Signal]
+    public delegate void HealthUpdate(int newHealth);
+
+    [Signal]
     public delegate void HealthDepleted();
 
     [Export]
@@ -26,32 +29,22 @@ public class HealthComponent : Node
     {
         CurrentHealth -= damage;
         EmitSignal("DamageApplied", damage);
-
-        if(CurrentHealth <= 0)
-        {
-            EmitSignal("HealthDepleted");
-        }
-    }
-
-    // comment: This can probably be just 1 line
-    // i.e. public void ApplyDamage(IHarmful source)
-    // {
-    //      ApplyDamage(source.Damage);
-    // }
-
-    public void ApplyDamage(IHarmful source)
-    {
-        CurrentHealth -= source.GetDamage();
-        EmitSignal("DamageApplied", source.GetDamage());
-
+        EmitSignal("HealthUpdate", CurrentHealth);
         if (CurrentHealth <= 0)
         {
             EmitSignal("HealthDepleted");
         }
     }
 
+    public void ApplyDamage(IHarmful source)
+    {
+        ApplyDamage(source.GetDamage());
+    }
+
     public void ApplyHeal(int heal)
     {
         CurrentHealth = Mathf.Clamp(CurrentHealth + heal, 0, MaxHealth);
+        EmitSignal("HealApplied", heal);
+        EmitSignal("HealthUpdate", CurrentHealth);
     }
 }

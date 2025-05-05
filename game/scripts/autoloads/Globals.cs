@@ -6,6 +6,17 @@ using System.Collections.Generic;
 // Note: Godot autoload requires Node type.
 public class Globals : Node
 {
+    public enum Element
+    {
+        None = 0,
+        Metal = 1,
+        Wood = 2,
+        Water = 3,
+        Fire = 4,
+        Earth = 5,
+    }
+
+
     // Collision Layers
     public const int GroundLayerBit = 0; // Layer 1
     public const int PlayerLayerBit = 1; // Layer 2
