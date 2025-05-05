@@ -19,6 +19,7 @@ config/icon="res://assets/textures/icon.png"
 Globals="*res://scripts/autoloads/Globals.cs"
 ScreenManager="*res://scripts/autoloads/ScreenManager.cs"
 ProjectileManager="*res://scripts/autoloads/ProjectileManager.cs"
+AudioManager="*res://scripts/autoloads/AudioManager.cs"
 
 [debug]
 

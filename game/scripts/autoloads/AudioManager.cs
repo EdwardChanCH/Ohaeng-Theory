@@ -16,7 +16,7 @@ public class AudioManager : Node
 
 
     private static AudioManager _instance;
-    public override void _Ready()
+    public override void _EnterTree()
     {
         if(_instance != null)
         {
@@ -26,6 +26,15 @@ public class AudioManager : Node
         _instance = this;
     }
 
+    private void CreateAudioChannel(string soundPath)
+    {
+        var audioPlayer = new AudioStreamPlayer();
+        audioPlayer.Stream = GD.Load<AudioStream>(soundPath);
+
+        audioPlayer.Bus = "SFX";
+        _sfxChannels.Add(soundPath, audioPlayer);
+        AddChild(audioPlayer);
+    }
 
     public static void PlaySFX(string soundPath)
     {
@@ -39,12 +48,7 @@ public class AudioManager : Node
     {
         if (!_sfxChannels.ContainsKey(soundPath))
         {
-            var audioPlayer = new AudioStreamPlayer();
-            audioPlayer.Stream = GD.Load<AudioStream>(soundPath);
-
-            audioPlayer.Bus = "SFX";
-            _sfxChannels.Add(soundPath, audioPlayer);
-            AddChild(audioPlayer);
+            CreateAudioChannel(soundPath);
         }
 
         var channelRef = _sfxChannels[soundPath];
@@ -63,12 +67,11 @@ public class AudioManager : Node
 
     private void SetChannelVolumeInternal(string soundPath, float volume)
     {
-        if(_sfxChannels.ContainsKey(soundPath))
+        if (!_sfxChannels.ContainsKey(soundPath))
         {
-            _sfxChannels[soundPath].VolumeDb = GD.Linear2Db(volume);
-            return;
+            CreateAudioChannel(soundPath);
         }
-
+        _sfxChannels[soundPath].VolumeDb = GD.Linear2Db(volume);
     }
 
     public static void SetMasterVolume(float volume)

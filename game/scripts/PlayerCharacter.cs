@@ -58,6 +58,7 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
+        AudioManager.SetChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -189,6 +190,7 @@ public class PlayerCharacter : KinematicBody2D
         testBullet.InitialDirection = Vector2.Right;
         testBullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
         GetTree().Root.CallDeferred("add_child", testBullet);
+        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
         // - - - Should be done by projectie manager - - -
     }
 }
