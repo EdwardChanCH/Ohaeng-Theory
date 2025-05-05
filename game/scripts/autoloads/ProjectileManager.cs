@@ -14,6 +14,7 @@ public class ProjectileManager : Node
 
     private static readonly Dictionary<Globals.Element, string> _bulletScenePath = new Dictionary<Globals.Element, string>()
     {
+        {Globals.Element.None, "res://scenes/projectiles/none_bullet.tscn"},
         {Globals.Element.Water, "res://scenes/projectiles/water_bullet.tscn"},
         {Globals.Element.Wood, "res://scenes/projectiles/wood_bullet.tscn"},
         {Globals.Element.Fire, "res://scenes/projectiles/fire_bullet.tscn"},
@@ -66,12 +67,6 @@ public class ProjectileManager : Node
 
     public static Node SpawnProjectile(Globals.Element element, Node parentNode)
     {
-        if (element == Globals.Element.None)
-        {
-            GD.PrintErr("Error: Cannot spawn a bullet of 'Element.None' type.");
-            return null;
-        }
-
         return SpawnProjectile(_bulletScenePath[element], parentNode);
     }
 
