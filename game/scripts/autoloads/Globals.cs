@@ -42,10 +42,10 @@ public class Globals : Node
         Singleton = this;
     }
 
-    public static ChangeGameData(string key, string value)
+    public static void ChangeGameData(string key, string value)
     {
-        GameData[dataName] = dataValue;
-        EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
+        GameData[key] = value;
+        Singleton.EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
     }
 
     // Increment element enum
