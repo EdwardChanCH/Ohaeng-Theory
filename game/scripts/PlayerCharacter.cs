@@ -160,7 +160,6 @@ public class PlayerCharacter : KinematicBody2D
         {
             _healthComponent.ApplyDamage(damageSource);
             body.QueueFree();
-            //GD.Print("Hurt");
         }
     }
 
