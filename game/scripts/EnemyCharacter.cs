@@ -16,6 +16,8 @@ public class EnemyCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
+    private Globals.Element _currentElement = Globals.Element.None;
+
     public override void _Ready()
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);

@@ -44,6 +44,8 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
+    private Globals.Element _currentElement = Globals.Element.Metal;
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -121,6 +123,27 @@ public class PlayerCharacter : KinematicBody2D
         {
             _shouldShoot = !_shouldShoot;
         }
+
+        if (@event.IsActionPressed("Previous_Element"))
+        {
+            if((int)_currentElement <= 1)
+            {
+                _currentElement = Globals.Element.Earth;
+                return;
+            }
+            _currentElement--;
+        }
+
+        if (@event.IsActionPressed("Next_Element"))
+        {
+            if ((int)_currentElement >= 5)
+            {
+                _currentElement = Globals.Element.Metal;
+                return;
+            }
+            _currentElement++;
+        }
+
     }
 
     public override void _PhysicsProcess(float delta)
@@ -137,7 +160,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * MoveSpeed;
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
-        //GD.Print(Velocity.Length());
+        //GD.Print(_currentElement);
         MoveAndSlide(Velocity);
     }
 
