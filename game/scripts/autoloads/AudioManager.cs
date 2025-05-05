@@ -8,11 +8,10 @@ public class AudioManager : Node
 {
     public int AudioChannelCount { get; private set; } = 16;
 
-    private string AudioBus = "master";
-
 
     private Dictionary<string, AudioStreamPlayer> _sfxChannels = new Dictionary<string, AudioStreamPlayer>();
-    //private AudioStreamPlayer _bgmChannels;
+
+    private AudioStreamPlayer _bgmChannels;
 
 
     private static AudioManager _instance;
@@ -24,9 +23,14 @@ public class AudioManager : Node
             return;
         }
         _instance = this;
+
+        var audioPlayer = new AudioStreamPlayer();
+        audioPlayer.Bus = "BGM";
+        _bgmChannels = audioPlayer;
+        AddChild(audioPlayer);
     }
 
-    private void CreateAudioChannel(string soundPath)
+    private void CreateSFXChannel(string soundPath)
     {
         var audioPlayer = new AudioStreamPlayer();
         audioPlayer.Stream = GD.Load<AudioStream>(soundPath);
@@ -48,55 +52,73 @@ public class AudioManager : Node
     {
         if (!_sfxChannels.ContainsKey(soundPath))
         {
-            CreateAudioChannel(soundPath);
+            CreateSFXChannel(soundPath);
         }
 
         var channelRef = _sfxChannels[soundPath];
-        GD.Print(channelRef.Bus);
         channelRef.Play();
         return;
     }
 
-    public static void SetChannelVolume(string soundPath, float volume)
+    public static void PlayBMG(string soundPath, float volume = 0.5f)
     {
         if (_instance != null)
         {
-            _instance.SetChannelVolumeInternal(soundPath, volume);
+            _instance.PlayBGMInternal(soundPath, volume);
         }
     }
 
-    private void SetChannelVolumeInternal(string soundPath, float volume)
+    public void PlayBGMInternal(string soundPath, float volume = 0.5f)
+    {
+        _bgmChannels.Stream = GD.Load<AudioStream>(soundPath);
+        _bgmChannels.VolumeDb = GD.Linear2Db(volume);
+        _bgmChannels.Play();
+    }
+
+
+    public static void SetSFXChannelVolume(string soundPath, float volume)
+    {
+        if (_instance != null)
+        {
+            _instance.SetSFXChannelVolumeInternal(soundPath, volume);
+        }
+    }
+
+    private void SetSFXChannelVolumeInternal(string soundPath, float volume)
     {
         if (!_sfxChannels.ContainsKey(soundPath))
         {
-            CreateAudioChannel(soundPath);
+            CreateSFXChannel(soundPath);
         }
         _sfxChannels[soundPath].VolumeDb = GD.Linear2Db(volume);
     }
+
+
+
 
     public static void SetMasterVolume(float volume)
     {
         if (_instance != null)
         {
-            _instance.SetMasterVolumeInternal(volume);
+            _instance.SetVolumeInternal(0, volume);
         }
     }
-
-    private void SetMasterVolumeInternal(float volume)
-    {
-        AudioServer.SetBusVolumeDb(0, GD.Linear2Db(volume));
-    }
-
     public static void SetSFXVolume(float volume)
     {
         if (_instance != null)
         {
-            _instance.SetSFXVolumeInternal(volume);
+            _instance.SetVolumeInternal(1, volume);
         }
     }
-
-    private void SetSFXVolumeInternal(float volume)
+    public static void SetBGMVolume(float volume)
     {
-        AudioServer.SetBusVolumeDb(1, GD.Linear2Db(volume));
+        if (_instance != null)
+        {
+            _instance.SetVolumeInternal(2, volume);
+        }
+    }
+    private void SetVolumeInternal(int index, float volume)
+    {
+        AudioServer.SetBusVolumeDb(index, GD.Linear2Db(volume));
     }
 }

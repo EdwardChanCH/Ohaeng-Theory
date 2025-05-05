@@ -7,6 +7,9 @@ public class AudioTestingUserInterface : Node
     Resource[] SoundPath { get; set; } = new Resource[0];
 
     [Export]
+    Resource[] MusicPath { get; set; } = new Resource[0];
+
+    [Export]
     NodePath ButtonContainer { get; set; }
 
     [Export]
@@ -38,6 +41,18 @@ public class AudioTestingUserInterface : Node
             buttonContrainer.AddChild(button);
         }
 
+
+        foreach (Resource sound in MusicPath)
+        {
+            var button = new Button();
+            var arg = new Godot.Collections.Array(sound);
+            button.Connect("pressed", this, "PlayMusic", arg);
+            button.RectSize = new Vector2(300, 60);
+            button.Text = sound.ResourcePath;
+            button.Theme = GD.Load<Theme>("res://themes/button_theme.tres");
+            buttonContrainer.AddChild(button);
+        }
+
         var masterArg = new Godot.Collections.Array(MasterSlider, 0);
         MasterSlider.Connect("drag_ended", this, "UpdateVolume", masterArg);
 
@@ -51,6 +66,11 @@ public class AudioTestingUserInterface : Node
     private void PlaySound(Resource sound)
     {
         AudioManager.PlaySFX(sound.ResourcePath);
+    }
+
+    private void PlayMusic(Resource sound)
+    {
+        AudioManager.PlayBMG(sound.ResourcePath);
     }
 
     private void UpdateVolume(bool changed, Slider sliderRef ,int type)
@@ -68,7 +88,7 @@ public class AudioTestingUserInterface : Node
                 break;
 
             case 2:
-                AudioManager.SetChannelVolume("res://assets/sfx/tabletop_jazz_cafe/Tabletop Jazz Cafe.wav", (float)sliderRef.Value);
+                AudioManager.SetBGMVolume((float)sliderRef.Value);
                 break;
         }
     }
