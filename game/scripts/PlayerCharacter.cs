@@ -124,22 +124,12 @@ public class PlayerCharacter : KinematicBody2D
 
         if (@event.IsActionPressed("Previous_Element"))
         {
-            if((int)_currentElement <= 1)
-            {
-                _currentElement = Globals.Element.Earth;
-                return;
-            }
-            _currentElement--;
+            _currentElement = Globals.PreviousElement(_currentElement);
         }
 
         if (@event.IsActionPressed("Next_Element"))
         {
-            if ((int)_currentElement >= 5)
-            {
-                _currentElement = Globals.Element.Metal;
-                return;
-            }
-            _currentElement++;
+            _currentElement = Globals.NextElement(_currentElement);
         }
 
     }
@@ -193,7 +183,7 @@ public class PlayerCharacter : KinematicBody2D
     public void TestShoot()
     {
         // - - - Should be done by projectie manager - - -
-        Bullet testBullet = GD.Load<PackedScene>("res://scenes/test_bullet_2.tscn").Instance<Bullet>();
+        Bullet testBullet = GD.Load<PackedScene>("res://scenes/projectiles/metal_bullet.tscn").Instance<Bullet>();
         testBullet.Position = this.Position;
         testBullet.Damage = 1;
         testBullet.InitialDirection = Vector2.Right;
