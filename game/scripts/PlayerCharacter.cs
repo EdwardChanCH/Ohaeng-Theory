@@ -66,7 +66,8 @@ public class PlayerCharacter : KinematicBody2D
     {
         if (UseMouseDirectedInput)
         {
-            TargetLocation = GetViewport().GetMousePosition();
+            //TargetLocation = GetViewport().GetMousePosition();
+            TargetLocation = GetGlobalMousePosition();
             MoveDirection = Position.DirectionTo(TargetLocation);
         }
         else
