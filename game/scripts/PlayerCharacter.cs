@@ -51,8 +51,6 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
-        // TODO: test code
-        //TestShoot();
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
