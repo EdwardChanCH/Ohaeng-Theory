@@ -110,7 +110,7 @@ public class PlayerCharacter : KinematicBody2D
         {
             _fireTimer = 0;
             //GD.Print("Shoot");
-            ShootStraight();
+            Shoot();
         }
     }
 
@@ -181,13 +181,9 @@ public class PlayerCharacter : KinematicBody2D
         _shouldShoot = false;
     }
 
-    private void ShootStraight()
+    private void Shoot()
     {
-        Bullet bullet = ProjectileManager.SpawnBullet(_currentElement, GetTree().Root);
-        bullet.Position = Position;
-        bullet.Damage = 1;
-        bullet.InitialDirection = Vector2.Right;
-        bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+        ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 
