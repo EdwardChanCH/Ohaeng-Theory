@@ -7,6 +7,15 @@ using System.Linq;
 // Note: Godot autoload requires Node type.
 public class Globals : Node
 {
+    [Signal]
+    public delegate void GameDataChanged(string key, string value);
+
+    // Game Data (last for the whole game)
+    public static Dictionary<string, string> GameData { get; private set; } = new Dictionary<string, string>();
+
+    // Temporary Data (for passing data between screens)
+    public static Dictionary<string, string> TempData { get; set; } = new Dictionary<string, string>();
+
     // Element (ranked by importance)
     public enum Element
     {
@@ -27,12 +36,16 @@ public class Globals : Node
 
     public static Globals Singleton { get; private set; }
 
-    public static Dictionary<string, string> GameData = new Dictionary<string, string>();
-
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         Singleton = this;
+    }
+
+    public static ChangeGameData(string key, string value)
+    {
+        GameData[dataName] = dataValue;
+        EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
     }
 
     // Increment element enum
