@@ -58,7 +58,7 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
-        AudioManager.SetChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -143,7 +143,12 @@ public class PlayerCharacter : KinematicBody2D
         if(UseMouseDirectedInput)
         {
             var distance = Position.DistanceTo(TargetLocation);
-            Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1));
+            //Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1));
+
+            if (distance <= 5)
+                Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance / MoveSpeed, 0, 1));
+            else
+                Velocity = MoveDirection * MoveSpeed;
         }
         else
         {
@@ -151,7 +156,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
 
-        GD.Print(Velocity); // TODO test
+        GD.Print(Velocity.Length()); // TODO test
         MoveAndSlide(Velocity);
     }
 
@@ -161,7 +166,6 @@ public class PlayerCharacter : KinematicBody2D
         {
             _healthComponent.ApplyDamage(damageSource);
             body.QueueFree();
-            //GD.Print("Hurt");
         }
     }
 

@@ -11,6 +11,14 @@ public class EnemyCharacter : KinematicBody2D
     public NodePath HealthBarPath { get; private set; } = new NodePath();
     private ProgressBar _healthBar;
 
+    [Export]
+    public NodePath HealthTextPath { get; private set; } = new NodePath();
+    private Label _healthText;
+
+    [Export]
+    public NodePath DamagePopupPath { get; private set; } = new NodePath();
+    private DamagePopup _damagePopup;
+
 
     // Need a timer component
     private float _fireDelay;
@@ -22,8 +30,11 @@ public class EnemyCharacter : KinematicBody2D
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
+        _healthText = GetNode<Label>(HealthTextPath);
+        _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
 
-        if (_healthComponent == null || _healthBar == null)
+        if (_healthComponent == null || _healthBar == null 
+            || _healthText == null || _damagePopup == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
@@ -49,7 +60,8 @@ public class EnemyCharacter : KinematicBody2D
     {
         if (body is IHarmful damageSource)
         {
-            _healthComponent.ApplyDamage(damageSource);
+            _healthComponent.ApplyDamage(damageSource.GetDamage());
+            _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
             body.QueueFree();
             //GD.Print("Hurt");
         }
@@ -58,6 +70,7 @@ public class EnemyCharacter : KinematicBody2D
     public void _OnHealthUpdate(int newHealth)
     {
         _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + _healthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
