@@ -110,7 +110,7 @@ public class PlayerCharacter : KinematicBody2D
         {
             _fireTimer = 0;
             //GD.Print("Shoot");
-            TestShoot();
+            ShootStraight();
         }
     }
 
@@ -150,7 +150,8 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * MoveSpeed;
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
-        //GD.Print(_currentElement);
+
+        GD.Print(Velocity); // TODO test
         MoveAndSlide(Velocity);
     }
 
@@ -179,18 +180,14 @@ public class PlayerCharacter : KinematicBody2D
         _shouldShoot = false;
     }
 
-
-
-    public void TestShoot()
+    private void ShootStraight()
     {
-        // - - - Should be done by projectie manager - - -
-        Bullet testBullet = GD.Load<PackedScene>("res://scenes/projectiles/metal_bullet.tscn").Instance<Bullet>();
-        testBullet.Position = this.Position;
-        testBullet.Damage = 1;
-        testBullet.InitialDirection = Vector2.Right;
-        testBullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
-        GetTree().Root.CallDeferred("add_child", testBullet);
+        Bullet bullet = ProjectileManager.SpawnBullet(_currentElement, GetTree().Root);
+        bullet.Position = Position;
+        bullet.Damage = 1;
+        bullet.InitialDirection = Vector2.Right;
+        bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
-        // - - - Should be done by projectie manager - - -
     }
+
 }

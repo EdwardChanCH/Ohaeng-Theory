@@ -65,9 +65,9 @@ public class ProjectileManager : Node
         return projectile;
     }
 
-    public static Node SpawnProjectile(Globals.Element element, Node parentNode)
+    public static Bullet SpawnBullet(Globals.Element element, Node parentNode)
     {
-        return SpawnProjectile(_bulletScenePath[element], parentNode);
+        return (Bullet)SpawnProjectile(_bulletScenePath[element], parentNode);
     }
 
     // Despawn at the end of frame
