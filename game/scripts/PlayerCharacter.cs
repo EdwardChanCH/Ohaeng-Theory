@@ -180,7 +180,7 @@ public class PlayerCharacter : KinematicBody2D
                 {
                     // TargetLocation == Position + Velocity * delta == Position + MoveDirection * distanceToTarget
                     Velocity = MoveDirection * distanceToTarget / delta;
-                    GD.Print("Overshoot prevented."); // TODO test
+                    //GD.Print("Overshoot prevented."); // TODO test
                 }
             }
         }
