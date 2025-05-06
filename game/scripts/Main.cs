@@ -8,7 +8,7 @@ public class Main : Node2D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        ScreenManager.SwitchToNextScreen("res://scenes/Screens/main_menu_screen.tscn", GetTree().Root);
+        ScreenManager.SwitchToNextScreen(ScreenManager.GameplayScreenPath, GetTree().Root);
 
         //GD.Print("Hello world!");
     }
