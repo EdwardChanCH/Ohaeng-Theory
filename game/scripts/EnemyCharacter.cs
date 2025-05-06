@@ -8,7 +8,7 @@ public class EnemyCharacter : KinematicBody2D
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    private HealthComponent _healthComponent;
+    public HealthComponent HealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -37,19 +37,19 @@ public class EnemyCharacter : KinematicBody2D
 
     public override void _Ready()
     {
-        _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
 
-        if (_healthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null 
             || _healthText == null || _damagePopup == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
         }
 
-        _OnHealthUpdate(_healthComponent.CurrentHealth);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
 
         _fireDelay = (float)GD.RandRange(1.0, 5.0);
 
@@ -87,7 +87,7 @@ public class EnemyCharacter : KinematicBody2D
     {
         if (body is IHarmful damageSource)
         {
-            _healthComponent.ApplyDamage(damageSource.GetDamage());
+            HealthComponent.ApplyDamage(damageSource.GetDamage());
             _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
             body.QueueFree();
             //GD.Print("Hurt");
@@ -96,8 +96,8 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + _healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
@@ -128,9 +128,4 @@ public class EnemyCharacter : KinematicBody2D
         ElementalCount[element] = Mathf.Clamp(ElementalCount[element] - count, 0, 255);
         EmitSignal("UpdateElement", element, ElementalCount[element]);
     }
-
-
-
-
-
 }
