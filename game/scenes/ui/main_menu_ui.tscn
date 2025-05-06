@@ -2,9 +2,10 @@
 
 [ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=2]
-[ext_resource path="res://themes/button_theme.tres" type="Theme" id=3]
+[ext_resource path="res://themes/main_ui_theme.tres" type="Theme" id=3]
 [ext_resource path="res://assets/textures/InnerCircle.png" type="Texture" id=4]
 [ext_resource path="res://scripts/MainMenuUI.cs" type="Script" id=5]
+
 
 [sub_resource type="DynamicFont" id=1]
 size = 143

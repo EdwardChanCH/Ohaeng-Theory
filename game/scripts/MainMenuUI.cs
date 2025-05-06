@@ -10,6 +10,6 @@ public class MainMenuUI : Node
 
     public void _OnSettingButtonPressed()
     {
-        
+        ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
     }
 }

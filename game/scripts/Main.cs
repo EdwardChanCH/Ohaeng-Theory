@@ -9,13 +9,5 @@ public class Main : Node2D
     public override void _Ready()
     {
         ScreenManager.SwitchToNextScreen(ScreenManager.MainMenuScreenPath, GetTree().Root);
-
-        //GD.Print("Hello world!");
     }
-
-//  // Called every frame. 'delta' is the elapsed time since the previous frame.
-//  public override void _Process(float delta)
-//  {
-//      
-//  }
 }

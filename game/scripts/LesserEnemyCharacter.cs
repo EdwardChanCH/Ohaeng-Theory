@@ -5,7 +5,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    private HealthComponent _healthComponent;
+    public HealthComponent HealthComponent { get; private set; };
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -31,20 +31,20 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public override void _Ready()
     {
-        _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
         _movementComponent = GetNode<IMovement>(MovementComponentPath);
 
-        if (_healthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null 
             || _movementComponent == null || _healthText == null || _damagePopup == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
         }
 
-        _OnHealthUpdate(_healthComponent.CurrentHealth);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
 
         _movementComponent.ChangeDirection(MoveDirection);
         SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
@@ -59,7 +59,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         if (body is IHarmful damageSource)
         {
-            _healthComponent.ApplyDamage(damageSource);
+            HealthComponent.ApplyDamage(damageSource);
             _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
             body.QueueFree();
         }
@@ -67,8 +67,8 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + _healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
