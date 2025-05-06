@@ -10,8 +10,9 @@
 script = ExtResource( 5 )
 
 [node name="Background" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.0784314 )
 position = Vector2( 936, 532 )
-scale = Vector2( 10, 10 )
+scale = Vector2( 15, 15 )
 texture = ExtResource( 1 )
 
 [node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]

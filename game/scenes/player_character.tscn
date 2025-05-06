@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://assets/textures/discount_reimu_2.png" type="Texture" id=1]
+[ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=1]
 [ext_resource path="res://scripts/PlayerCharacter.cs" type="Script" id=2]
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=3]
 [ext_resource path="res://scripts/HealthComponent.cs" type="Script" id=4]

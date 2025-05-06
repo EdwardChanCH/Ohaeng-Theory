@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/discount_reimu_2.png-7a9f2c63c5d6c44ff4e62f1b7a455ae3.stex"
+path="res://.import/discount_reimu_2.png-2895b56b1bf940b727ea4fb411f46694.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/discount_reimu_2.png"
-dest_files=[ "res://.import/discount_reimu_2.png-7a9f2c63c5d6c44ff4e62f1b7a455ae3.stex" ]
+source_file="res://discount_reimu_2.png"
+dest_files=[ "res://.import/discount_reimu_2.png-2895b56b1bf940b727ea4fb411f46694.stex" ]
 
 [params]
 
