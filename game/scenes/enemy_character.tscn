@@ -5,7 +5,7 @@
 [ext_resource path="res://scripts/HealthComponent.cs" type="Script" id=3]
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=4]
 [ext_resource path="res://scenes/damage_popup.tscn" type="PackedScene" id=5]
-[ext_resource path="res://scripts/ElementalCount.cs" type="Script" id=6]
+[ext_resource path="res://scenes/ElementalCount.tscn" type="PackedScene" id=6]
 
 [sub_resource type="CircleShape2D" id=5]
 radius = 100.0
@@ -49,10 +49,10 @@ collision_mask = 6
 shape = SubResource( 6 )
 
 [node name="DamagePopup" parent="." instance=ExtResource( 5 )]
-margin_left = -54.0
-margin_top = -48.0
-margin_right = -36.0
-margin_bottom = -34.0
+margin_left = -102.0
+margin_top = -89.0
+margin_right = -84.0
+margin_bottom = -75.0
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 show_behind_parent = true
@@ -60,11 +60,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-margin_left = -56.0
-margin_top = 55.0
-margin_right = 54.0
-margin_bottom = 69.0
-rect_pivot_offset = Vector2( 55, 7 )
+margin_left = -55.0
+margin_top = 111.0
+margin_right = 55.0
+margin_bottom = 125.0
 custom_styles/fg = SubResource( 3 )
 custom_styles/bg = SubResource( 4 )
 max_value = 1.0
@@ -77,63 +76,11 @@ anchor_bottom = 1.0
 text = "??? / ???"
 align = 1
 
-[node name="ElementalCount" type="VBoxContainer" parent="."]
-margin_left = 41.0
-margin_top = -41.0
-margin_right = 53.0
-margin_bottom = 45.0
-script = ExtResource( 6 )
-ElementalCountLabelPaths = [ NodePath("WaterCount"), NodePath("WoodCount"), NodePath("FireCount"), NodePath("EarthCount"), NodePath("MetalCount") ]
-
-[node name="WaterCount" type="Label" parent="ElementalCount"]
-modulate = Color( 0, 0.929412, 1, 1 )
-margin_right = 12.0
-margin_bottom = 14.0
-text = "??"
-
-[node name="WoodCount" type="Label" parent="ElementalCount"]
-modulate = Color( 0.741176, 0.419608, 0, 1 )
-margin_top = 18.0
-margin_right = 12.0
-margin_bottom = 32.0
-text = "??"
-
-[node name="FireCount" type="Label" parent="ElementalCount"]
-modulate = Color( 1, 0.376471, 0, 1 )
-margin_top = 36.0
-margin_right = 12.0
-margin_bottom = 50.0
-text = "??"
-
-[node name="EarthCount" type="Label" parent="ElementalCount"]
-modulate = Color( 0.882353, 0.764706, 0.00784314, 1 )
-margin_top = 54.0
-margin_right = 12.0
-margin_bottom = 68.0
-text = "??"
-
-[node name="MetalCount" type="Label" parent="ElementalCount"]
-margin_top = 72.0
-margin_right = 12.0
-margin_bottom = 86.0
-text = "??"
-
-[node name="Sprite" type="Sprite" parent="."]
-modulate = Color( 1, 0, 0, 1 )
-texture = ExtResource( 1 )
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-visible = false
-shape = SubResource( 1 )
-
-[node name="Hitbox" type="Area2D" parent="."]
-visible = false
-collision_layer = 0
-collision_mask = 6
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
-visible = false
-shape = SubResource( 2 )
+[node name="ElementalCount" parent="." instance=ExtResource( 6 )]
+margin_left = 116.0
+margin_top = -42.0
+margin_right = 128.0
+margin_bottom = 44.0
 
 [connection signal="UpdateElement" from="." to="ElementalCount" method="_UpdateElement"]
 [connection signal="HealthDepleted" from="HealthComponent" to="." method="_OnHealthDepleted"]
