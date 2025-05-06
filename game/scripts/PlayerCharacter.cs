@@ -12,15 +12,22 @@ public class PlayerCharacter : KinematicBody2D
     private ProgressBar _healthBar;
 
     [Export]
-    public bool UseMouseDirectedInput { get; set; }= true;
+    public NodePath PlayerSpritePath { get; private set; } = new NodePath();
+    private Sprite _playerSprite;
+
+    [Export]
+    public bool UseMouseDirectedInput { get; set; } = true;
 
     [Export]
     public bool UseToggleShootInput { get; set; } = true;
 
+    [Export]
+    public bool UseSmoothedMovemment { get; set; } = false;
+
 
     [Export]
-    public float MoveSpeed { get; set; } = 100.0f;
-    public Vector2 MoveDirection { get; private set; } = new Vector2();
+    public float MaxMoveSpeed { get; set; } = 800.0f;
+    public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
     // Ever unit is 0.01 seonds
     [Export(PropertyHint.Range, "-100,100")]
@@ -33,10 +40,6 @@ public class PlayerCharacter : KinematicBody2D
     public Vector2 TargetLocation { get; private set; }
 
     public Vector2 Velocity { get; private set; }
-
-    // Use to control movement at _PhysicsProcess()
-    private float _yAxisMovement = 0;
-    private float _xAxisMovement = 0;
 
     private bool _shouldShoot = false;
 
@@ -51,9 +54,11 @@ public class PlayerCharacter : KinematicBody2D
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
-        if (_healthComponent == null || _healthBar == null)
+        _playerSprite = GetNode<Sprite>(PlayerSpritePath);
+  
+        if (_healthComponent == null || _healthBar == null || _playerSprite == null)
         {
-            GD.PrintErr("Error: Player Controller Contrain Invalid Path");
+            GD.PrintErr("Error: PlayerController has invalid export variable path.");
             return;
         }
 
@@ -66,52 +71,66 @@ public class PlayerCharacter : KinematicBody2D
     {
         if (UseMouseDirectedInput)
         {
-            //TargetLocation = GetViewport().GetMousePosition();
             TargetLocation = GetGlobalMousePosition();
-            MoveDirection = Position.DirectionTo(TargetLocation);
+            MoveDirection = Position.DirectionTo(TargetLocation); // Normalized
         }
         else
         {
-            _yAxisMovement = 0;
-            _xAxisMovement = 0;
+            float yAxisMovement = 0;
+            float xAxisMovement = 0;
 
             if (Input.IsActionPressed("Move_Up"))
             {
-                _yAxisMovement -= 1;
+                yAxisMovement -= 1;
             }
 
             if (Input.IsActionPressed("Move_Down"))
             {
-                _yAxisMovement += 1;
+                yAxisMovement += 1;
             }
 
             if (Input.IsActionPressed("Move_Left"))
             {
-                _xAxisMovement -= 1;
+                xAxisMovement -= 1;
             }
 
             if (Input.IsActionPressed("Move_Right") )
             {
-                _xAxisMovement += 1;
+                xAxisMovement += 1;
             }
 
-            MoveDirection = new Vector2(_xAxisMovement, _yAxisMovement);
+            MoveDirection = new Vector2(xAxisMovement, yAxisMovement).Normalized(); // Normalized
         }
 
         if(!UseToggleShootInput)
         {
             _shouldShoot = Input.IsActionPressed("Shoot");
         }
-            //GD.Print(_shouldShoot);
-
 
         _fireTimer += delta;
+
         if(_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
-            //GD.Print("Shoot");
             Shoot();
         }
+
+        // TODO: Tilt character sprite, need lerp smoothing
+        if (Velocity.x <= -300)
+        {
+            _playerSprite.RotationDegrees = -10;
+        }
+        else if (Velocity.x >= 300)
+        {
+            _playerSprite.RotationDegrees = 10;
+        }
+        else
+        {
+            _playerSprite.RotationDegrees = 0;
+        }
+
+        //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
+        //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
     }
 
     public override void _Input(InputEvent @event)
@@ -138,25 +157,40 @@ public class PlayerCharacter : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
-        Velocity = Vector2.Zero;
-        // TD: Clean this
-        if(UseMouseDirectedInput)
+        // Calculate player velocity
+        if (UseMouseDirectedInput)
         {
-            var distance = Position.DistanceTo(TargetLocation);
-            //Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1));
-
-            if (distance <= 5)
-                Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance / MoveSpeed, 0, 1));
+            // Mouse control
+            if (UseSmoothedMovemment)
+            {
+                // Smoothed movement
+                float distanceToTarget = Position.DistanceTo(TargetLocation);
+                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / MaxMoveSpeed, 0, 1); // Decelerate when close to target
+                Velocity = MoveDirection * MaxMoveSpeed * smoothFactor;
+            }
             else
-                Velocity = MoveDirection * MoveSpeed;
+            {
+                // Constant speed movement
+                Velocity = MoveDirection * MaxMoveSpeed;
+                float distanceToTarget = Position.DistanceTo(TargetLocation);
+                float distanceAfter = MaxMoveSpeed * delta;
+
+                // Check if it will overshoot
+                if (distanceAfter > distanceToTarget)
+                {
+                    // TargetLocation == Position + Velocity * delta == Position + MoveDirection * distanceToTarget
+                    Velocity = MoveDirection * distanceToTarget / delta;
+                    GD.Print("Overshoot prevented."); // TODO test
+                }
+            }
         }
         else
         {
-            Velocity = MoveDirection * MoveSpeed;
-            Velocity = Velocity.LimitLength(MoveSpeed);
+            // Keyboard control
+            Velocity = MoveDirection * MaxMoveSpeed;
         }
 
-        GD.Print(Velocity.Length()); // TODO test
+        GD.Print($"{Velocity.x} , {Velocity.y} = {Velocity.Length()}"); // TODO test
         MoveAndSlide(Velocity);
     }
 
