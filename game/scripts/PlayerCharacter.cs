@@ -156,7 +156,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = Velocity.LimitLength(MoveSpeed);
         }
 
-        GD.Print(Velocity.Length()); // TODO test
+        //GD.Print(Velocity.Length()); // TODO test
         MoveAndSlide(Velocity);
     }
 

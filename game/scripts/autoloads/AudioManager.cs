@@ -15,6 +15,7 @@ public class AudioManager : Node
 
 
     private static AudioManager _instance;
+
     public override void _EnterTree()
     {
         if(_instance != null)
@@ -92,8 +93,6 @@ public class AudioManager : Node
         }
         _sfxChannels[soundPath].VolumeDb = GD.Linear2Db(volume);
     }
-
-
 
 
     public static void SetMasterVolume(float volume)
