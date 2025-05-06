@@ -11,6 +11,10 @@ public class EnemyCharacter : KinematicBody2D
     public HealthComponent HealthComponent { get; private set; }
 
     [Export]
+    NodePath CharacterSpirtePath = new NodePath();
+    public Sprite CharacterSprite { get; private set; }
+
+    [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
     private ProgressBar _healthBar;
 
@@ -38,12 +42,12 @@ public class EnemyCharacter : KinematicBody2D
     public override void _Ready()
     {
         HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-
         if (HealthComponent == null || _healthBar == null 
-            || _healthText == null || _damagePopup == null)
+            || _healthText == null || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;

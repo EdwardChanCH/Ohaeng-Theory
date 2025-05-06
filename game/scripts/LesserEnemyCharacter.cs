@@ -5,7 +5,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent HealthComponent { get; private set; };
+    public HealthComponent HealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
