@@ -46,7 +46,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
         _OnHealthUpdate(_healthComponent.CurrentHealth);
 
-        _movementComponent.ChangeDirection(MoveDirection);
+        _movementComponent.Direction = MoveDirection;
         SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
     }
 

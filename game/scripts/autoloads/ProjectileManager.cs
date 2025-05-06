@@ -22,6 +22,25 @@ public class ProjectileManager : Node
         {Globals.Element.Metal, "res://scenes/projectiles/metal_bullet.tscn"}
     };
 
+    // Return a non-moving, non-parented projectile as template.
+    public static Node LoadTemplate(string scenePath)
+    {
+        // Check if that scene is cached
+        if (!_cachedScenes.ContainsKey(scenePath))
+        {
+            _cachedScenes[scenePath] = GD.Load<PackedScene>(scenePath);
+        }
+
+        // Make a new projectile
+        Node projectile = _cachedScenes[scenePath].Instance();
+
+        // Disable processing
+        projectile.SetProcess(false);
+        projectile.SetPhysicsProcess(false);
+
+        return projectile;
+    }
+
     // Get a projectile scene instance. The caller needs to set up the projectile.
     // Set parentNode to GetTree().Root in most cases
     // Returns the root node of a projectile scene
@@ -62,12 +81,20 @@ public class ProjectileManager : Node
         projectile.SetProcess(true);
         projectile.SetPhysicsProcess(true);
 
+        // Initalize the projectile immediately, instead of waiting for _Ready()
+        if (projectile is Bullet)
+        {
+            ((Bullet)projectile).Initalize(); // TODO need clean up
+        }
+
         return projectile;
     }
 
-    public static Bullet SpawnBullet(Globals.Element element, Node parentNode)
+    // Overload to use template
+    public static Node SpawnProjectile(Node template)
     {
-        return (Bullet)SpawnProjectile(_bulletScenePath[element], parentNode);
+        Node projectile = SpawnProjectile(template.Filename, template.GetParent());
+        return projectile;
     }
 
     // Despawn at the end of frame
@@ -109,8 +136,6 @@ public class ProjectileManager : Node
         Singleton = this;
     }
 
-
-
     // - - - Bullet Emitter Functions - - -
     // Sinful code; will refactor as an Emitter class later
     // Experimental
@@ -118,11 +143,12 @@ public class ProjectileManager : Node
     // Emit one single bullet
     public static void EmitBulletSingle(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer)
     {
-        Bullet bullet = ProjectileManager.SpawnBullet(element, parentNode);
+        Bullet bullet = (Bullet)SpawnProjectile(_bulletScenePath[element], parentNode);
         bullet.Position = position;
-        bullet.InitialDirection = direction;
+        bullet.ChangeDirection(direction);
         bullet.Damage = damage;
         bullet.CollisionLayer = (uint)0;
+        bullet.CollisionMask = (uint)0;
         if (fromPlayer)
         {
             bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
