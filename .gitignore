@@ -509,3 +509,4 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,godot,visualstudio,visualstudiocode
 
+/exports

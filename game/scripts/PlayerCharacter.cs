@@ -190,7 +190,6 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * MaxMoveSpeed;
         }
 
-        GD.Print($"{Velocity.x} , {Velocity.y} = {Velocity.Length()}"); // TODO test
         MoveAndSlide(Velocity);
     }
 

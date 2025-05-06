@@ -29,16 +29,13 @@ position = Vector2( 1574, 246 )
 position = Vector2( 1587, 600 )
 
 [node name="EnemyCharacter5" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1607, 903 )
-
-[node name="LesserEnemyCharacter" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1726, 322 )
+position = Vector2( 1573, 878 )
 
 [node name="LesserEnemyCharacter2" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1731, 530 )
+position = Vector2( 1717, 102 )
 
 [node name="LesserEnemyCharacter3" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1734, 700 )
+position = Vector2( 1738, 433 )
 
 [node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1726, 837 )
+position = Vector2( 1740, 794 )

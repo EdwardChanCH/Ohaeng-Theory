@@ -3,6 +3,9 @@ using System;
 
 public class EnemyCharacter : KinematicBody2D
 {
+    [Signal]
+    public delegate void UpdateElement(Globals.Element element, int newCount);
+
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
     private HealthComponent _healthComponent;
@@ -25,6 +28,12 @@ public class EnemyCharacter : KinematicBody2D
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.None;
+    public System.Collections.Generic.Dictionary<Globals.Element, int> ElementalCount { get; private set; } = 
+        new System.Collections.Generic.Dictionary<Globals.Element, int>();
+
+    public override void _EnterTree()
+    {
+    }
 
     public override void _Ready()
     {
@@ -43,6 +52,25 @@ public class EnemyCharacter : KinematicBody2D
         _OnHealthUpdate(_healthComponent.CurrentHealth);
 
         _fireDelay = (float)GD.RandRange(1.0, 5.0);
+
+        for (int i = 1; i <= 5; i++)
+        {
+            ElementalCount.Add((Globals.Element)i, 0);
+            EmitSignal("UpdateElement", (Globals.Element)i, 0);
+        }
+
+
+        // for testing remove later
+        var rng = new RandomNumberGenerator();
+        rng.Randomize();
+        int loop = rng.RandiRange(1, 3);
+        for (int i = 1; i < loop; i++)
+        {
+            rng.Randomize();
+            int randomInt = rng.RandiRange(1, 5);
+            rng.Randomize();
+            AddToElement((Globals.Element)randomInt, rng.RandiRange(1, 10));
+        }
     }
 
     public override void _Process(float delta)
@@ -82,4 +110,27 @@ public class EnemyCharacter : KinematicBody2D
         ProjectileManager.EmitBulletRing(_currentElement, GetTree().Root, Position, Vector2.Left, 1, false, 12);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
+
+    public void AddToElement(Globals.Element element, int count)
+    {
+        if (element == 0)
+            return;
+
+        ElementalCount[element] += count;
+        EmitSignal("UpdateElement", element, ElementalCount[element]);
+    }
+
+    public void SubtractFromElement(Globals.Element element, int count)
+    {
+        if (element == 0)
+            return;
+
+        ElementalCount[element] = Mathf.Clamp(ElementalCount[element] - count, 0, 255);
+        EmitSignal("UpdateElement", element, ElementalCount[element]);
+    }
+
+
+
+
+
 }
