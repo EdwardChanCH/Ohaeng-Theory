@@ -4,7 +4,8 @@ using System;
 // This class is the entry point of the game.
 public class Bullet : KinematicBody2D, IHarmful
 {
-    private static int _spawnCounter = 0; // TODO test only
+    [Export]
+    public Globals.Element Element { get; set; } = Globals.Element.None;
 
     [Export]
     public int Damage { get; set; } = 0;
@@ -17,13 +18,25 @@ public class Bullet : KinematicBody2D, IHarmful
 
     private IMovement _movementComponent;
 
+    public int GetDamage()
+    {
+        return Damage;
+    }
+
+    // Copy data from another source bullet
+    public void CopyData(Bullet other)
+    {
+        this.Position = other.Position;
+        this.Damage = other.Damage;
+        this.InitialDirection = other.InitialDirection;
+        this.CollisionLayer = other.CollisionLayer;
+        this.CollisionMask = other.CollisionMask;
+    }
+
     // Note: Use this as the Main() method.
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        _spawnCounter += 1; // TODO test only
-        GD.Print($"Bullet #{_spawnCounter} spawned.");
-
         _movementComponent = GetNode<IMovement>(MovementComponentPath);
         _movementComponent.ChangeDirection(InitialDirection); // required
     }
@@ -34,8 +47,4 @@ public class Bullet : KinematicBody2D, IHarmful
         MoveAndSlide(_movementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
 
-    public int GetDamage()
-    {
-        return Damage;
-    }
 }
