@@ -40,12 +40,30 @@ public class Globals : Node
     public override void _Ready()
     {
         Singleton = this;
+        GameData.Add("UseMouseDirectedInput", "true");
+        GameData.Add("ToggleAttack", "true");
+        GameData.Add("ToggleSlow", "true");
+
     }
 
     public static void ChangeGameData(string key, string value)
     {
-        GameData[key] = value;
-        Singleton.EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
+        if (GameData.ContainsKey(key))
+        {
+            GameData[key] = value;
+            Singleton.EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
+        }
+    }
+
+    public static bool String2Bool(string str)
+    {
+        return str.ToLower() == "true";
+    }
+    public static string Bool2String(bool var)
+    {
+        if (var)
+            return "true";
+        return "false";
     }
 
     // Increment element enum

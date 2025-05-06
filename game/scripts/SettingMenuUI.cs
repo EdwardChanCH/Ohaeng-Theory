@@ -38,20 +38,22 @@ public class SettingMenuUI : Node
         _MusicSlider = GetNode<Slider>(MusicSliderPath);
 
 
-
+        _MouseDirectedInputCheckBox.Pressed = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        _ToggleAttackCheckBox.Pressed = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        _ToggleSlowCheckBox.Pressed = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
         _MasterSlider.Value = GD.Db2Linear(AudioServer.GetBusVolumeDb(0));
         _SFXSlider.Value = GD.Db2Linear(AudioServer.GetBusVolumeDb(1));
         _MusicSlider.Value = GD.Db2Linear(AudioServer.GetBusVolumeDb(2));
 
 
         var masterArg = new Godot.Collections.Array(_MasterSlider, 0);
-        _MasterSlider.Connect("drag_ended", this, "UpdateVolume", masterArg);
+        _MasterSlider.Connect("drag_ended", this, "_UpdateVolume", masterArg);
 
         var sfxArg = new Godot.Collections.Array(_SFXSlider, 1);
-        _SFXSlider.Connect("drag_ended", this, "UpdateVolume", sfxArg);
+        _SFXSlider.Connect("drag_ended", this, "_UpdateVolume", sfxArg);
 
         var bgmArg = new Godot.Collections.Array(_MusicSlider, 2);
-        _MusicSlider.Connect("drag_ended", this, "UpdateVolume", bgmArg);
+        _MusicSlider.Connect("drag_ended", this, "_UpdateVolume", bgmArg);
     }
 
     public void UpdateSettings()
@@ -64,7 +66,7 @@ public class SettingMenuUI : Node
         QueueFree();
     }
 
-    private void UpdateVolume(bool changed, Slider sliderRef, int type)
+    private void _UpdateVolume(bool changed, Slider sliderRef, int type)
     {
         GD.Print("Ah");
 
@@ -82,5 +84,10 @@ public class SettingMenuUI : Node
                 AudioManager.SetBGMVolume((float)sliderRef.Value);
                 break;
         }
+    }
+
+    private void _UpdateToggle(bool pressed, string data)
+    {
+        Globals.ChangeGameData(data, Globals.Bool2String(pressed));
     }
 }

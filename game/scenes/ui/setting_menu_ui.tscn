@@ -146,4 +146,7 @@ text = "Setting"
 align = 1
 valign = 1
 
+[connection signal="toggled" from="VBoxContainer/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
+[connection signal="toggled" from="VBoxContainer/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
+[connection signal="toggled" from="VBoxContainer/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
 [connection signal="pressed" from="BackButton" to="." method="_OnBackButtonPressed"]
