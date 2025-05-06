@@ -30,6 +30,7 @@ HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
 DamagePopupPath = NodePath("DamagePopup")
+CharacterSpirtePath = NodePath("Sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 3 )

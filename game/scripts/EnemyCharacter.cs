@@ -11,7 +11,7 @@ public class EnemyCharacter : KinematicBody2D
     public HealthComponent HealthComponent { get; private set; }
 
     [Export]
-    NodePath CharacterSpirtePath = new NodePath();
+    public NodePath CharacterSpirtePath = new NodePath();
     public Sprite CharacterSprite { get; private set; }
 
     [Export]
