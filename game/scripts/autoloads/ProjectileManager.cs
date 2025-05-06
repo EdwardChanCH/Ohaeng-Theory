@@ -109,4 +109,80 @@ public class ProjectileManager : Node
         Singleton = this;
     }
 
+
+
+    // - - - Bullet Emitter Functions - - -
+    // Sinful code; will refactor as an Emitter class later
+    // Experimental
+
+    // Emit one single bullet
+    public static void EmitBulletSingle(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer)
+    {
+        Bullet bullet = ProjectileManager.SpawnBullet(element, parentNode);
+        bullet.Position = position;
+        bullet.InitialDirection = direction;
+        bullet.Damage = damage;
+        bullet.CollisionLayer = (uint)0;
+        if (fromPlayer)
+        {
+            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+        }
+        else
+        {
+            bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
+        }
+
+    }
+
+    // public static void EmitBulletBeam(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount, int width)
+
+    // Emit bullets in a ring shape
+    public static void EmitBulletRing(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount)
+    {
+        if (bulletCount <= 0)
+        {
+            GD.PrintErr("Error: EmitBulletRing() must have bulletCount >= 1.");
+            bulletCount = 1;
+        }
+
+        float angle = 2 * Mathf.Pi / bulletCount;
+
+        for (int i = 0; i < bulletCount; i++)
+        {
+            EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i), damage, fromPlayer);
+        }
+    }
+
+    // Emit bullets in a cone shape
+    // Imagine diving a triangular pizza, the internal edges are bullet directions
+    // If spawnEdgeBullets is true, two more bullets spawn on the outermost edges
+    // maxSpread is in radian
+    public static void EmitBulletCone(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount, float maxSpread, bool spawnEdgeBullets)
+    {
+        if (bulletCount <= 0)
+        {
+            GD.PrintErr("Error: EmitBulletCone() must have bulletCount >= 1.");
+            bulletCount = 1;
+        }
+
+        float angle = maxSpread / (bulletCount + 1);
+
+        if (spawnEdgeBullets)
+        {
+            for (int i = 0; i < bulletCount + 2; i++)
+            {
+                EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i - maxSpread / 2), damage, fromPlayer);
+            }
+        }
+        else
+        {
+            for (int i = 1; i < bulletCount + 1; i++)
+            {
+                EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i - maxSpread / 2), damage, fromPlayer);
+            }
+        }
+    }
+
+    // - - - Bullet Emitter Functions - - -
+
 }
