@@ -55,7 +55,16 @@ https://docs.godotengine.org/en/3.6/tutorials/scripting/c_sharp/c_sharp_basics.h
 
 ## 6. 3rd-Party Resources:
 
-* (Asset Name)
-  * (Asset Link)
+> "Infinite Perspective" Kevin MacLeod (incompetech.com)
+> Licensed under Creative Commons: By Attribution 4.0 License
+> http://creativecommons.org/licenses/by/4.0/
+> 
+> YouTube Link: https://www.youtube.com/watch?v=UGOfGUC4o-w
+
+> "Unwritten Return" Kevin MacLeod (incompetech.com)
+> Licensed under Creative Commons: By Attribution 4.0 License
+> http://creativecommons.org/licenses/by/4.0/
+> 
+> YouTube Link: https://www.youtube.com/watch?v=sJQ98uKT-2E
 
 **Thank you for playing our game!**  

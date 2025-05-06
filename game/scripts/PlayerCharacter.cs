@@ -4,55 +4,160 @@ using System;
 public class PlayerCharacter : KinematicBody2D
 {
     [Export]
+    public NodePath HealthComponentPath { get; private set; } = new NodePath();
+    private HealthComponent _healthComponent;
+
+    [Export]
+    public NodePath HealthBarPath { get; private set; } = new NodePath();
+    private ProgressBar _healthBar;
+
+    [Export]
+    public bool UseMouseDirectedInput { get; set; }= true;
+
+    [Export]
+    public bool UseToggleShootInput { get; set; } = true;
+
+
+    [Export]
     public float MoveSpeed { get; set; } = 100.0f;
     public Vector2 MoveDirection { get; private set; } = new Vector2();
 
+    // Ever unit is 0.01 seonds
+    [Export(PropertyHint.Range, "-100,100")]
+    public int FireSpeed { get; set; } = 1;
+
+    [Export(PropertyHint.Range, "0.01,100")]
+    public float TimeSubtractionPerFireSpeedUnit { get; set; } = 0.01f;
+   
+
+    public Vector2 TargetLocation { get; private set; }
+
+    public Vector2 Velocity { get; private set; }
 
     // Use to control movement at _PhysicsProcess()
     private float _yAxisMovement = 0;
     private float _xAxisMovement = 0;
 
-    // The zone the player can move in
-    //[Export]
-    //public Vector2 MinMovementBound { get; private set; } = Vector2.Zero;
-    //[Export]
-    //public Vector2 MaxMovementBound { get; private set; } = Vector2.Zero;
+    private bool _shouldShoot = false;
 
-    [Export]
-    public NodePath HealthComponentPath = new NodePath();
-    private HealthComponent _healthComponent;
+    // Need a timer component
+    private float _fireDelay;
+    private float _fireTimer = 0.0f;
 
-
-    protected int PlayerScore = 0;
-
-
-    public Vector2 TargetLocation { get; private set; }
-
+    private Globals.Element _currentElement = Globals.Element.Metal;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
-        if (_healthComponent == null)
+        _healthBar = GetNode<ProgressBar>(HealthBarPath);
+        if (_healthComponent == null || _healthBar == null)
         {
             GD.PrintErr("Error: Player Controller Contrain Invalid Path");
             return;
         }
+
+        _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
+        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
-    //  // Called every frame. 'delta' is the elapsed time since the previous frame.
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(float delta)
     {
-        TargetLocation = GetViewport().GetMousePosition();
-        MoveDirection = Position.DirectionTo(TargetLocation);
+        if (UseMouseDirectedInput)
+        {
+            //TargetLocation = GetViewport().GetMousePosition();
+            TargetLocation = GetGlobalMousePosition();
+            MoveDirection = Position.DirectionTo(TargetLocation);
+        }
+        else
+        {
+            _yAxisMovement = 0;
+            _xAxisMovement = 0;
+
+            if (Input.IsActionPressed("Move_Up"))
+            {
+                _yAxisMovement -= 1;
+            }
+
+            if (Input.IsActionPressed("Move_Down"))
+            {
+                _yAxisMovement += 1;
+            }
+
+            if (Input.IsActionPressed("Move_Left"))
+            {
+                _xAxisMovement -= 1;
+            }
+
+            if (Input.IsActionPressed("Move_Right") )
+            {
+                _xAxisMovement += 1;
+            }
+
+            MoveDirection = new Vector2(_xAxisMovement, _yAxisMovement);
+        }
+
+        if(!UseToggleShootInput)
+        {
+            _shouldShoot = Input.IsActionPressed("Shoot");
+        }
+            //GD.Print(_shouldShoot);
+
+
+        _fireTimer += delta;
+        if(_fireTimer >= _fireDelay && _shouldShoot)
+        {
+            _fireTimer = 0;
+            //GD.Print("Shoot");
+            Shoot();
+        }
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        //base._Input(@event);
+
+        //_shouldShoot = @event.IsAction("Shoot");
+        if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
+        {
+            _shouldShoot = !_shouldShoot;
+        }
+
+        if (@event.IsActionPressed("Previous_Element"))
+        {
+            _currentElement = Globals.PreviousElement(_currentElement);
+        }
+
+        if (@event.IsActionPressed("Next_Element"))
+        {
+            _currentElement = Globals.NextElement(_currentElement);
+        }
+
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        var distance = Position.DistanceTo(TargetLocation);
-
+        Velocity = Vector2.Zero;
         // TD: Clean this
-        MoveAndSlide(MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1)));
+        if(UseMouseDirectedInput)
+        {
+            var distance = Position.DistanceTo(TargetLocation);
+            //Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1));
+
+            if (distance <= 5)
+                Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance / MoveSpeed, 0, 1));
+            else
+                Velocity = MoveDirection * MoveSpeed;
+        }
+        else
+        {
+            Velocity = MoveDirection * MoveSpeed;
+            Velocity = Velocity.LimitLength(MoveSpeed);
+        }
+
+        GD.Print(Velocity.Length()); // TODO test
+        MoveAndSlide(Velocity);
     }
 
     public void _OnHitboxBodyEntered(Node body)
@@ -60,8 +165,30 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful damageSource)
         {
             _healthComponent.ApplyDamage(damageSource);
-            //EmitSignal("DamageTaken", 1);
-            GD.Print("Hurt");
+            body.QueueFree();
         }
     }
+
+    public void _OnHealthUpdate(int newHealth)
+    {
+        GD.Print("Hurt");
+        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+    }
+
+    public void _OnHealthDepleted()
+    {
+        QueueFree();
+    }
+
+    private void UpdateSetting()
+    {
+        _shouldShoot = false;
+    }
+
+    private void Shoot()
+    {
+        ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
+        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
 }
