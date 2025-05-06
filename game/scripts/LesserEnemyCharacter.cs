@@ -12,6 +12,10 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     private ProgressBar _healthBar;
 
     [Export]
+    public NodePath CharacterSpirtePath = new NodePath();
+    public Sprite CharacterSprite { get; private set; }
+
+    [Export]
     public NodePath HealthTextPath { get; private set; } = new NodePath();
     private Label _healthText;
 
@@ -32,13 +36,15 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     public override void _Ready()
     {
         HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
         _movementComponent = GetNode<IMovement>(MovementComponentPath);
 
         if (HealthComponent == null || _healthBar == null 
-            || _movementComponent == null || _healthText == null || _damagePopup == null)
+            || _movementComponent == null || _healthText == null 
+            || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
@@ -80,4 +86,6 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         return CollisionDamage;
     }
+
+    
 }
