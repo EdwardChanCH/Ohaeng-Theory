@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public class PlayerCharacter : KinematicBody2D, IProjectileInfo
+public class PlayerCharacter : KinematicBody2D
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
@@ -35,8 +35,23 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
 
     // Bullet per second
     // DON'T SET THIS TO 0
+    private int _fireSpeed = 60;
+    private float _fireDelay = 1;
     [Export]
-    public int FireSpeed { get; set; } = 60;
+    public int FireSpeed {
+        get { return _fireSpeed; }
+        set
+        {
+            if (value <= 0)
+            {
+                GD.PrintErr("Error: FireSpeed must be > 0.");
+                return;
+            }
+
+            _fireSpeed = value;
+            _fireDelay = 1.0f / value;
+        }
+    }
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -45,16 +60,62 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
     private bool _shouldShoot = false;
 
     // Need a timer component
-    private float _fireDelay;
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.Water;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-    private static PlayerCharacter _instance;
+    private static PlayerCharacter _instance; // TODO Move this to GameplayScreen.cs
 
-    public int FriendlyCollisionFlag { get; set; } = Globals.PlayerProjectileLayerBit;
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        _instance = this; // TODO Move this to GameplayScreen.cs
+
+        Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+
+        // - - - Initialize Player Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Player_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.MovementNode.Direction = Vector2.Right;
+            bullet.MovementNode.Speed = 200; // TODO tune speed
+        }
+
+        // - - - Initialize Player Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        if(_instance == this)
+        {
+            _instance = null; // TODO Move this to GameplayScreen.cs
+        }
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree();
+        }
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -70,14 +131,6 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         }
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
-        _fireDelay = 1.0f / FireSpeed;
-
-
-        Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
-        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
-        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
-        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
-
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -178,7 +231,7 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
 
         // Calculate player velocity
-        if (UseMouseDirectedInput)
+        if (UseMouseDirectedInput) // TODO use Globals.GameData
         {
             // Mouse control
             if (UseSmoothedMovemment)
@@ -200,7 +253,6 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
                 {
                     // TargetLocation == Position + Velocity * delta == Position + MoveDirection * distanceToTarget
                     Velocity = MoveDirection * distanceToTarget / delta;
-                    //GD.Print("Overshoot prevented."); // TODO test
                 }
             }
         }
@@ -215,33 +267,31 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        if (body is IHarmful damageSource)
+        // TODO unfinished
+        if (body is IHarmful harmful)
         {
-            _healthComponent.ApplyDamage(damageSource);
-            //body.QueueFree();
-        }
+            _healthComponent.ApplyDamage(harmful.GetDamage());
 
-        if (body is Bullet)
-        {
-            ProjectileManager.QueueDespawnProjectile(body);
-            //GD.Print("PlayerCharacter despawn Bullet.");
-        }
-        else if (body is LesserEnemyCharacter)
-        {
-            body.QueueFree();
-            //GD.Print("PlayerCharacter queue free LesserEnemyCharacter.");
+            if (body is Bullet bullet)
+            {
+                ProjectileManager.QueueDespawnProjectile(bullet);
+            }
+            else if (body is LesserEnemyCharacter lesser)
+            {
+                lesser.QueueFree(); // TODO Add a publlic Kill() function
+            }
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
-        GD.Print("Hurt");
+        //GD.Print("Hurt");
         _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree();
+        QueueFree(); // TODO Add a publlic Kill() function
     }
 
     private void UpdateSetting(string key, string value)
@@ -253,14 +303,14 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
     }
 
-    public static void EnableInput()
+    public static void EnableInput() // TODO Move this to GameplayScreen.cs
     {
         _instance?.SetProcess(true);
         _instance?.SetPhysicsProcess(true);
         _instance?.SetProcessInput(true);
     }
 
-    public static void DisableInput()
+    public static void DisableInput() // TODO Move this to GameplayScreen.cs
     {
         _instance?.SetProcess(false);
         _instance?.SetPhysicsProcess(false);
@@ -273,19 +323,24 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         switch (_currentElement)
         {
             case Globals.Element.Water:
-                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position);
+                // Edit the bullet template instead of the function parameters
+                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
                 break;
             case Globals.Element.Wood:
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, 10);
+                // Edit the bullet template instead of the function parameters
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
                 break;
             case Globals.Element.Fire:
-                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 8);
+                // Edit the bullet template instead of the function parameters
+                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
                 break;
             case Globals.Element.Earth:
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, Mathf.Deg2Rad(90));
+                // Edit the bullet template instead of the function parameters
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
                 break;
             case Globals.Element.Metal:
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, Mathf.Deg2Rad(90));
+                // Edit the bullet template instead of the function parameters
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
@@ -293,53 +348,6 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         }
         
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
-    }
-
-    public override void _EnterTree()
-    {
-        base._EnterTree();
-
-        _instance = this;
-
-        // - - - Initialize Bullet Templates - - -
-
-        Bullet template;
-
-        foreach (Globals.Element element in Globals.AllElements)
-        {
-            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
-            template.Element = element;
-            _bulletTemplates[$"Player_{element}_Bullet"] = template;
-        }
-
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            // Warning: DO NOT attach template nodes to a parent
-            bullet.Initalize();
-            bullet.CollisionLayer = (uint)0;
-            bullet.CollisionMask = (uint)0;
-            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
-            bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 1000; // TODO tune speed
-        }
-
-        // - - - Initialize Bullet Templates - - -
-    }
-
-    public override void _ExitTree()
-    {
-        base._ExitTree();
-
-        if(_instance == this)
-        {
-            _instance = null;
-        }
-
-        // Free the bullet templates
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            bullet.QueueFree();
-        }
     }
 
 }

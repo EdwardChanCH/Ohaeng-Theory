@@ -2,14 +2,14 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public class EnemyCharacter : KinematicBody2D, IProjectileInfo
+public class EnemyCharacter : KinematicBody2D
 {
     [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent healthComponent { get; private set; }
+    public HealthComponent HealthComponent { get; private set; }
 
     [Export]
     public NodePath CharacterSpirtePath = new NodePath();
@@ -27,8 +27,7 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
     public NodePath DamagePopupPath { get; private set; } = new NodePath();
     private DamagePopup _damagePopup;
 
-
-    // Need a timer component
+    // TODO Need a timer component
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
@@ -37,25 +36,61 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-    public int FriendlyCollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        // - - - Initialize Enemy Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Enemy_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            // TODO set collision flag
+            bullet.MovementNode.Direction = Vector2.Left;
+            bullet.MovementNode.Speed = 200; // TODO tune speed
+        }
+
+        // - - - Initialize Enemy Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree(); 
+        }
+    }
 
     public override void _Ready()
     {
-        healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        if (healthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null 
             || _healthText == null || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
         }
 
-        _OnHealthUpdate(healthComponent.CurrentHealth);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        _fireDelay = (float)GD.RandRange(1.0, 5.0);
+        _fireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
 
         foreach (Globals.Element element in Globals.AllElements)
         {
@@ -90,39 +125,32 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        GD.Print($"{body.GetInstanceId()} Entered <<<");
-        if (body is Bullet e)
+        // TODO unfinished
+        if (body is IHarmful harmful)
         {
-            GD.Print($"{e.Position}");
-        }
-
-        if (body is IHarmful damageSource)
-        {
-            GD.Print(damageSource.CollisionFlag);
-            if (damageSource.CollisionFlag != Globals.EnemyProjectileLayerBit)
+            if (body is LesserEnemyCharacter lesser)
             {
-                healthComponent.ApplyDamage(damageSource);
-                _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-                body.QueueFree();
+                HealthComponent.ApplyDamage(lesser.GetDamage());
+                _damagePopup.AddToCumulativeDamage(lesser.GetDamage());
+                body.QueueFree(); // TODO Add a publlic Kill() function
             }
-        }
 
-        if (body is Bullet)
-        {
-            ProjectileManager.QueueDespawnProjectile(body);
-            //GD.Print("EnemyCharacter despawn Bullet.");
+            if (body is Bullet bullet)
+            {
+                ProjectileManager.QueueDespawnProjectile(bullet);
+            }
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)healthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree();
+        QueueFree(); // TODO Add a publlic Kill() function
     }
 
     public void AddToElement(Globals.Element element, int count)
@@ -147,47 +175,9 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
 
     public void Shoot()
     {
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position);
+        // Edit the bullet template instead of the function parameters
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 
-    public override void _EnterTree()
-    {
-        base._EnterTree();
-
-        // - - - Initialize Bullet Templates - - -
-
-        Bullet template;
-
-        foreach (Globals.Element element in Globals.AllElements)
-        {
-            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
-            template.Element = element;
-            _bulletTemplates[$"Enemy_{element}_Bullet"] = template;
-        }
-
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            // Warning: DO NOT attach template nodes to a parent
-            bullet.Initalize();
-            bullet.CollisionLayer = (uint)0;
-            bullet.CollisionMask = (uint)0;
-            bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
-            bullet.MovementNode.Direction = Vector2.Left;
-            bullet.MovementNode.Speed = 200; // TODO tune speed
-        }
-
-        // - - - Initialize Bullet Templates - - -
-    }
-
-    public override void _ExitTree()
-    {
-        base._ExitTree();
-
-        // Free the bullet templates
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            bullet.QueueFree(); 
-        }
-    }
 }

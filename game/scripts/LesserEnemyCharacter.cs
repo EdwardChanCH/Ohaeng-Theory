@@ -1,11 +1,11 @@
 using Godot;
 using System;
 
-public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
+public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent healthComponent { get; private set; }
+    public HealthComponent HealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -25,70 +25,61 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
 
     [Export]
     public NodePath MovementComponentPath { get; set; }
-    private IMovement _movementComponent;
+    public IMovement MovementComponent;
 
     [Export]
     public int CollisionDamage { get; set; } = 2;
 
-    [Export]
-    public Vector2 MoveDirection { get; set; } = Vector2.Left;
-
-    public int CollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
-    public int FriendlyCollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
-
     public override void _Ready()
     {
-        healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        _movementComponent = GetNode<IMovement>(MovementComponentPath);
+        MovementComponent = GetNode<IMovement>(MovementComponentPath);
 
-        if (healthComponent == null || _healthBar == null 
-            || _movementComponent == null || _healthText == null 
+        if (HealthComponent == null || _healthBar == null 
+            || MovementComponent == null || _healthText == null 
             || _damagePopup == null || CharacterSprite == null)
         {
-            GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
+            GD.PrintErr("Error: Enemy Controller Contains Invalid Path");
             return;
         }
 
-        _OnHealthUpdate(healthComponent.CurrentHealth);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        _movementComponent.Direction = MoveDirection;
-        SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
+        MovementComponent.Direction = Vector2.Left;
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        MoveAndSlide(_movementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
+        MoveAndSlide(MovementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        if (body is IHarmful damageSource)
+        // TODO unfinished
+        if (body is IHarmful harmful)
         {
-            HealthComponent.ApplyDamage(damageSource);
-            _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            //body.QueueFree();
-        }
-
-        if (body is Bullet)
-        {
-            ProjectileManager.QueueDespawnProjectile(body);
-            //GD.Print("LesserEnemyCharacter despawn Bullet.");
+            if (body is Bullet bullet)
+            {
+                HealthComponent.ApplyDamage(harmful.GetDamage());
+                _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+                ProjectileManager.QueueDespawnProjectile(body);
+            }
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)healthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree();
+        QueueFree(); // TODO Add a publlic Kill() function
     }
 
     public int GetDamage()
