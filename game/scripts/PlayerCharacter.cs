@@ -6,7 +6,7 @@ public class PlayerCharacter : KinematicBody2D
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    private HealthComponent _healthComponent;
+    public HealthComponent HealthComponent;
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -94,8 +94,11 @@ public class PlayerCharacter : KinematicBody2D
         {
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
+            bullet.Position = Vector2.Zero;
+            bullet.Damage = 1;
+            bullet.Friendly = true;
             bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 200; // TODO tune speed
+            bullet.MovementNode.Speed = 1000; // TODO tune speed
         }
 
         // - - - Initialize Player Bullet Templates - - -
@@ -120,11 +123,11 @@ public class PlayerCharacter : KinematicBody2D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
   
-        if (_healthComponent == null || _healthBar == null || _playerSprite == null)
+        if (HealthComponent == null || _healthBar == null || _playerSprite == null)
         {
             GD.PrintErr("Error: PlayerController has invalid export variable path.");
             return;
@@ -267,26 +270,18 @@ public class PlayerCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        // TODO unfinished
-        if (body is IHarmful harmful)
+        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
-            _healthComponent.ApplyDamage(harmful.GetDamage());
-
-            if (body is Bullet bullet)
-            {
-                ProjectileManager.QueueDespawnProjectile(bullet);
-            }
-            else if (body is LesserEnemyCharacter lesser)
-            {
-                lesser.QueueFree(); // TODO Add a publlic Kill() function
-            }
+            HealthComponent.ApplyDamage(harmful.GetDamage());
+            //_damagePopup.AddToCumulativeDamage(harmful.GetDamage()); // TODO not implemented
+            harmful.Kill();
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
         //GD.Print("Hurt");
-        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
