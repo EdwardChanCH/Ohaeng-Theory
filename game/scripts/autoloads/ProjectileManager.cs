@@ -49,7 +49,7 @@ public class ProjectileManager : Node
     // Returns the root node of a projectile scene
     // Note: Remember to reset the collision layer and collision mask
     // Warning: do not call projectile.GetParent() in the same frame
-    public static Node SpawnProjectile(string scenePath, Node parentNode)
+    public static Node SpawnProjectile(string scenePath, Node parentNode, int collisionFlag)
     {
         Node projectile;
 
@@ -88,23 +88,25 @@ public class ProjectileManager : Node
         projectile.SetPhysicsProcess(true); // It reset to true in AddChild(projectile)
 
         // Initalize the projectile immediately, instead of waiting for _Ready()
-        if (projectile is Bullet bullet)
+        if (projectile is Bullet bulletRef)
         {
-            bullet.Initalize(); // TODO need clean up
+            bulletRef.Initalize(); // TODO need clean up
+            bulletRef.CollisionFlag = collisionFlag;
+            //if(parentNode is IProjectileInfo info)
+            //{
+            //    bulletRef.CollisionFlag = info.FriendlyCollisionFlag;
+            //}
         }
 
-        GD.Print($"{projectile.GetInstanceId()} Spawned");
-        if (projectile is Bullet e)
-        {
-            GD.Print($"{e.Position}");
-        }
+
+
         return projectile;
     }
 
     // Overload to use template
-    public static Node SpawnProjectile(Node template, Node parentNode)
+    public static Node SpawnProjectile(Node template, Node parentNode, int collisionFlag)
     {
-        Node projectile = SpawnProjectile(template.Filename, parentNode);
+        Node projectile = SpawnProjectile(template.Filename, parentNode, collisionFlag);
         return projectile;
     }
 
@@ -170,7 +172,7 @@ public class ProjectileManager : Node
         projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
         // Detatch from parent (if exist)
-        projectile.GetParent()?.RemoveChild(projectile);
+        projectile.GetParent().RemoveChild(projectile);
 
         // Prevent scenes from saving this node
         projectile.Owner = null;
@@ -190,9 +192,9 @@ public class ProjectileManager : Node
     // - - - Bullet Emitter Functions - - -
 
     // Emit a bullet in a line shape
-    public static void EmitBulletLine(Bullet template, Node parentNode, Vector2 position)
+    public static void EmitBulletLine(Bullet template, Node parentNode, int collisionFlag, Vector2 position)
     {
-        Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+        Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
         Bullet.CopyData(template, bullet);
         bullet.Position = position + Vector2.Right * 100;
         // bullet.MovementNode.Direction = template.MovementNode.Direction;
@@ -201,7 +203,7 @@ public class ProjectileManager : Node
     }
 
     // Emit multiple bullet in a wall shape
-    public static void EmitBulletWall(Bullet template, Node parentNode, Vector2 position, int count, float separation)
+    public static void EmitBulletWall(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float separation)
     {
         if (count < 1)
         {
@@ -215,7 +217,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
             Bullet.CopyData(template, bullet);
             bullet.Position = position + (i * separation - half) * cross;
             // bullet.MovementNode.Direction = template.MovementNode.Direction;
@@ -224,7 +226,7 @@ public class ProjectileManager : Node
     }
 
     // Emit multiple bullets in a ring shape
-    public static void EmitBulletRing(Bullet template, Node parentNode, Vector2 position, int count)
+    public static void EmitBulletRing(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count)
     {
         if (count < 1)
         {
@@ -236,7 +238,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle);
@@ -247,7 +249,7 @@ public class ProjectileManager : Node
     // i.e. left/ right edges don't spawn bullets
     // spread is in radian
     // Note: Imagine dividing a triangular pizza, the internal edges are bullet tracks
-    public static void EmitBulletConeNarrow(Bullet template, Node parentNode, Vector2 position, int count, float spread)
+    public static void EmitBulletConeNarrow(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float spread)
     {
         if (count < 1)
         {
@@ -260,7 +262,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated((i + 1) * angle - half);
@@ -271,7 +273,7 @@ public class ProjectileManager : Node
     // i.e. left/ right edges always spawn bullets
     // spread is in radian
     // Note: Imagine dividing a triangular pizza, all edges are bullet tracks
-    public static void EmitBulletConeWide(Bullet template, Node parentNode, Vector2 position, int count, float spread)
+    public static void EmitBulletConeWide(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float spread)
     {
         if (count < 3)
         {
@@ -285,7 +287,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count + 2; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);

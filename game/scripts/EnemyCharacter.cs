@@ -2,14 +2,14 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public class EnemyCharacter : KinematicBody2D
+public class EnemyCharacter : KinematicBody2D, IProjectileInfo
 {
     [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent HealthComponent { get; private set; }
+    public HealthComponent healthComponent { get; private set; }
 
     [Export]
     public NodePath CharacterSpirtePath = new NodePath();
@@ -37,21 +37,23 @@ public class EnemyCharacter : KinematicBody2D
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
+    public int FriendlyCollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
+
     public override void _Ready()
     {
-        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        healthComponent = GetNode<HealthComponent>(HealthComponentPath);
         CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        if (HealthComponent == null || _healthBar == null 
+        if (healthComponent == null || _healthBar == null 
             || _healthText == null || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
             return;
         }
 
-        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        _OnHealthUpdate(healthComponent.CurrentHealth);
 
         _fireDelay = (float)GD.RandRange(1.0, 5.0);
 
@@ -96,10 +98,13 @@ public class EnemyCharacter : KinematicBody2D
 
         if (body is IHarmful damageSource)
         {
-            HealthComponent.ApplyDamage(damageSource.GetDamage());
-            _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            //body.QueueFree();
-            //GD.Print("Hurt");
+            GD.Print(damageSource.CollisionFlag);
+            if (damageSource.CollisionFlag != Globals.EnemyProjectileLayerBit)
+            {
+                healthComponent.ApplyDamage(damageSource);
+                _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
+                body.QueueFree();
+            }
         }
 
         if (body is Bullet)
@@ -111,8 +116,8 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)healthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + healthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
@@ -142,8 +147,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void Shoot()
     {
-        //ProjectileManager.EmitBulletRing(_currentElement, GetTree().Root, Position, Vector2.Left, 1, false, 12);
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, Position);
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 

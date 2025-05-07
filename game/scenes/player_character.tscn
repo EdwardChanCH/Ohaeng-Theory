@@ -24,7 +24,6 @@ script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("ProgressBar")
 PlayerSpritePath = NodePath("Sprite")
-UseToggleShootInput = false
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 show_behind_parent = true
@@ -49,7 +48,7 @@ shape = SubResource( 1 )
 
 [node name="Hitbox" type="Area2D" parent="."]
 collision_layer = 0
-collision_mask = 24
+collision_mask = 28
 
 [node name="HitboxSprite" type="Sprite" parent="Hitbox"]
 scale = Vector2( 0.1, 0.1 )

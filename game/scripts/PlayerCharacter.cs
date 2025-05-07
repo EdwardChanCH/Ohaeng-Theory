@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public class PlayerCharacter : KinematicBody2D
+public class PlayerCharacter : KinematicBody2D, IProjectileInfo
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
@@ -53,6 +53,8 @@ public class PlayerCharacter : KinematicBody2D
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
     private static PlayerCharacter _instance;
+
+    public int FriendlyCollisionFlag { get; set; } = Globals.PlayerProjectileLayerBit;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -271,19 +273,19 @@ public class PlayerCharacter : KinematicBody2D
         switch (_currentElement)
         {
             case Globals.Element.Water:
-                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position);
                 break;
             case Globals.Element.Wood:
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, 10);
                 break;
             case Globals.Element.Fire:
-                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
+                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 8);
                 break;
             case Globals.Element.Earth:
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, Mathf.Deg2Rad(90));
                 break;
             case Globals.Element.Metal:
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, FriendlyCollisionFlag, Position, 5, Mathf.Deg2Rad(90));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
@@ -293,7 +295,7 @@ public class PlayerCharacter : KinematicBody2D
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 
-        public override void _EnterTree()
+    public override void _EnterTree()
     {
         base._EnterTree();
 
