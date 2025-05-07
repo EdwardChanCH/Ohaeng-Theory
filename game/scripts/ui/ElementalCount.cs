@@ -8,7 +8,7 @@ public class ElementalCount : Node
     private Godot.Collections.Array<Label> _countLabel = new Godot.Collections.Array<Label> ();
 
 
-    public override void _EnterTree()
+    public override void _Ready()
     {
 
         foreach (var labelPath in ElementalCountLabelPaths)
@@ -17,7 +17,7 @@ public class ElementalCount : Node
 
             if (label == null)
             {
-                GD.PrintErr("Error: Label Count Contrain Invalid Path");
+                GD.PrintErr("Error: Label Count Contains Invalid Path");
                 return;
             }
 
@@ -33,7 +33,7 @@ public class ElementalCount : Node
 
     public void _UpdateElement(Globals.Element element, int newCount)
     {
-        switch (element)
+        /* switch (element)
         {
             case Globals.Element.Water:
                 UpdateLabel(_countLabel[0], newCount);
@@ -54,14 +54,17 @@ public class ElementalCount : Node
             case Globals.Element.Metal:
                 UpdateLabel(_countLabel[4], newCount);
                 break;
-        }
+        } */
+
+        _countLabel[(int)element - 1].Text = $"{newCount} {element}";
     }
 
 
-    private void UpdateLabel(Label label, int count)
+    /* private void UpdateLabel(Label label, int count)
     {
         label.Text = count.ToString();
         label.Visible = count > 0;
-    }
+    } */
+
 
 }

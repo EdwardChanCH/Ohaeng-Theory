@@ -6,7 +6,7 @@ public class PlayerCharacter : KinematicBody2D
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    private HealthComponent _healthComponent;
+    public HealthComponent HealthComponent;
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -35,8 +35,23 @@ public class PlayerCharacter : KinematicBody2D
 
     // Bullet per second
     // DON'T SET THIS TO 0
+    private int _fireSpeed = 60;
+    private float _fireDelay = 1;
     [Export]
-    public int FireSpeed { get; set; } = 60;
+    public int FireSpeed {
+        get { return _fireSpeed; }
+        set
+        {
+            if (value <= 0)
+            {
+                GD.PrintErr("Error: FireSpeed must be > 0.");
+                return;
+            }
+
+            _fireSpeed = value;
+            _fireDelay = 1.0f / value;
+        }
+    }
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -45,37 +60,80 @@ public class PlayerCharacter : KinematicBody2D
     private bool _shouldShoot = false;
 
     // Need a timer component
-    private float _fireDelay;
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.Water;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-    private static PlayerCharacter _instance;
+    private static PlayerCharacter _instance; // TODO Move this to GameplayScreen.cs
 
-    // Called when the node enters the scene tree for the first time.
-    public override void _Ready()
+    public override void _EnterTree()
     {
-        _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
-        _healthBar = GetNode<ProgressBar>(HealthBarPath);
-        _playerSprite = GetNode<Sprite>(PlayerSpritePath);
-  
-        if (_healthComponent == null || _healthBar == null || _playerSprite == null)
-        {
-            GD.PrintErr("Error: PlayerController has invalid export variable path.");
-            return;
-        }
+        base._EnterTree();
 
-        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
-        _fireDelay = 1.0f / FireSpeed;
-
+        _instance = this; // TODO Move this to GameplayScreen.cs
 
         Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
         UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
 
+        // - - - Initialize Player Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Player_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.Position = Vector2.Zero;
+            bullet.Damage = 1;
+            bullet.Friendly = true;
+            bullet.MovementNode.Direction = Vector2.Right;
+            bullet.MovementNode.Speed = 1000; // TODO tune speed
+        }
+
+        // - - - Initialize Player Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        if(_instance == this)
+        {
+            _instance = null; // TODO Move this to GameplayScreen.cs
+        }
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree();
+        }
+    }
+
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
+    {
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        _healthBar = GetNode<ProgressBar>(HealthBarPath);
+        _playerSprite = GetNode<Sprite>(PlayerSpritePath);
+  
+        if (HealthComponent == null || _healthBar == null || _playerSprite == null)
+        {
+            GD.PrintErr("Error: PlayerController has invalid export variable path.");
+            return;
+        }
+
+        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -176,7 +234,7 @@ public class PlayerCharacter : KinematicBody2D
         //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
 
         // Calculate player velocity
-        if (UseMouseDirectedInput)
+        if (UseMouseDirectedInput) // TODO use Globals.GameData
         {
             // Mouse control
             if (UseSmoothedMovemment)
@@ -198,7 +256,6 @@ public class PlayerCharacter : KinematicBody2D
                 {
                     // TargetLocation == Position + Velocity * delta == Position + MoveDirection * distanceToTarget
                     Velocity = MoveDirection * distanceToTarget / delta;
-                    //GD.Print("Overshoot prevented."); // TODO test
                 }
             }
         }
@@ -213,22 +270,23 @@ public class PlayerCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        if (body is IHarmful damageSource)
+        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
-            _healthComponent.ApplyDamage(damageSource);
-            body.QueueFree();
+            HealthComponent.ApplyDamage(harmful.GetDamage());
+            //_damagePopup.AddToCumulativeDamage(harmful.GetDamage()); // TODO not implemented
+            harmful.Kill();
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
-        GD.Print("Hurt");
-        _healthBar.Value = (float)newHealth / (float)_healthComponent.MaxHealth;
+        //GD.Print("Hurt");
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree();
+        QueueFree(); // TODO Add a publlic Kill() function
     }
 
     private void UpdateSetting(string key, string value)
@@ -240,14 +298,14 @@ public class PlayerCharacter : KinematicBody2D
         UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
     }
 
-    public static void EnableInput()
+    public static void EnableInput() // TODO Move this to GameplayScreen.cs
     {
         _instance?.SetProcess(true);
         _instance?.SetPhysicsProcess(true);
         _instance?.SetProcessInput(true);
     }
 
-    public static void DisableInput()
+    public static void DisableInput() // TODO Move this to GameplayScreen.cs
     {
         _instance?.SetProcess(false);
         _instance?.SetPhysicsProcess(false);
@@ -260,18 +318,23 @@ public class PlayerCharacter : KinematicBody2D
         switch (_currentElement)
         {
             case Globals.Element.Water:
+                // Edit the bullet template instead of the function parameters
                 ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
                 break;
             case Globals.Element.Wood:
+                // Edit the bullet template instead of the function parameters
                 ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
                 break;
             case Globals.Element.Fire:
+                // Edit the bullet template instead of the function parameters
                 ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
                 break;
             case Globals.Element.Earth:
+                // Edit the bullet template instead of the function parameters
                 ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
                 break;
             case Globals.Element.Metal:
+                // Edit the bullet template instead of the function parameters
                 ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
                 break;
             default:
@@ -280,51 +343,6 @@ public class PlayerCharacter : KinematicBody2D
         }
         
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
-    }
-
-        public override void _EnterTree()
-    {
-        base._EnterTree();
-
-        _instance = this;
-
-        // - - - Initialize Bullet Templates - - -
-
-        Bullet template;
-
-        foreach (Globals.Element element in Globals.AllElements)
-        {
-            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
-            template.Element = element;
-            _bulletTemplates[$"Player_{element}_Bullet"] = template;
-        }
-
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            // Warning: DO NOT attach template nodes to a parent
-            bullet.Initalize();
-            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
-            bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 10000; // TODO tune speed
-        }
-
-        // - - - Initialize Bullet Templates - - -
-    }
-
-    public override void _ExitTree()
-    {
-        base._ExitTree();
-
-        if(_instance == this)
-        {
-            _instance = null;
-        }
-
-        // Free the bullet templates
-        foreach (Bullet bullet in _bulletTemplates.Values)
-        {
-            bullet.QueueFree();
-        }
     }
 
 }

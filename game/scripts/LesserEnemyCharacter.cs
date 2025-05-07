@@ -25,13 +25,10 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     [Export]
     public NodePath MovementComponentPath { get; set; }
-    private IMovement _movementComponent;
+    public IMovement MovementComponent;
 
     [Export]
     public int CollisionDamage { get; set; } = 2;
-
-    [Export]
-    public Vector2 MoveDirection { get; set; } = Vector2.Left;
 
     public override void _Ready()
     {
@@ -40,34 +37,33 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        _movementComponent = GetNode<IMovement>(MovementComponentPath);
+        MovementComponent = GetNode<IMovement>(MovementComponentPath);
 
         if (HealthComponent == null || _healthBar == null 
-            || _movementComponent == null || _healthText == null 
+            || MovementComponent == null || _healthText == null 
             || _damagePopup == null || CharacterSprite == null)
         {
-            GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
+            GD.PrintErr("Error: Enemy Controller Contains Invalid Path");
             return;
         }
 
         _OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        _movementComponent.Direction = MoveDirection;
-        SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
+        MovementComponent.Direction = Vector2.Left;
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        MoveAndSlide(_movementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
+        MoveAndSlide(MovementComponent.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        if (body is IHarmful damageSource)
+        if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            HealthComponent.ApplyDamage(damageSource);
-            _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            body.QueueFree();
+            HealthComponent.ApplyDamage(harmful.GetDamage());
+            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+            harmful.Kill();
         }
     }
 
@@ -87,5 +83,19 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         return CollisionDamage;
     }
 
-    
+    public bool IsFriendly()
+    {
+        return false; // Always not friendy
+    }
+
+    public bool IsActive()
+    {
+        return true; // Always active
+    }
+
+    public void Kill()
+    {
+        _OnHealthDepleted();
+    }
+
 }

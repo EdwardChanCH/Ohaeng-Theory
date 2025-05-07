@@ -6,50 +6,44 @@ using System.Drawing.Drawing2D;
 // WIPS
 public class AudioManager : Node
 {
-    public int AudioChannelCount { get; private set; } = 16;
+    public static AudioManager Singleton { get; private set; }
 
+    public static int AudioChannelCount { get; private set; } = 16;
 
-    private Dictionary<string, AudioStreamPlayer> _sfxChannels = new Dictionary<string, AudioStreamPlayer>();
+    private static Dictionary<string, AudioStreamPlayer> _sfxChannels = new Dictionary<string, AudioStreamPlayer>();
 
-    private AudioStreamPlayer _bgmChannels;
-
-
-    private static AudioManager _instance;
+    private static AudioStreamPlayer _bgmChannels;
 
     public override void _EnterTree()
     {
-        if(_instance != null)
-        {
-            QueueFree();
-            return;
-        }
-        _instance = this;
+        base._EnterTree();
 
-        var audioPlayer = new AudioStreamPlayer();
+        Singleton = this;
+
+        AudioStreamPlayer audioPlayer = new AudioStreamPlayer();
         audioPlayer.Bus = "BGM";
         _bgmChannels = audioPlayer;
+        
         AddChild(audioPlayer);
     }
 
-    private void CreateSFXChannel(string soundPath)
+    private static void CreateSFXChannel(string soundPath)
     {
         var audioPlayer = new AudioStreamPlayer();
         audioPlayer.Stream = GD.Load<AudioStream>(soundPath);
 
         audioPlayer.Bus = "SFX";
         _sfxChannels.Add(soundPath, audioPlayer);
-        AddChild(audioPlayer);
+        
+        Singleton.AddChild(audioPlayer);
     }
 
     public static void PlaySFX(string soundPath)
     {
-        if(_instance != null)
-        {
-            _instance.PlaySFXInternal(soundPath);
-        }
+        PlaySFXInternal(soundPath);
     }
 
-    private void PlaySFXInternal(string soundPath)
+    private static void PlaySFXInternal(string soundPath)
     {
         if (!_sfxChannels.ContainsKey(soundPath))
         {
@@ -63,13 +57,10 @@ public class AudioManager : Node
 
     public static void PlayBMG(string soundPath, float volume = 0.5f)
     {
-        if (_instance != null)
-        {
-            _instance.PlayBGMInternal(soundPath, volume);
-        }
+        PlayBGMInternal(soundPath, volume);
     }
 
-    public void PlayBGMInternal(string soundPath, float volume = 0.5f)
+    public static void PlayBGMInternal(string soundPath, float volume = 0.5f)
     {
         _bgmChannels.Stream = GD.Load<AudioStream>(soundPath);
         _bgmChannels.VolumeDb = GD.Linear2Db(volume);
@@ -79,13 +70,10 @@ public class AudioManager : Node
 
     public static void SetSFXChannelVolume(string soundPath, float volume)
     {
-        if (_instance != null)
-        {
-            _instance.SetSFXChannelVolumeInternal(soundPath, volume);
-        }
+        SetSFXChannelVolumeInternal(soundPath, volume);
     }
 
-    private void SetSFXChannelVolumeInternal(string soundPath, float volume)
+    private static void SetSFXChannelVolumeInternal(string soundPath, float volume)
     {
         if (!_sfxChannels.ContainsKey(soundPath))
         {
@@ -94,29 +82,19 @@ public class AudioManager : Node
         _sfxChannels[soundPath].VolumeDb = GD.Linear2Db(volume);
     }
 
-
     public static void SetMasterVolume(float volume)
     {
-        if (_instance != null)
-        {
-            _instance.SetVolumeInternal(0, volume);
-        }
+        SetVolumeInternal(0, volume);
     }
     public static void SetSFXVolume(float volume)
     {
-        if (_instance != null)
-        {
-            _instance.SetVolumeInternal(1, volume);
-        }
+        SetVolumeInternal(1, volume);
     }
     public static void SetBGMVolume(float volume)
     {
-        if (_instance != null)
-        {
-            _instance.SetVolumeInternal(2, volume);
-        }
+        SetVolumeInternal(2, volume);
     }
-    private void SetVolumeInternal(int index, float volume)
+    private static void SetVolumeInternal(int index, float volume)
     {
         AudioServer.SetBusVolumeDb(index, GD.Linear2Db(volume));
     }

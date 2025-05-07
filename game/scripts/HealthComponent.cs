@@ -36,10 +36,10 @@ public class HealthComponent : Node
         }
     }
 
-    public void ApplyDamage(IHarmful source)
+/*     public void ApplyDamage(IHarmful source)
     {
         ApplyDamage(source.GetDamage());
-    }
+    } */
 
     public void ApplyHeal(int heal)
     {
