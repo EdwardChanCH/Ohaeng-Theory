@@ -10,6 +10,8 @@ public class Globals : Node
     [Signal]
     public delegate void GameDataChanged(string key, string value);
 
+    public static Globals Singleton { get; private set; }
+
     // Game Data (last for the whole game)
     public static Dictionary<string, string> GameData { get; private set; } = new Dictionary<string, string>();
 
@@ -43,16 +45,20 @@ public class Globals : Node
     public const int EnemyLayerBit = 3; // Layer 4
     public const int EnemyProjectileLayerBit = 4; // Layer 5
 
-    public static Globals Singleton { get; private set; }
-
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        Singleton = this;
         GameData.Add("UseMouseDirectedInput", "true");
         GameData.Add("ToggleAttack", "true");
         GameData.Add("ToggleSlow", "true");
 
+    }
+
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
     }
 
     public static void ChangeGameData(string key, string value)

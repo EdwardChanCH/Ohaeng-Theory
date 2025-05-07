@@ -113,12 +113,6 @@ public class ProjectileManager : Node
     // Despawn at the end of frame
     public static void QueueDespawnProjectile(Node projectile)
     {
-        // TODO temporary fix, can't find any solution to fix the Area2D bug
-        projectile.QueueFree();
-        return;
-
-
-
         ulong instanceID = projectile.GetInstanceId();
 
         // Check if repeated calls
@@ -181,12 +175,6 @@ public class ProjectileManager : Node
         _objectPools[projectile.Filename].Push(projectile);
         _despawnPool.Remove(instanceID);
         GD.Print($"{projectile.GetInstanceId()} Unlocked");
-    }
-
-    // Called when the node enters the scene tree for the first time
-    public override void _Ready()
-    {
-        Singleton = this;
     }
 
     // - - - Bullet Emitter Functions - - -
@@ -292,6 +280,13 @@ public class ProjectileManager : Node
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);
         }
+    }
+
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
     }
 
     public override void _ExitTree()

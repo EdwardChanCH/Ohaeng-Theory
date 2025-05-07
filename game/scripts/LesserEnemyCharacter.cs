@@ -5,7 +5,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent healthComponent { get; private set; }
+    public HealthComponent HealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -38,14 +38,14 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
 
     public override void _Ready()
     {
-        healthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
         _movementComponent = GetNode<IMovement>(MovementComponentPath);
 
-        if (healthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null 
             || _movementComponent == null || _healthText == null 
             || _damagePopup == null || CharacterSprite == null)
         {
@@ -53,7 +53,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
             return;
         }
 
-        _OnHealthUpdate(healthComponent.CurrentHealth);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
 
         _movementComponent.Direction = MoveDirection;
         SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
@@ -82,8 +82,8 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)healthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + healthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
