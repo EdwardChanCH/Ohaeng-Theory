@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class PlayerCharacter : KinematicBody2D
 {
@@ -48,6 +49,8 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.Metal;
+
+    private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -157,6 +160,9 @@ public class PlayerCharacter : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
+        // TODO test only
+        //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
+
         // Calculate player velocity
         if (UseMouseDirectedInput)
         {
@@ -220,8 +226,47 @@ public class PlayerCharacter : KinematicBody2D
 
     private void Shoot()
     {
-        ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
+        //ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
+        public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        // - - - Initialize Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Player_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+            bullet.MovementNode.Direction = Vector2.Right;
+            bullet.MovementNode.Speed = 10000; // TODO tune speed
+        }
+
+        // - - - Initialize Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree();
+        }
     }
 
 }

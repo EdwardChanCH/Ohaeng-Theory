@@ -12,7 +12,7 @@ public class ProjectileManager : Node
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
 
-    private static readonly Dictionary<Globals.Element, string> _bulletScenePath = new Dictionary<Globals.Element, string>()
+    public static readonly Dictionary<Globals.Element, string> BulletScenePath = new Dictionary<Globals.Element, string>()
     {
         {Globals.Element.None, "res://scenes/projectiles/none_bullet.tscn"},
         {Globals.Element.Water, "res://scenes/projectiles/water_bullet.tscn"},
@@ -36,7 +36,7 @@ public class ProjectileManager : Node
 
         // Disable processing
         projectile.SetProcess(false);
-        projectile.SetPhysicsProcess(false);
+        projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
         return projectile;
     }
@@ -44,6 +44,7 @@ public class ProjectileManager : Node
     // Get a projectile scene instance. The caller needs to set up the projectile.
     // Set parentNode to GetTree().Root in most cases
     // Returns the root node of a projectile scene
+    // Note: Remember to reset the collision layer and collision mask
     // Warning: do not call projectile.GetParent() in the same frame
     public static Node SpawnProjectile(string scenePath, Node parentNode)
     {
@@ -79,7 +80,7 @@ public class ProjectileManager : Node
 
         // Enable processing
         projectile.SetProcess(true);
-        projectile.SetPhysicsProcess(true);
+        projectile.SetPhysicsProcess(true); // It reset to true in AddChild(projectile)
 
         // Initalize the projectile immediately, instead of waiting for _Ready()
         if (projectile is Bullet)
@@ -91,9 +92,9 @@ public class ProjectileManager : Node
     }
 
     // Overload to use template
-    public static Node SpawnProjectile(Node template)
+    public static Node SpawnProjectile(Node template, Node parentNode)
     {
-        Node projectile = SpawnProjectile(template.Filename, template.GetParent());
+        Node projectile = SpawnProjectile(template.Filename, parentNode);
         return projectile;
     }
 
@@ -115,7 +116,7 @@ public class ProjectileManager : Node
 
         // Disable processing
         projectile.SetProcess(false);
-        projectile.SetPhysicsProcess(false);
+        projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
         // Add to object pool
         if (projectile.Filename.Length == 0)
@@ -137,13 +138,22 @@ public class ProjectileManager : Node
     }
 
     // - - - Bullet Emitter Functions - - -
+
     // Sinful code; will refactor as an Emitter class later
     // Experimental
+
+    // Emit one single bullet (based on template data)
+    public static void EmitBulletLine(Bullet template, Node parentNode, Vector2 position)
+    {
+        Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+        Bullet.CopyData(template, bullet);
+        bullet.Position = position;
+    }
 
     // Emit one single bullet
     public static void EmitBulletSingle(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer)
     {
-        Bullet bullet = (Bullet)SpawnProjectile(_bulletScenePath[element], parentNode);
+        Bullet bullet = (Bullet)SpawnProjectile(BulletScenePath[element], parentNode);
         bullet.Position = position;
         bullet.ChangeDirection(direction);
         bullet.Damage = damage;

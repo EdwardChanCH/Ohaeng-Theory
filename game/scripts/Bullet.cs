@@ -28,7 +28,7 @@ public class Bullet : KinematicBody2D, IHarmful
     // - - - Node Paths - - -
 
     // Copy data from another source bullet
-    // Note: Export nodes are not copied
+    // Note: Export nodes are not copied, parent is not copied
     public static void CopyData(Bullet template, Bullet other)
     {
         other.CollisionLayer = template.CollisionLayer;
@@ -37,6 +37,10 @@ public class Bullet : KinematicBody2D, IHarmful
         other.Element = template.Element;
         other.Damage = template.Damage;
 
+        other.MovementNode.Direction = template.MovementNode.Direction;
+        other.MovementNode.Speed = template.MovementNode.Speed;
+
+        // Defined in scene file, no need to copy
         //other.MovementNode;
         //other.SpriteNode.Texture;
         //other.CollisionShape2DNode;

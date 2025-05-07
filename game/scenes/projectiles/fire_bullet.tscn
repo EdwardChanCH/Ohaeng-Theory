@@ -15,8 +15,8 @@ script = ExtResource( 2 )
 Element = 3
 Damage = 1
 MovementNodePath = NodePath("MovementComponent")
-SpriteNodePath = NodePath("MovementComponent")
-CollisionShape2DNodePath = NodePath("MovementComponent")
+SpriteNodePath = NodePath("Sprite")
+CollisionShape2DNodePath = NodePath("CollisionShape2D")
 
 [node name="MovementComponent" type="Node" parent="."]
 script = ExtResource( 3 )

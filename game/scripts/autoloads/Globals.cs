@@ -27,6 +27,15 @@ public class Globals : Node
         Metal = 5 // Most important element
     }
 
+    public static readonly Element[] AllElements = 
+    {
+        Element.Water,
+        Element.Wood,
+        Element.Fire,
+        Element.Earth,
+        Element.Metal
+    };
+
     // Collision Layers
     public const int GroundLayerBit = 0; // Layer 1
     public const int PlayerLayerBit = 1; // Layer 2
