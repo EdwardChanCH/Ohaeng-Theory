@@ -31,7 +31,7 @@ public class PlayerCharacter : KinematicBody2D
 
     // Bullet per second
     // DON'T SET THIS TO 0
-    [Export(PropertyHint.Range, "-1,100")]
+    [Export]
     public int FireSpeed { get; set; } = 60;
 
     public Vector2 TargetLocation { get; private set; }
@@ -46,6 +46,23 @@ public class PlayerCharacter : KinematicBody2D
 
     private Globals.Element _currentElement = Globals.Element.Metal;
 
+    private static PlayerCharacter _instance;
+
+    public override void _EnterTree()
+    {
+        _instance = this;
+    }
+
+    public override void _ExitTree()
+    {
+        if(_instance == this)
+        {
+            _instance = null;
+        }
+    }
+
+
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -59,7 +76,7 @@ public class PlayerCharacter : KinematicBody2D
             return;
         }
 
-        _fireDelay = 1 / FireSpeed;
+        _fireDelay = 1.0f / FireSpeed;
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
@@ -105,7 +122,6 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireTimer += delta;
-
         if(_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
@@ -150,6 +166,10 @@ public class PlayerCharacter : KinematicBody2D
             _currentElement = Globals.NextElement(_currentElement);
         }
 
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
+        }
     }
 
     public override void _PhysicsProcess(float delta)
@@ -213,6 +233,20 @@ public class PlayerCharacter : KinematicBody2D
     private void UpdateSetting()
     {
         _shouldShoot = false;
+    }
+
+    public static void EnableInput()
+    {
+        _instance?.SetProcess(true);
+        _instance?.SetPhysicsProcess(true);
+        _instance?.SetProcessInput(true);
+    }
+
+    public static void DisableInput()
+    {
+        _instance?.SetProcess(false);
+        _instance?.SetPhysicsProcess(false);
+        _instance?.SetProcessInput(false);
     }
 
     private void Shoot()

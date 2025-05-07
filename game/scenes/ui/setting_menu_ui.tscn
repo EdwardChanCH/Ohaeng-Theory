@@ -12,6 +12,7 @@ ToggleSlowCheckBoxPath = NodePath("VBoxContainer/ToggleSlow")
 MasterSliderPath = NodePath("VBoxContainer/MasterSlider")
 SFXSliderPath = NodePath("VBoxContainer/SFXSlider")
 MusicSliderPath = NodePath("VBoxContainer/BGMSlider")
+MainMenuButtonPath = NodePath("HBoxContainer/MainMenuButton")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 modulate = Color( 0.0313726, 0.0313726, 0.0313726, 0.654902 )
@@ -122,18 +123,6 @@ theme = ExtResource( 3 )
 max_value = 1.0
 step = 0.01
 
-[node name="BackButton" type="Button" parent="."]
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-margin_left = -66.0
-margin_top = -220.0
-margin_right = 66.0
-margin_bottom = -162.0
-theme = ExtResource( 3 )
-text = "Back"
-
 [node name="Label" type="Label" parent="."]
 anchor_left = 0.5
 anchor_right = 0.5
@@ -146,7 +135,35 @@ text = "Setting"
 align = 1
 valign = 1
 
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -20.0
+margin_top = -228.0
+margin_right = 20.0
+margin_bottom = -188.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackButton" type="Button" parent="HBoxContainer"]
+margin_right = 120.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 3 )
+text = "Back"
+
+[node name="MainMenuButton" type="Button" parent="HBoxContainer"]
+margin_left = 124.0
+margin_right = 244.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 3 )
+text = "Main Menu"
+
 [connection signal="toggled" from="VBoxContainer/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
 [connection signal="toggled" from="VBoxContainer/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
 [connection signal="toggled" from="VBoxContainer/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
-[connection signal="pressed" from="BackButton" to="." method="_OnBackButtonPressed"]
+[connection signal="pressed" from="HBoxContainer/BackButton" to="." method="_OnBackButtonPressed"]
+[connection signal="pressed" from="HBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]

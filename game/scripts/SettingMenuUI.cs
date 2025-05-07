@@ -28,15 +28,19 @@ public class SettingMenuUI : Node
     public NodePath MusicSliderPath = new NodePath();
     private Slider _MusicSlider;
 
+    [Export]
+    public NodePath MainMenuButtonPath = new NodePath();
+    private Button _MainMenuButton;
+
     public override void _Ready()
     {
+        PlayerCharacter.DisableInput();
         _MouseDirectedInputCheckBox = GetNode<CheckBox>(MouseDirectedInputCheckBoxPath);
         _ToggleAttackCheckBox = GetNode<CheckBox>(ToggleAttackCheckBoxPath);
         _ToggleSlowCheckBox = GetNode<CheckBox>(ToggleSlowCheckBoxPath);
         _MasterSlider = GetNode<Slider>(MasterSliderPath);
         _SFXSlider = GetNode<Slider>(SFXSliderPath);
         _MusicSlider = GetNode<Slider>(MusicSliderPath);
-
 
         _MouseDirectedInputCheckBox.Pressed = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         _ToggleAttackCheckBox.Pressed = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
@@ -54,6 +58,16 @@ public class SettingMenuUI : Node
 
         var bgmArg = new Godot.Collections.Array(_MusicSlider, 2);
         _MusicSlider.Connect("drag_ended", this, "_UpdateVolume", bgmArg);
+
+        if(ScreenManager.CurrentScreen.Filename == ScreenManager.MainMenuScreenPath)
+        {
+            _MainMenuButton = GetNode<Button>(MainMenuButtonPath);
+            _MainMenuButton.Visible = false;
+        }
+    }
+    public override void _ExitTree()
+    {
+        PlayerCharacter.EnableInput();
     }
 
     public void UpdateSettings()
@@ -63,6 +77,12 @@ public class SettingMenuUI : Node
 
     public void _OnBackButtonPressed()
     {
+        QueueFree();
+    }
+
+    public void _OnMainMenuButtonPressed()
+    {
+        ScreenManager.SwitchToNextScreen(ScreenManager.MainMenuScreenPath, GetTree().Root);
         QueueFree();
     }
 
