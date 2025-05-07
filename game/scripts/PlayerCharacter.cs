@@ -66,9 +66,13 @@ public class PlayerCharacter : KinematicBody2D
 
     // The zone the player can move in
     [Export]
-    public Vector2 MinMovementBound { get; private set; } = Vector2.Zero;
+    public NodePath MinMovementBoundPath { get; set; }
     [Export]
-    public Vector2 MaxMovementBound { get; private set; } = Vector2.Zero;
+    public NodePath MaxMovementBoundPath { get; set; }
+
+    public Vector2 _minMovementBoundVector { get; private set; } = Vector2.Zero;
+    public Vector2 _maxMovementBoundVector { get; private set; } = Vector2.Zero;
+
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -144,14 +148,21 @@ public class PlayerCharacter : KinematicBody2D
         PlayerHealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
-  
-        if (PlayerHealthComponent == null || _healthBar == null || _playerSprite == null)
+        var minBound = GetNode<Node2D>(MinMovementBoundPath);
+        var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
+
+        if (minBound != null && maxbound != null)
         {
-            GD.PrintErr("Error: PlayerController has invalid export variable path.");
-            return;
+            _minMovementBoundVector = minBound.GlobalPosition;
+            _maxMovementBoundVector = maxbound.GlobalPosition;
+        }
+        else
+        {
+            _minMovementBoundVector = Vector2.Zero;
+            _maxMovementBoundVector = new Vector2(1920, 1080);
         }
 
-        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+            AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
     public override void _Input(InputEvent @event)
     {
@@ -199,14 +210,14 @@ public class PlayerCharacter : KinematicBody2D
             float targetY = mouseLocation.y;
             float targetX = mouseLocation.x;
 
-            if(MinMovementBound.y >= targetY)
-                targetY = MinMovementBound.y;
-            if(MaxMovementBound.y <= targetY)
-                targetY = MaxMovementBound.y;
-            if(MinMovementBound.x >= targetX)
-                targetX = MinMovementBound.x;
-            if(MaxMovementBound.x <= targetX)
-                targetX = MaxMovementBound.x;
+            if(_minMovementBoundVector.y >= targetY)
+                targetY = _minMovementBoundVector.y;
+            if(_maxMovementBoundVector.y <= targetY)
+                targetY = _maxMovementBoundVector.y;
+            if(_minMovementBoundVector.x >= targetX)
+                targetX = _minMovementBoundVector.x;
+            if(_maxMovementBoundVector.x <= targetX)
+                targetX = _maxMovementBoundVector.x;
 
             TargetLocation = new Vector2(targetX, targetY);
             MoveDirection = Position.DirectionTo(TargetLocation); // Normalized
@@ -217,19 +228,19 @@ public class PlayerCharacter : KinematicBody2D
             float xAxisMovement = 0;
 
 
-            if (Input.IsActionPressed("Move_Up") && MinMovementBound.y < Position.y)
+            if (Input.IsActionPressed("Move_Up") && _minMovementBoundVector.y < Position.y)
             {
                 yAxisMovement -= 1;
             }
-            if (Input.IsActionPressed("Move_Down") && MaxMovementBound.y > Position.y)
+            if (Input.IsActionPressed("Move_Down") && _maxMovementBoundVector.y > Position.y)
             {
                 yAxisMovement += 1;
             }
-            if (Input.IsActionPressed("Move_Left") && MinMovementBound.x < Position.x)
+            if (Input.IsActionPressed("Move_Left") && _minMovementBoundVector.x < Position.x)
             {
                 xAxisMovement -= 1;
             }
-            if (Input.IsActionPressed("Move_Right") && MaxMovementBound.x > Position.x)
+            if (Input.IsActionPressed("Move_Right") && _maxMovementBoundVector.x > Position.x)
             {
                 xAxisMovement += 1;
             }
