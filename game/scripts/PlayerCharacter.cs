@@ -4,9 +4,12 @@ using System.Collections.Generic;
 
 public class PlayerCharacter : KinematicBody2D
 {
+    [Signal]
+    public delegate void PlayerDeath();
+
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent HealthComponent;
+    public HealthComponent PlayerHealthComponent;
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -30,13 +33,11 @@ public class PlayerCharacter : KinematicBody2D
 
 
     [Export]
-    public float MaxMoveSpeed { get; set; } = 800.0f;
+    public float DefaultMoveSpeed { get; set; } = 800.0f;
+    [Export]
+    public float SlowMoveSpeed { get; set; } = 400.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
-    // Bullet per second
-    // DON'T SET THIS TO 0
-    private int _fireSpeed = 60;
-    private float _fireDelay = 1;
     [Export]
     public int FireSpeed {
         get { return _fireSpeed; }
@@ -52,6 +53,15 @@ public class PlayerCharacter : KinematicBody2D
             _fireDelay = 1.0f / value;
         }
     }
+    private int _fireSpeed = 60;
+    private float _fireDelay = 1;
+    private float _fireTimer = 0.0f;
+
+    [Export]
+    public float SpriteTilt = 10;
+
+    [Export]
+    public float SpriteTiltSpeed = 10.0f;
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -59,12 +69,15 @@ public class PlayerCharacter : KinematicBody2D
 
     private bool _shouldShoot = false;
 
-    // Need a timer component
-    private float _fireTimer = 0.0f;
+    private bool _ShouldSlowMovement = false;
+
 
     private Globals.Element _currentElement = Globals.Element.Water;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
+
+    private float _firingAudioDelay = 0.1f;
+    private float _firingAudioTimer = 1f;
 
     public override void _EnterTree()
     {
@@ -91,11 +104,14 @@ public class PlayerCharacter : KinematicBody2D
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
             bullet.Position = Vector2.Zero;
-            bullet.Damage = 1;
+            bullet.Damage = 5; // The damage should be decided on the scene end
             bullet.Friendly = true;
             bullet.MovementNode.Direction = Vector2.Right;
             bullet.MovementNode.Speed = 1000; // TODO tune speed
         }
+
+
+
 
         // - - - Initialize Player Bullet Templates - - -
     }
@@ -103,7 +119,6 @@ public class PlayerCharacter : KinematicBody2D
     public override void _ExitTree()
     {
         base._ExitTree();
-
 
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
@@ -115,17 +130,44 @@ public class PlayerCharacter : KinematicBody2D
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        PlayerHealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
   
-        if (HealthComponent == null || _healthBar == null || _playerSprite == null)
+        if (PlayerHealthComponent == null || _healthBar == null || _playerSprite == null)
         {
             GD.PrintErr("Error: PlayerController has invalid export variable path.");
             return;
         }
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+    }
+    public override void _Input(InputEvent @event)
+    {
+        if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
+        {
+            _shouldShoot = !_shouldShoot;
+        }
+
+        if (@event.IsActionPressed("Slow_Down") && UseToggleSlowInput)
+        {
+            _ShouldSlowMovement = !_ShouldSlowMovement;
+        }
+
+        if (@event.IsActionPressed("Previous_Element"))
+        {
+            _currentElement = Globals.PreviousElement(_currentElement);
+        }
+
+        if (@event.IsActionPressed("Next_Element"))
+        {
+            _currentElement = Globals.NextElement(_currentElement);
+        }
+
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
+        }
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -169,61 +211,42 @@ public class PlayerCharacter : KinematicBody2D
             _shouldShoot = Input.IsActionPressed("Shoot");
         }
 
+        if (!UseToggleSlowInput)
+        {
+            _ShouldSlowMovement = Input.IsActionPressed("Slow_Down");
+        }
+
         _fireTimer += delta;
-        if(_fireTimer >= _fireDelay && _shouldShoot)
+        _firingAudioTimer += delta;
+        if (_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
             Shoot();
         }
 
-        // TODO: Tilt character sprite, need lerp smoothing
-        if (Velocity.x <= -300)
-        {
-            _playerSprite.RotationDegrees = -10;
-        }
-        else if (Velocity.x >= 300)
-        {
-            _playerSprite.RotationDegrees = 10;
-        }
-        else
-        {
-            _playerSprite.RotationDegrees = 0;
-        }
+
+        _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
+
 
         //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
         //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
-    }
-
-    public override void _Input(InputEvent @event)
-    {
-        //base._Input(@event);
-
-        //_shouldShoot = @event.IsAction("Shoot");
-        if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
-        {
-            _shouldShoot = !_shouldShoot;
-        }
-
-        if (@event.IsActionPressed("Previous_Element"))
-        {
-            _currentElement = Globals.PreviousElement(_currentElement);
-        }
-
-        if (@event.IsActionPressed("Next_Element"))
-        {
-            _currentElement = Globals.NextElement(_currentElement);
-        }
-
-        if (@event.IsActionPressed("Open_Setting_Menu"))
-        {
-            ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
-        }
     }
 
     public override void _PhysicsProcess(float delta)
     {
         // TODO test only
         //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
+        float moveSpeed;
+        if (!_ShouldSlowMovement)
+        {
+            moveSpeed = DefaultMoveSpeed;
+        }
+        else
+        {
+            moveSpeed = SlowMoveSpeed;
+        }
+
+
 
         // Calculate player velocity
         if (UseMouseDirectedInput) // TODO use Globals.GameData
@@ -233,15 +256,15 @@ public class PlayerCharacter : KinematicBody2D
             {
                 // Smoothed movement
                 float distanceToTarget = Position.DistanceTo(TargetLocation);
-                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / MaxMoveSpeed, 0, 1); // Decelerate when close to target
-                Velocity = MoveDirection * MaxMoveSpeed * smoothFactor;
+                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / moveSpeed, 0, 1); // Decelerate when close to target
+                Velocity = MoveDirection * moveSpeed * smoothFactor;
             }
             else
             {
                 // Constant speed movement
-                Velocity = MoveDirection * MaxMoveSpeed;
+                Velocity = MoveDirection * moveSpeed;
                 float distanceToTarget = Position.DistanceTo(TargetLocation);
-                float distanceAfter = MaxMoveSpeed * delta;
+                float distanceAfter = moveSpeed * delta;
 
                 // Check if it will overshoot
                 if (distanceAfter > distanceToTarget)
@@ -254,37 +277,46 @@ public class PlayerCharacter : KinematicBody2D
         else
         {
             // Keyboard control
-            Velocity = MoveDirection * MaxMoveSpeed;
+            Velocity = MoveDirection * moveSpeed;
         }
 
         MoveAndSlide(Velocity);
     }
 
+    // Called when other hitbody has enter the body
     public void _OnHitboxBodyEntered(Node body)
     {
         if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
-            HealthComponent.ApplyDamage(harmful.GetDamage());
+            PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
             harmful.Kill();
         }
     }
 
+    // Called when health value got change
     public void _OnHealthUpdate(int newHealth)
     {
-        //GD.Print("Hurt");
-        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)PlayerHealthComponent.MaxHealth;
     }
 
+    // Called when health is deplated
     public void _OnHealthDepleted()
     {
-        //QueueFree(); // TODO Add a publlic Kill() function
-        ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
-
+        EmitSignal("PlayerDeath");
     }
-
+    
+    // Called when any setting got change
     private void UpdateSetting(string key, string value)
     {
-        _shouldShoot = false;
+        if(key == "ToggleSlow")
+        {
+            _ShouldSlowMovement = false;
+        }
+        if(key == "ToggleAttack")
+        {
+            _shouldShoot = false;
+        }
+
 
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
@@ -321,7 +353,11 @@ public class PlayerCharacter : KinematicBody2D
             break;
         }
         
-        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+        if(_firingAudioTimer >= _firingAudioDelay)
+        {
+            AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+            _firingAudioTimer = 0;
+        }
     }
 
 }
