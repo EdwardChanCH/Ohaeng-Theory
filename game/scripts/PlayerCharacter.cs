@@ -48,7 +48,7 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
-    private Globals.Element _currentElement = Globals.Element.Metal;
+    private Globals.Element _currentElement = Globals.Element.Water;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
@@ -226,8 +226,29 @@ public class PlayerCharacter : KinematicBody2D
 
     private void Shoot()
     {
-        //ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+        // TODO All of these function calls can be stored in Callable()
+        switch (_currentElement)
+        {
+            case Globals.Element.Water:
+                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+                break;
+            case Globals.Element.Wood:
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
+                break;
+            case Globals.Element.Fire:
+                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
+                break;
+            case Globals.Element.Earth:
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            case Globals.Element.Metal:
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            default:
+                GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
+            break;
+        }
+        
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 

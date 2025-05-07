@@ -139,86 +139,105 @@ public class ProjectileManager : Node
 
     // - - - Bullet Emitter Functions - - -
 
-    // Sinful code; will refactor as an Emitter class later
-    // Experimental
-
-    // Emit one single bullet (based on template data)
+    // Emit a bullet in a line shape
     public static void EmitBulletLine(Bullet template, Node parentNode, Vector2 position)
     {
         Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
         Bullet.CopyData(template, bullet);
         bullet.Position = position;
+        // bullet.MovementNode.Direction = template.MovementNode.Direction;
     }
 
-    // Emit one single bullet
-    public static void EmitBulletSingle(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer)
+    // Emit multiple bullet in a wall shape
+    public static void EmitBulletWall(Bullet template, Node parentNode, Vector2 position, int count, float separation)
     {
-        Bullet bullet = (Bullet)SpawnProjectile(BulletScenePath[element], parentNode);
-        bullet.Position = position;
-        bullet.ChangeDirection(direction);
-        bullet.Damage = damage;
-        bullet.CollisionLayer = (uint)0;
-        bullet.CollisionMask = (uint)0;
-        if (fromPlayer)
+        if (count < 1)
         {
-            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+            GD.PrintErr("Error: EmitBulletRing() must have count >= 1.");
+            return;
         }
-        else
+
+        float width = (count - 1) * separation;
+        float half = width / 2;
+        Vector2 cross = template.MovementNode.Direction.Rotated(Mathf.Pi / 2); // 2D cross product
+
+        for (int i = 0; i < count; i++)
         {
-            bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet.CopyData(template, bullet);
+            bullet.Position = position + (i * separation - half) * cross;
+            // bullet.MovementNode.Direction = template.MovementNode.Direction;
         }
 
     }
 
-    // public static void EmitBulletBeam(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount, int width)
-
-    // Emit bullets in a ring shape
-    public static void EmitBulletRing(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount)
+    // Emit multiple bullets in a ring shape
+    public static void EmitBulletRing(Bullet template, Node parentNode, Vector2 position, int count)
     {
-        if (bulletCount <= 0)
+        if (count < 1)
         {
-            GD.PrintErr("Error: EmitBulletRing() must have bulletCount >= 1.");
-            bulletCount = 1;
+            GD.PrintErr("Error: EmitBulletRing() must have count >= 1.");
+            return;
         }
 
-        float angle = 2 * Mathf.Pi / bulletCount;
+        float angle = 2 * Mathf.Pi / count;
 
-        for (int i = 0; i < bulletCount; i++)
+        for (int i = 0; i < count; i++)
         {
-            EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i), damage, fromPlayer);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet.CopyData(template, bullet);
+            bullet.Position = position;
+            bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle);
         }
     }
 
-    // Emit bullets in a cone shape
-    // Imagine diving a triangular pizza, the internal edges are bullet directions
-    // If spawnEdgeBullets is true, two more bullets spawn on the outermost edges
-    // maxSpread is in radian
-    public static void EmitBulletCone(Globals.Element element, Node parentNode, Vector2 position, Vector2 direction, int damage, bool fromPlayer, int bulletCount, float maxSpread, bool spawnEdgeBullets)
+    // Emit multiple bullets in a narrow cone shape
+    // i.e. left/ right edges don't spawn bullets
+    // spread is in radian
+    // Note: Imagine dividing a triangular pizza, the internal edges are bullet tracks
+    public static void EmitBulletConeNarrow(Bullet template, Node parentNode, Vector2 position, int count, float spread)
     {
-        if (bulletCount <= 0)
+        if (count < 1)
         {
-            GD.PrintErr("Error: EmitBulletCone() must have bulletCount >= 1.");
-            bulletCount = 1;
+            GD.PrintErr("Error: EmitBulletConeNarrow() must have count >= 1.");
+            return;
         }
 
-        float angle = maxSpread / (bulletCount + 1);
+        float angle = spread / (count + 1);
+        float half = spread / 2;
 
-        if (spawnEdgeBullets)
+        for (int i = 0; i < count; i++)
         {
-            for (int i = 0; i < bulletCount + 2; i++)
-            {
-                EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i - maxSpread / 2), damage, fromPlayer);
-            }
-        }
-        else
-        {
-            for (int i = 1; i < bulletCount + 1; i++)
-            {
-                EmitBulletSingle(element, parentNode, position, direction.Rotated(angle * i - maxSpread / 2), damage, fromPlayer);
-            }
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet.CopyData(template, bullet);
+            bullet.Position = position;
+            bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated((i + 1) * angle - half);
         }
     }
 
-    // - - - Bullet Emitter Functions - - -
+    // Emit multiple bullets in a wide cone shape
+    // i.e. left/ right edges always spawn bullets
+    // spread is in radian
+    // Note: Imagine dividing a triangular pizza, all edges are bullet tracks
+    public static void EmitBulletConeWide(Bullet template, Node parentNode, Vector2 position, int count, float spread)
+    {
+        if (count < 3)
+        {
+            GD.PrintErr("Error: EmitBulletConeNarrow() must have count >= 3.");
+            return;
+        }
+        count -= 2;
+
+        float angle = spread / (count + 1);
+        float half = spread / 2;
+
+        for (int i = 0; i < count + 2; i++)
+        {
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
+            Bullet.CopyData(template, bullet);
+            bullet.Position = position;
+            bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);
+        }
+    }
 
 }

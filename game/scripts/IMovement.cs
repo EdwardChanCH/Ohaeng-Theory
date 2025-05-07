@@ -3,7 +3,7 @@ using System;
 
 public interface IMovement
 {
-    // Initial direction
+    // Initial direction (should be normalized)
     Vector2 Direction { get; set; }
 
     // Initial speed
