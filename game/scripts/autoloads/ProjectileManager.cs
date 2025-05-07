@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 // This singleton class spawns projectiles.
 // Note: Godot autoload requires Node type.
@@ -11,6 +12,8 @@ public class ProjectileManager : Node
     private static Dictionary<string, PackedScene> _cachedScenes = new Dictionary<string, PackedScene>();
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
+
+    private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
 
     public static readonly Dictionary<Globals.Element, string> BulletScenePath = new Dictionary<Globals.Element, string>()
     {
@@ -74,7 +77,9 @@ public class ProjectileManager : Node
         }
 
         // Attatch to parent at the end of frame (if exist)
-        parentNode?.CallDeferred("add_child", projectile);
+        projectile.GetParent()?.RemoveChild(projectile);
+        //parentNode?.CallDeferred("add_child", projectile);
+        parentNode.AddChild(projectile);
 
         // Caller should set the node owner when saving
 
@@ -83,11 +88,16 @@ public class ProjectileManager : Node
         projectile.SetPhysicsProcess(true); // It reset to true in AddChild(projectile)
 
         // Initalize the projectile immediately, instead of waiting for _Ready()
-        if (projectile is Bullet)
+        if (projectile is Bullet bullet)
         {
-            ((Bullet)projectile).Initalize(); // TODO need clean up
+            bullet.Initalize(); // TODO need clean up
         }
 
+        GD.Print($"{projectile.GetInstanceId()} Spawned");
+        if (projectile is Bullet e)
+        {
+            GD.Print($"{e.Position}");
+        }
         return projectile;
     }
 
@@ -101,34 +111,68 @@ public class ProjectileManager : Node
     // Despawn at the end of frame
     public static void QueueDespawnProjectile(Node projectile)
     {
-        Singleton.CallDeferred("DespawnProjectile", projectile);
+        ulong instanceID = projectile.GetInstanceId();
+
+        // Check if repeated calls
+        if (!_despawnPool.Contains(instanceID))
+        {
+            _despawnPool.Add(instanceID);
+            GD.Print($"{projectile.GetInstanceId()} Locked");
+            Singleton.CallDeferred("DespawnProjectile", projectile, instanceID);
+        }
+        else
+        {
+            GD.Print($"{projectile.GetInstanceId()} Blocked");
+        }
+
+        if (projectile is Bullet bullet)
+        {
+            bullet.CollisionLayer = (uint)0;
+            bullet.CollisionMask = (uint)0;
+            bullet.Position = Vector2.Zero;
+            bullet.SetProcess(false);
+            bullet.SetPhysicsProcess(false);
+            GD.Print($"{bullet.GetInstanceId()} Reset");
+            GD.Print($"{bullet.Position}");
+        } // TODO
     }
 
     // Recycle a projectile scene instance.
     // projectile:  Root node of a projectile scene
-    private static void DespawnProjectile(Node projectile)
+    private static void DespawnProjectile(Node projectile, ulong instanceID)
     {
+        GD.Print($"{projectile.GetInstanceId()} Despawned");
+        if (projectile is Bullet e)
+        {
+            GD.Print($"{e.Position}");
+        }
+        
+        if (projectile == null)
+        {
+            GD.PrintErr("Error: Cannot despawn a null projectile.");
+            return;
+        }
+
+        if (projectile.Filename.Length == 0)
+        {
+            GD.PrintErr("Warning: ProjectileManager despawned a node that is not a scene instance.");
+            return;
+        }
+
+        // Disable processing
+        projectile.SetProcess(false);
+        projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
+
         // Detatch from parent (if exist)
         projectile.GetParent()?.RemoveChild(projectile);
 
         // Prevent scenes from saving this node
         projectile.Owner = null;
 
-        // Disable processing
-        projectile.SetProcess(false);
-        projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
-
         // Add to object pool
-        if (projectile.Filename.Length == 0)
-        {
-            GD.Print("Warning: ProjectileManager despawned a node that is not a scene instance.");
-            projectile.QueueFree();
-        }
-        else
-        {
-            _objectPools[projectile.Filename].Push(projectile);
-        }
-        
+        _objectPools[projectile.Filename].Push(projectile);
+        _despawnPool.Remove(instanceID);
+        GD.Print($"{projectile.GetInstanceId()} Unlocked");
     }
 
     // Called when the node enters the scene tree for the first time
@@ -144,8 +188,10 @@ public class ProjectileManager : Node
     {
         Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
         Bullet.CopyData(template, bullet);
-        bullet.Position = position;
+        bullet.Position = position + Vector2.Right * 100;
         // bullet.MovementNode.Direction = template.MovementNode.Direction;
+        GD.Print($"{bullet.GetInstanceId()} Emit");
+        GD.Print($"{bullet.Position}");
     }
 
     // Emit multiple bullet in a wall shape
@@ -238,6 +284,24 @@ public class ProjectileManager : Node
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);
         }
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        foreach (string key in _objectPools.Keys)
+        {
+            GD.Print("");
+            GD.Print(key);
+            while (_objectPools[key].Count > 0)
+            {
+                GD.Print(_objectPools[key].Pop().GetInstanceId());
+            }
+            GD.Print("--- Stack Bottom ---");
+            GD.Print("");
+        }
+
     }
 
 }

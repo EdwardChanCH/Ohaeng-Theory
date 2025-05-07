@@ -12,33 +12,33 @@ ElementalCountLabelPaths = [ NodePath("WaterCount"), NodePath("WoodCount"), Node
 
 [node name="WaterCount" type="Label" parent="."]
 modulate = Color( 0, 0.929412, 1, 1 )
-margin_right = 12.0
+margin_right = 50.0
 margin_bottom = 14.0
-text = "??"
+text = "0 Water"
 
 [node name="WoodCount" type="Label" parent="."]
-modulate = Color( 0.741176, 0.419608, 0, 1 )
+modulate = Color( 0.741176, 0.590625, 0, 1 )
 margin_top = 18.0
-margin_right = 12.0
+margin_right = 50.0
 margin_bottom = 32.0
-text = "??"
+text = "0 Wood"
 
 [node name="FireCount" type="Label" parent="."]
 modulate = Color( 1, 0.376471, 0, 1 )
 margin_top = 36.0
-margin_right = 12.0
+margin_right = 50.0
 margin_bottom = 50.0
-text = "??"
+text = "0 Fire"
 
 [node name="EarthCount" type="Label" parent="."]
-modulate = Color( 0.882353, 0.764706, 0.00784314, 1 )
+modulate = Color( 0.2, 0.882353, 0.00784314, 1 )
 margin_top = 54.0
-margin_right = 12.0
+margin_right = 50.0
 margin_bottom = 68.0
-text = "??"
+text = "0 Earth"
 
 [node name="MetalCount" type="Label" parent="."]
 margin_top = 72.0
-margin_right = 12.0
+margin_right = 50.0
 margin_bottom = 86.0
-text = "??"
+text = "0 Metal"

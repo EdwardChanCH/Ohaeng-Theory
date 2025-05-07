@@ -88,12 +88,24 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
+        GD.Print($"{body.GetInstanceId()} Entered <<<");
+        if (body is Bullet e)
+        {
+            GD.Print($"{e.Position}");
+        }
+
         if (body is IHarmful damageSource)
         {
             HealthComponent.ApplyDamage(damageSource.GetDamage());
             _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            body.QueueFree();
+            //body.QueueFree();
             //GD.Print("Hurt");
+        }
+
+        if (body is Bullet)
+        {
+            ProjectileManager.QueueDespawnProjectile(body);
+            //GD.Print("EnemyCharacter despawn Bullet.");
         }
     }
 
@@ -154,6 +166,8 @@ public class EnemyCharacter : KinematicBody2D
         {
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
+            bullet.CollisionLayer = (uint)0;
+            bullet.CollisionMask = (uint)0;
             bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
             bullet.MovementNode.Direction = Vector2.Left;
             bullet.MovementNode.Speed = 200; // TODO tune speed

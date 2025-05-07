@@ -9,4 +9,18 @@ public class GameplayScreen : Node2D
     {
         
     }
+
+    public void _OnDespawnAreaBodyExited(Node body)
+    {
+        if (body is Bullet)
+        {
+            ProjectileManager.QueueDespawnProjectile(body);
+            //GD.Print("DespawnArea despawn Bullet.");
+        }
+        else if (body is LesserEnemyCharacter)
+        {
+            body.QueueFree();
+            //GD.Print("DespawnArea queue free LesserEnemyCharacter.");
+        }
+    }
 }

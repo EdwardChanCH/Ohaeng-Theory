@@ -67,7 +67,13 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         {
             HealthComponent.ApplyDamage(damageSource);
             _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            body.QueueFree();
+            //body.QueueFree();
+        }
+
+        if (body is Bullet)
+        {
+            ProjectileManager.QueueDespawnProjectile(body);
+            //GD.Print("LesserEnemyCharacter despawn Bullet.");
         }
     }
 
