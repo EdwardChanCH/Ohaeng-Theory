@@ -5,7 +5,7 @@
 [ext_resource path="res://scripts/HealthComponent.cs" type="Script" id=3]
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=4]
 [ext_resource path="res://scenes/damage_popup.tscn" type="PackedScene" id=5]
-[ext_resource path="res://scenes/ElementalCount.tscn" type="PackedScene" id=6]
+[ext_resource path="res://scenes/elemental_count.tscn" type="PackedScene" id=6]
 
 [sub_resource type="CircleShape2D" id=5]
 radius = 100.0
@@ -30,6 +30,7 @@ HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
 DamagePopupPath = NodePath("DamagePopup")
+CharacterSpirtePath = NodePath("Sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 3 )

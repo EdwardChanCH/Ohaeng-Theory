@@ -13,7 +13,7 @@ public class ScreenManager : Node
     public const string WinScreenPath = "TODO"; // popup?
     public const string LoseScreenPath = "TODO"; // popup?
 
-    public const string SettingsScreenPath = "TODO"; // popup?
+    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup?
 
     public static ScreenManager Singleton { get; private set; }
 
