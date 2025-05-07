@@ -8,7 +8,7 @@ public class ElementalCount : Node
     private Godot.Collections.Array<Label> _countLabel = new Godot.Collections.Array<Label> ();
 
 
-    public override void _EnterTree()
+    public override void _Ready()
     {
 
         foreach (var labelPath in ElementalCountLabelPaths)
@@ -17,7 +17,7 @@ public class ElementalCount : Node
 
             if (label == null)
             {
-                GD.PrintErr("Error: Label Count Contrain Invalid Path");
+                GD.PrintErr("Error: Label Count Contains Invalid Path");
                 return;
             }
 

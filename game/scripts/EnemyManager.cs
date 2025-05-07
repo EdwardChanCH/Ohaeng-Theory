@@ -4,9 +4,9 @@ using System;
 public class EnemyManager : Node
 {
 
-
-    public static void SetEnemySprite(string spritePath)
+    // Not needed anymore
+/*     public static void SetEnemySprite(string spritePath)
     {
 
-    }
+    } */
 }

@@ -10,6 +10,33 @@ public class Bullet : KinematicBody2D, IHarmful
     [Export]
     public int Damage { get; set; } = 0;
 
+    [Export]
+    public bool Friendly { get; set; } = true;
+
+    // - - - False-positive collision workaround - - -
+    // How many physics ticks to wait before collision becomes active
+    private const int _physicsTicksTimer = 1; // Must be > 0 or Godot will freak out
+    private int _physicsTicks = -1;
+    private bool _active = false;
+    [Export]
+    public bool Active
+    {
+        get { return _active; }
+        set
+        {
+            if (value)
+            {
+                _physicsTicks = 0;
+            }
+            else
+            {
+                _active = false;
+                _physicsTicks = -1;
+            }
+        }
+    }
+    // - - - False-positive collision workaround - - -
+
     // - - - Node Paths - - -
 
     [Export]
@@ -24,38 +51,33 @@ public class Bullet : KinematicBody2D, IHarmful
     [Export]
     public NodePath CollisionShape2DNodePath { get; set; }
     public CollisionShape2D CollisionShape2DNode;
-    public int CollisionFlag { get; set; } = -1;
 
     // - - - Node Paths - - -
 
-    // Copy data from another source bullet
-    // Note: Export nodes are not copied, parent is not copied
-    public static void CopyData(Bullet template, Bullet other)
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
     {
-        other.CollisionLayer = template.CollisionLayer;
-        other.CollisionMask = template.CollisionMask;
-        other.Position = template.Position;
-        other.Element = template.Element;
-        other.Damage = template.Damage;
-
-        other.MovementNode.Direction = template.MovementNode.Direction;
-        other.MovementNode.Speed = template.MovementNode.Speed;
-
-        // Defined in scene file, no need to copy
-        //other.MovementNode;
-        //other.SpriteNode.Texture;
-        //other.CollisionShape2DNode;
+        Initalize();
     }
 
-    public int GetDamage()
+    // Called every physics tick. 'delta' is the elapsed time since the previous tick.
+    public override void _PhysicsProcess(float delta)
     {
-        return Damage;
-    }
+        // Start a timer to enable collision check
+        if (_physicsTicks <= -1)
+        {
+            // Disabled, do nothing
+        }
+        else if (_physicsTicks >= _physicsTicksTimer)
+        {
+            _active = true;
+        }
+        else
+        {
+            _physicsTicks += 1;
+        }
 
-    // Need to call this once to move the bullet
-    public void ChangeDirection(Vector2 direction)
-    {
-        MovementNode.Direction = direction;
+        MoveAndSlide(MovementNode.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
 
     public void Initalize()
@@ -71,16 +93,50 @@ public class Bullet : KinematicBody2D, IHarmful
         }
     }
 
-    // Note: Use this as the Main() method.
-    // Called when the node enters the scene tree for the first time.
-    public override void _Ready()
+    // Copy data from another source bullet
+    // Note: Export nodes are not copied, parent is not copied
+    public static void CopyData(Bullet template, Bullet other)
     {
-        Initalize();
+        other.Position = template.Position;
+        other.Element = template.Element;
+        other.Damage = template.Damage;
+        other.Friendly = template.Friendly;
+        other.Active = template.Active;
+
+        other.MovementNode.Direction = template.MovementNode.Direction;
+        other.MovementNode.Speed = template.MovementNode.Speed;
+
+        // Defined in scene file, no need to copy
+        //other.MovementNode;
+        //other.SpriteNode.Texture;
+        //other.CollisionShape2DNode;
     }
 
-    // Called every physics tick. 'delta' is the elapsed time since the previous tick.
-    public override void _PhysicsProcess(float delta)
+    // Need to call this once to move the bullet
+    public void ChangeDirection(Vector2 direction)
     {
-        MoveAndSlide(MovementNode.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
+        MovementNode.Direction = direction;
     }
+
+    public int GetDamage()
+    {
+        return Damage;
+    }
+
+    public bool IsFriendly()
+    {
+        return Friendly;
+    }
+
+    public bool IsActive()
+    {
+        return Active;
+    }
+
+    public void Kill()
+    {
+        Active = false;
+        ProjectileManager.QueueDespawnProjectile(this); // Return to object pool
+    }
+
 }

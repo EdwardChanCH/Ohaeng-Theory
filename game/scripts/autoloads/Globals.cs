@@ -10,6 +10,8 @@ public class Globals : Node
     [Signal]
     public delegate void GameDataChanged(string key, string value);
 
+    public static Globals Singleton { get; private set; }
+
     // Game Data (last for the whole game)
     public static Dictionary<string, string> GameData { get; private set; } = new Dictionary<string, string>();
 
@@ -43,16 +45,19 @@ public class Globals : Node
     public const int EnemyLayerBit = 3; // Layer 4
     public const int EnemyProjectileLayerBit = 4; // Layer 5
 
-    public static Globals Singleton { get; private set; }
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        Singleton = this;
         GameData.Add("UseMouseDirectedInput", "true");
         GameData.Add("ToggleAttack", "true");
         GameData.Add("ToggleSlow", "true");
-
     }
 
     public static void ChangeGameData(string key, string value)
@@ -166,30 +171,5 @@ public class Globals : Node
 
         return dominant;
     }
-
-    /* 
-    // Find the element with the highest importance from a list of elements
-    public static Element MostImportantElement(params Element[] elementList)
-    {
-        int maxValue = (int)Element.Null;
-        
-        foreach (Element element in elementList)
-        {
-            if (element == Element.Null)
-            {
-                return Element.Null;
-            }
-            
-            int value = (int)element;
-
-            if (value > maxValue)
-            {
-                maxValue = value;
-            }
-        }
-
-        return (Element)maxValue;
-    }
- */
 
 }

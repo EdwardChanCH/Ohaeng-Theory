@@ -6,16 +6,16 @@ using System.Collections.Generic;
 // Note: Godot autoload requires Node type.
 public class ScreenManager : Node
 {
+
+    public static ScreenManager Singleton { get; private set; }
+    
     // Screen paths
     public const string MainMenuScreenPath = "res://scenes/screens/main_menu_screen.tscn";
     public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
     public const string PauseScreenPath = "TODO"; // popup?
     public const string WinScreenPath = "TODO"; // popup?
     public const string LoseScreenPath = "TODO"; // popup?
-
-    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup?
-
-    public static ScreenManager Singleton { get; private set; }
+    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn";
 
     // The current loaded screen (not a popup) (may add popups as children)
     public static Node CurrentScreen { get; private set; } = null;
@@ -25,6 +25,13 @@ public class ScreenManager : Node
 
     // History of loaded screens
     private static Stack<string> _screenHistory = new Stack<string>();
+
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
+    }
 
     // Load a new screen or popup.
     // Note: this does not update the current screen or screen history.
@@ -112,9 +119,4 @@ public class ScreenManager : Node
         return Load(scenePath, CurrentScreen);
     }
 
-    // Called when the node enters the scene tree for the first time.
-    public override void _Ready()
-    {
-        Singleton = this;
-    }
 }
