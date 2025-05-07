@@ -34,7 +34,7 @@ public class SettingMenuUI : Node
 
     public override void _Ready()
     {
-        PlayerCharacter.DisableInput();
+        GetTree().Paused = true;
         _MouseDirectedInputCheckBox = GetNode<CheckBox>(MouseDirectedInputCheckBoxPath);
         _ToggleAttackCheckBox = GetNode<CheckBox>(ToggleAttackCheckBoxPath);
         _ToggleSlowCheckBox = GetNode<CheckBox>(ToggleSlowCheckBoxPath);
@@ -67,12 +67,7 @@ public class SettingMenuUI : Node
     }
     public override void _ExitTree()
     {
-        PlayerCharacter.EnableInput();
-    }
-
-    public void UpdateSettings()
-    {
-        // TODO
+        GetTree().Paused = false;
     }
 
     public void _OnBackButtonPressed()

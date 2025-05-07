@@ -66,13 +66,9 @@ public class PlayerCharacter : KinematicBody2D
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-    private static PlayerCharacter _instance; // TODO Move this to GameplayScreen.cs
-
     public override void _EnterTree()
     {
         base._EnterTree();
-
-        _instance = this; // TODO Move this to GameplayScreen.cs
 
         Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
@@ -108,10 +104,6 @@ public class PlayerCharacter : KinematicBody2D
     {
         base._ExitTree();
 
-        if(_instance == this)
-        {
-            _instance = null; // TODO Move this to GameplayScreen.cs
-        }
 
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
@@ -286,7 +278,6 @@ public class PlayerCharacter : KinematicBody2D
     public void _OnHealthDepleted()
     {
         //QueueFree(); // TODO Add a publlic Kill() function
-        DisableInput();
         ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
 
     }
@@ -298,20 +289,6 @@ public class PlayerCharacter : KinematicBody2D
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
         UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
-    }
-
-    public static void EnableInput() // TODO Move this to GameplayScreen.cs
-    {
-        _instance?.SetProcess(true);
-        _instance?.SetPhysicsProcess(true);
-        _instance?.SetProcessInput(true);
-    }
-
-    public static void DisableInput() // TODO Move this to GameplayScreen.cs
-    {
-        _instance?.SetProcess(false);
-        _instance?.SetPhysicsProcess(false);
-        _instance?.SetProcessInput(false);
     }
 
     private void Shoot()
