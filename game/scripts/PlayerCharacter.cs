@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class PlayerCharacter : KinematicBody2D
 {
@@ -47,7 +48,9 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
-    private Globals.Element _currentElement = Globals.Element.Metal;
+    private Globals.Element _currentElement = Globals.Element.Water;
+
+    private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
     private static PlayerCharacter _instance;
 
@@ -184,6 +187,9 @@ public class PlayerCharacter : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
+        // TODO test only
+        //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
+
         // Calculate player velocity
         if (UseMouseDirectedInput)
         {
@@ -265,8 +271,68 @@ public class PlayerCharacter : KinematicBody2D
 
     private void Shoot()
     {
-        ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
+        // TODO All of these function calls can be stored in Callable()
+        switch (_currentElement)
+        {
+            case Globals.Element.Water:
+                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+                break;
+            case Globals.Element.Wood:
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
+                break;
+            case Globals.Element.Fire:
+                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
+                break;
+            case Globals.Element.Earth:
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            case Globals.Element.Metal:
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            default:
+                GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
+            break;
+        }
+        
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
+        public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        // - - - Initialize Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Player_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+            bullet.MovementNode.Direction = Vector2.Right;
+            bullet.MovementNode.Speed = 10000; // TODO tune speed
+        }
+
+        // - - - Initialize Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree();
+        }
     }
 
 }

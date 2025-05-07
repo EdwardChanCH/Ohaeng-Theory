@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class EnemyCharacter : KinematicBody2D
 {
@@ -32,12 +33,9 @@ public class EnemyCharacter : KinematicBody2D
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.None;
-    public System.Collections.Generic.Dictionary<Globals.Element, int> ElementalCount { get; private set; } = 
-        new System.Collections.Generic.Dictionary<Globals.Element, int>();
+    public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
 
-    public override void _EnterTree()
-    {
-    }
+    private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
     public override void _Ready()
     {
@@ -57,23 +55,24 @@ public class EnemyCharacter : KinematicBody2D
 
         _fireDelay = (float)GD.RandRange(1.0, 5.0);
 
-        for (int i = 1; i <= 5; i++)
+        foreach (Globals.Element element in Globals.AllElements)
         {
-            ElementalCount.Add((Globals.Element)i, 0);
-            EmitSignal("UpdateElement", (Globals.Element)i, 0);
+            ElementalCount[element] = 0;
+            EmitSignal("UpdateElement", element, 0);
         }
 
+        _currentElement = Globals.DominantElement(ElementalCount);
 
-        // for testing remove later
+        // TODO for testing remove later
         var rng = new RandomNumberGenerator();
         rng.Randomize();
         int loop = rng.RandiRange(1, 3);
-        for (int i = 1; i < loop; i++)
+        for (int i = 0; i < loop; i++)
         {
             rng.Randomize();
-            int randomInt = rng.RandiRange(1, 5);
+            int randomElement = rng.RandiRange(1, 5);
             rng.Randomize();
-            AddToElement((Globals.Element)randomInt, rng.RandiRange(1, 10));
+            AddToElement((Globals.Element)randomElement, rng.RandiRange(1, 100));
         }
     }
 
@@ -109,12 +108,6 @@ public class EnemyCharacter : KinematicBody2D
         QueueFree();
     }
 
-    public void Shoot()
-    {
-        ProjectileManager.EmitBulletRing(_currentElement, GetTree().Root, Position, Vector2.Left, 1, false, 12);
-        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
-    }
-
     public void AddToElement(Globals.Element element, int count)
     {
         if (element == 0)
@@ -122,6 +115,7 @@ public class EnemyCharacter : KinematicBody2D
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
+        _currentElement = Globals.DominantElement(ElementalCount);
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
@@ -131,5 +125,51 @@ public class EnemyCharacter : KinematicBody2D
 
         ElementalCount[element] = Mathf.Clamp(ElementalCount[element] - count, 0, 255);
         EmitSignal("UpdateElement", element, ElementalCount[element]);
+        _currentElement = Globals.DominantElement(ElementalCount);
+    }
+
+    public void Shoot()
+    {
+        //ProjectileManager.EmitBulletRing(_currentElement, GetTree().Root, Position, Vector2.Left, 1, false, 12);
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, Position);
+        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        // - - - Initialize Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Enemy_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
+            bullet.MovementNode.Direction = Vector2.Left;
+            bullet.MovementNode.Speed = 200; // TODO tune speed
+        }
+
+        // - - - Initialize Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree(); 
+        }
     }
 }
