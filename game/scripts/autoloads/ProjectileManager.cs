@@ -111,6 +111,12 @@ public class ProjectileManager : Node
     // Despawn at the end of frame
     public static void QueueDespawnProjectile(Node projectile)
     {
+        // TODO temporary fix, can't find any solution to fix the Area2D bug
+        projectile.QueueFree();
+        return;
+
+
+
         ulong instanceID = projectile.GetInstanceId();
 
         // Check if repeated calls
