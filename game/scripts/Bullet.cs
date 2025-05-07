@@ -139,4 +139,8 @@ public class Bullet : KinematicBody2D, IHarmful
         ProjectileManager.QueueDespawnProjectile(this); // Return to object pool
     }
 
+    public Globals.Element GetElement()
+    {
+        return Element;
+    }
 }
