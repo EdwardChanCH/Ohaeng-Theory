@@ -12,9 +12,8 @@ public class ScreenManager : Node
     // Screen paths
     public const string MainMenuScreenPath = "res://scenes/screens/main_menu_screen.tscn";
     public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
-    public const string PauseScreenPath = "TODO"; // popup?
-    public const string WinScreenPath = "TODO"; // popup?
-    public const string LoseScreenPath = "TODO"; // popup?
+    public const string WinScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
+    public const string LoseScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
     public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn";
 
     // The current loaded screen (not a popup) (may add popups as children)

@@ -273,7 +273,6 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
             HealthComponent.ApplyDamage(harmful.GetDamage());
-            //_damagePopup.AddToCumulativeDamage(harmful.GetDamage()); // TODO not implemented
             harmful.Kill();
         }
     }
@@ -286,7 +285,10 @@ public class PlayerCharacter : KinematicBody2D
 
     public void _OnHealthDepleted()
     {
-        QueueFree(); // TODO Add a publlic Kill() function
+        //QueueFree(); // TODO Add a publlic Kill() function
+        DisableInput();
+        ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
+
     }
 
     private void UpdateSetting(string key, string value)
