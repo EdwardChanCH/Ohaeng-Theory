@@ -9,7 +9,7 @@ radius = 100.0
 
 [node name="FireBullet" type="KinematicBody2D"]
 scale = Vector2( 0.1, 0.1 )
-collision_layer = 0
+collision_layer = 20
 collision_mask = 0
 script = ExtResource( 2 )
 Element = 3

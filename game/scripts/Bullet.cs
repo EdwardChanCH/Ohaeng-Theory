@@ -24,6 +24,7 @@ public class Bullet : KinematicBody2D, IHarmful
     [Export]
     public NodePath CollisionShape2DNodePath { get; set; }
     public CollisionShape2D CollisionShape2DNode;
+    public int CollisionFlag { get; set; } = -1;
 
     // - - - Node Paths - - -
 
@@ -82,5 +83,4 @@ public class Bullet : KinematicBody2D, IHarmful
     {
         MoveAndSlide(MovementNode.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
     }
-
 }

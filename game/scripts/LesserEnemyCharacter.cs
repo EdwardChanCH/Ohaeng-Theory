@@ -1,11 +1,11 @@
 using Godot;
 using System;
 
-public class LesserEnemyCharacter : KinematicBody2D, IHarmful
+public class LesserEnemyCharacter : KinematicBody2D, IHarmful, IProjectileInfo
 {
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent HealthComponent { get; private set; }
+    public HealthComponent healthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -33,16 +33,19 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     [Export]
     public Vector2 MoveDirection { get; set; } = Vector2.Left;
 
+    public int CollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
+    public int FriendlyCollisionFlag { get; set; } = Globals.EnemyProjectileLayerBit;
+
     public override void _Ready()
     {
-        HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
+        healthComponent = GetNode<HealthComponent>(HealthComponentPath);
         CharacterSprite = GetNode<Sprite>(CharacterSpirtePath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
         _movementComponent = GetNode<IMovement>(MovementComponentPath);
 
-        if (HealthComponent == null || _healthBar == null 
+        if (healthComponent == null || _healthBar == null 
             || _movementComponent == null || _healthText == null 
             || _damagePopup == null || CharacterSprite == null)
         {
@@ -50,7 +53,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
             return;
         }
 
-        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        _OnHealthUpdate(healthComponent.CurrentHealth);
 
         _movementComponent.Direction = MoveDirection;
         SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
@@ -65,16 +68,19 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         if (body is IHarmful damageSource)
         {
-            HealthComponent.ApplyDamage(damageSource);
-            _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
-            body.QueueFree();
+            if(damageSource.CollisionFlag != Globals.EnemyProjectileLayerBit)
+            {
+                healthComponent.ApplyDamage(damageSource);
+                _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
+                body.QueueFree();
+            }
         }
     }
 
     public void _OnHealthUpdate(int newHealth)
     {
-        _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
-        _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
+        _healthBar.Value = (float)newHealth / (float)healthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + healthComponent.MaxHealth;
     }
 
     public void _OnHealthDepleted()
@@ -87,5 +93,4 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         return CollisionDamage;
     }
 
-    
 }
