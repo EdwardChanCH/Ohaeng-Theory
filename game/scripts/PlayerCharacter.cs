@@ -22,6 +22,9 @@ public class PlayerCharacter : KinematicBody2D
     public bool UseToggleShootInput { get; set; } = true;
 
     [Export]
+    public bool UseToggleSlowInput { get; set; } = true;
+
+    [Export]
     public bool UseSmoothedMovemment { get; set; } = false;
 
 
@@ -29,13 +32,10 @@ public class PlayerCharacter : KinematicBody2D
     public float MaxMoveSpeed { get; set; } = 800.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
-    // Ever unit is 0.01 seonds
-    [Export(PropertyHint.Range, "-100,100")]
-    public int FireSpeed { get; set; } = 1;
-
-    [Export(PropertyHint.Range, "0.01,100")]
-    public float TimeSubtractionPerFireSpeedUnit { get; set; } = 0.01f;
-   
+    // Bullet per second
+    // DON'T SET THIS TO 0
+    [Export]
+    public int FireSpeed { get; set; } = 60;
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -48,6 +48,23 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireTimer = 0.0f;
 
     private Globals.Element _currentElement = Globals.Element.Metal;
+
+    private static PlayerCharacter _instance;
+
+    public override void _EnterTree()
+    {
+        _instance = this;
+    }
+
+    public override void _ExitTree()
+    {
+        if(_instance == this)
+        {
+            _instance = null;
+        }
+    }
+
+
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -62,8 +79,15 @@ public class PlayerCharacter : KinematicBody2D
             return;
         }
 
-        _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        _fireDelay = 1.0f / FireSpeed;
+
+
+        Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -108,7 +132,6 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         _fireTimer += delta;
-
         if(_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
@@ -153,6 +176,10 @@ public class PlayerCharacter : KinematicBody2D
             _currentElement = Globals.NextElement(_currentElement);
         }
 
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
+        }
     }
 
     public override void _PhysicsProcess(float delta)
@@ -213,9 +240,27 @@ public class PlayerCharacter : KinematicBody2D
         QueueFree();
     }
 
-    private void UpdateSetting()
+    private void UpdateSetting(string key, string value)
     {
         _shouldShoot = false;
+
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+    }
+
+    public static void EnableInput()
+    {
+        _instance?.SetProcess(true);
+        _instance?.SetPhysicsProcess(true);
+        _instance?.SetProcessInput(true);
+    }
+
+    public static void DisableInput()
+    {
+        _instance?.SetProcess(false);
+        _instance?.SetPhysicsProcess(false);
+        _instance?.SetProcessInput(false);
     }
 
     private void Shoot()
