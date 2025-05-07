@@ -217,11 +217,19 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
     {
         if (body is IHarmful damageSource)
         {
-            if (damageSource.CollisionFlag != Globals.PlayerProjectileLayerBit)
-            {
-                _healthComponent.ApplyDamage(damageSource);
-                body.QueueFree();
-            }
+            _healthComponent.ApplyDamage(damageSource);
+            //body.QueueFree();
+        }
+
+        if (body is Bullet)
+        {
+            ProjectileManager.QueueDespawnProjectile(body);
+            //GD.Print("PlayerCharacter despawn Bullet.");
+        }
+        else if (body is LesserEnemyCharacter)
+        {
+            body.QueueFree();
+            //GD.Print("PlayerCharacter queue free LesserEnemyCharacter.");
         }
     }
 
@@ -308,9 +316,11 @@ public class PlayerCharacter : KinematicBody2D, IProjectileInfo
         {
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
+            bullet.CollisionLayer = (uint)0;
+            bullet.CollisionMask = (uint)0;
             bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
             bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 10000; // TODO tune speed
+            bullet.MovementNode.Speed = 1000; // TODO tune speed
         }
 
         // - - - Initialize Bullet Templates - - -

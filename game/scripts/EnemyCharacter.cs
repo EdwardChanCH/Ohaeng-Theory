@@ -90,6 +90,12 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
 
     public void _OnHitboxBodyEntered(Node body)
     {
+        GD.Print($"{body.GetInstanceId()} Entered <<<");
+        if (body is Bullet e)
+        {
+            GD.Print($"{e.Position}");
+        }
+
         if (body is IHarmful damageSource)
         {
             GD.Print(damageSource.CollisionFlag);
@@ -99,6 +105,12 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
                 _damagePopup.AddToCumulativeDamage(damageSource.GetDamage());
                 body.QueueFree();
             }
+        }
+
+        if (body is Bullet)
+        {
+            ProjectileManager.QueueDespawnProjectile(body);
+            //GD.Print("EnemyCharacter despawn Bullet.");
         }
     }
 
@@ -158,6 +170,8 @@ public class EnemyCharacter : KinematicBody2D, IProjectileInfo
         {
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
+            bullet.CollisionLayer = (uint)0;
+            bullet.CollisionMask = (uint)0;
             bullet.SetCollisionLayerBit(Globals.EnemyProjectileLayerBit, true);
             bullet.MovementNode.Direction = Vector2.Left;
             bullet.MovementNode.Speed = 200; // TODO tune speed

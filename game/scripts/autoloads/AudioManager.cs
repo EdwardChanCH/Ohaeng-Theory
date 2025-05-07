@@ -18,6 +18,7 @@ public class AudioManager : Node
 
     public override void _EnterTree()
     {
+        // TODO use autoload instead
         if(_instance != null)
         {
             QueueFree();
