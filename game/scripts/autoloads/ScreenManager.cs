@@ -10,7 +10,7 @@ public class ScreenManager : Node
     public static ScreenManager Singleton { get; private set; }
     
     // Screen paths
-    public const string MainMenuScreenPath = "res://scenes/screens/main_menu_screen.tscn";
+    public const string MainMenuScreenPath = "res://scenes/ui/main_menu_ui.tscn";
     public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
     public const string WinScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
     public const string LoseScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
