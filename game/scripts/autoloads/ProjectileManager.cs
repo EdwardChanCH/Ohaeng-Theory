@@ -72,7 +72,6 @@ public class ProjectileManager : Node
     // Get a projectile scene instance. The caller needs to set up the projectile.
     // Set parentNode to GetTree().Root in most cases
     // Returns the root node of a projectile scene
-    // Note: Remember to reset the collision layer and collision mask
     // Warning: do not call projectile.GetParent() in the same frame
     public static Node SpawnProjectile(string scenePath, Node parentNode)
     {
@@ -130,18 +129,27 @@ public class ProjectileManager : Node
     // Despawn at the end of frame
     public static void QueueDespawnProjectile(Node projectile)
     {
-        ulong instanceID = projectile.GetInstanceId();
-
-        // Check if repeated calls
-        if (!_despawnPool.Contains(instanceID))
+        // Check if acceptable projectile type
+        if (!(projectile is Bullet bullet))
         {
-            _despawnPool.Add(instanceID);
-            Singleton.CallDeferred("DespawnProjectile", projectile, instanceID);
-            //GD.Print($"{projectile.GetInstanceId()} Locked");
+            GD.Print($"Warning: {projectile.GetType()} type cannot be despawned by Projectilemanager.");
+            return;
         }
         else
         {
-            //GD.Print($"{projectile.GetInstanceId()} Blocked");
+            ulong instanceID = projectile.GetInstanceId();
+
+            // Check if repeated calls
+            if (!_despawnPool.Contains(instanceID))
+            {
+                _despawnPool.Add(instanceID);
+                
+                bullet.Active = false;
+
+                Singleton.CallDeferred("DespawnProjectile", projectile, instanceID);
+                
+                //GD.Print($"{projectile.GetInstanceId()} Locked");
+            }
         }
     }
 
@@ -164,8 +172,8 @@ public class ProjectileManager : Node
         }
 
         // Disable processing
-        projectile.SetProcess(false);
-        projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
+        //projectile.SetProcess(false);
+        //projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
         // Detatch from parent (if exist)
         projectile.GetParent()?.RemoveChild(projectile);
@@ -188,6 +196,7 @@ public class ProjectileManager : Node
         Bullet.CopyData(template, bullet);
         bullet.Position = position + Vector2.Right;
         // bullet.MovementNode.Direction = template.MovementNode.Direction;
+        bullet.Active = true;
         
         //GD.Print($"{bullet.GetInstanceId()} Emit");
     }
@@ -211,6 +220,7 @@ public class ProjectileManager : Node
             Bullet.CopyData(template, bullet);
             bullet.Position = position + (i * separation - half) * cross;
             // bullet.MovementNode.Direction = template.MovementNode.Direction;
+            bullet.Active = true;
         }
 
     }
@@ -232,6 +242,7 @@ public class ProjectileManager : Node
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle);
+            bullet.Active = true;
         }
     }
 
@@ -256,6 +267,7 @@ public class ProjectileManager : Node
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated((i + 1) * angle - half);
+            bullet.Active = true;
         }
     }
 
@@ -281,6 +293,7 @@ public class ProjectileManager : Node
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);
+            bullet.Active = true;
         }
     }
 

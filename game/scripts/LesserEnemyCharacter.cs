@@ -59,15 +59,11 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        // TODO unfinished
-        if (body is IHarmful harmful)
+        if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            if (body is Bullet bullet)
-            {
-                HealthComponent.ApplyDamage(harmful.GetDamage());
-                _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
-                ProjectileManager.QueueDespawnProjectile(body);
-            }
+            HealthComponent.ApplyDamage(harmful.GetDamage());
+            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+            harmful.Kill();
         }
     }
 
@@ -79,12 +75,27 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void _OnHealthDepleted()
     {
-        QueueFree(); // TODO Add a publlic Kill() function
+        QueueFree();
     }
 
     public int GetDamage()
     {
         return CollisionDamage;
+    }
+
+    public bool IsFriendly()
+    {
+        return false; // Always not friendy
+    }
+
+    public bool IsActive()
+    {
+        return true; // Always active
+    }
+
+    public void Kill()
+    {
+        _OnHealthDepleted();
     }
 
 }

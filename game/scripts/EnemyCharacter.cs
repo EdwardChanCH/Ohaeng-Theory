@@ -55,7 +55,9 @@ public class EnemyCharacter : KinematicBody2D
         {
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
-            // TODO set collision flag
+            bullet.Position = Vector2.Zero;
+            bullet.Damage = 1;
+            bullet.Friendly = false;
             bullet.MovementNode.Direction = Vector2.Left;
             bullet.MovementNode.Speed = 200; // TODO tune speed
         }
@@ -125,20 +127,12 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
-        // TODO unfinished
-        if (body is IHarmful harmful)
+        if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            if (body is LesserEnemyCharacter lesser)
-            {
-                HealthComponent.ApplyDamage(lesser.GetDamage());
-                _damagePopup.AddToCumulativeDamage(lesser.GetDamage());
-                body.QueueFree(); // TODO Add a publlic Kill() function
-            }
-
-            if (body is Bullet bullet)
-            {
-                ProjectileManager.QueueDespawnProjectile(bullet);
-            }
+            GD.Print($"{body.GetInstanceId()} {harmful.IsFriendly()} {harmful.IsActive()}"); // TODO debug
+            HealthComponent.ApplyDamage(harmful.GetDamage());
+            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+            harmful.Kill();
         }
     }
 
