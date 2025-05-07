@@ -22,6 +22,9 @@ public class PlayerCharacter : KinematicBody2D
     public bool UseToggleShootInput { get; set; } = true;
 
     [Export]
+    public bool UseToggleSlowInput { get; set; } = true;
+
+    [Export]
     public bool UseSmoothedMovemment { get; set; } = false;
 
 
@@ -76,8 +79,15 @@ public class PlayerCharacter : KinematicBody2D
             return;
         }
 
-        _fireDelay = 1.0f / FireSpeed;
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        _fireDelay = 1.0f / FireSpeed;
+
+
+        Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -230,9 +240,13 @@ public class PlayerCharacter : KinematicBody2D
         QueueFree();
     }
 
-    private void UpdateSetting()
+    private void UpdateSetting(string key, string value)
     {
         _shouldShoot = false;
+
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
     }
 
     public static void EnableInput()
