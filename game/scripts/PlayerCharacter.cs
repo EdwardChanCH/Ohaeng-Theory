@@ -29,13 +29,10 @@ public class PlayerCharacter : KinematicBody2D
     public float MaxMoveSpeed { get; set; } = 800.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
-    // Ever unit is 0.01 seonds
-    [Export(PropertyHint.Range, "-100,100")]
-    public int FireSpeed { get; set; } = 1;
-
-    [Export(PropertyHint.Range, "0.01,100")]
-    public float TimeSubtractionPerFireSpeedUnit { get; set; } = 0.01f;
-   
+    // Bullet per second
+    // DON'T SET THIS TO 0
+    [Export(PropertyHint.Range, "-1,100")]
+    public int FireSpeed { get; set; } = 60;
 
     public Vector2 TargetLocation { get; private set; }
 
@@ -62,7 +59,7 @@ public class PlayerCharacter : KinematicBody2D
             return;
         }
 
-        _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
+        _fireDelay = 1 / FireSpeed;
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
 
