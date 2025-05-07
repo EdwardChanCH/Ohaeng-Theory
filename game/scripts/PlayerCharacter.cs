@@ -54,21 +54,6 @@ public class PlayerCharacter : KinematicBody2D
 
     private static PlayerCharacter _instance;
 
-    public override void _EnterTree()
-    {
-        _instance = this;
-    }
-
-    public override void _ExitTree()
-    {
-        if(_instance == this)
-        {
-            _instance = null;
-        }
-    }
-
-
-
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -301,6 +286,8 @@ public class PlayerCharacter : KinematicBody2D
     {
         base._EnterTree();
 
+        _instance = this;
+
         // - - - Initialize Bullet Templates - - -
 
         Bullet template;
@@ -327,6 +314,11 @@ public class PlayerCharacter : KinematicBody2D
     public override void _ExitTree()
     {
         base._ExitTree();
+
+        if(_instance == this)
+        {
+            _instance = null;
+        }
 
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
