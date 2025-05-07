@@ -72,7 +72,7 @@ public class SettingMenuUI : Node
 
     public void UpdateSettings()
     {
-
+        // TODO
     }
 
     public void _OnBackButtonPressed()
@@ -88,7 +88,7 @@ public class SettingMenuUI : Node
 
     private void _UpdateVolume(bool changed, Slider sliderRef, int type)
     {
-        GD.Print("Ah");
+        GD.Print("Ah"); // TODO
 
         switch (type)
         {

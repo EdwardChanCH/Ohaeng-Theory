@@ -15,8 +15,7 @@ public class ScreenManager : Node
     public const string PauseScreenPath = "TODO"; // popup?
     public const string WinScreenPath = "TODO"; // popup?
     public const string LoseScreenPath = "TODO"; // popup?
-
-    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup?
+    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn";
 
     // The current loaded screen (not a popup) (may add popups as children)
     public static Node CurrentScreen { get; private set; } = null;
@@ -26,6 +25,13 @@ public class ScreenManager : Node
 
     // History of loaded screens
     private static Stack<string> _screenHistory = new Stack<string>();
+
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
+    }
 
     // Load a new screen or popup.
     // Note: this does not update the current screen or screen history.
@@ -113,10 +119,4 @@ public class ScreenManager : Node
         return Load(scenePath, CurrentScreen);
     }
 
-    public override void _EnterTree()
-    {
-        base._EnterTree();
-
-        Singleton = this;
-    }
 }

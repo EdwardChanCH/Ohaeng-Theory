@@ -25,6 +25,31 @@ public class ProjectileManager : Node
         {Globals.Element.Metal, "res://scenes/projectiles/metal_bullet.tscn"}
     };
 
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        Singleton = this;
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+/*         foreach (string key in _objectPools.Keys)
+        {
+            GD.Print("");
+            GD.Print(key);
+            while (_objectPools[key].Count > 0)
+            {
+                GD.Print(_objectPools[key].Pop().GetInstanceId());
+            }
+            GD.Print("--- Stack Bottom ---");
+            GD.Print("");
+        } */
+
+    }
+
     // Return a non-moving, non-parented projectile as template.
     public static Node LoadTemplate(string scenePath)
     {
@@ -49,7 +74,7 @@ public class ProjectileManager : Node
     // Returns the root node of a projectile scene
     // Note: Remember to reset the collision layer and collision mask
     // Warning: do not call projectile.GetParent() in the same frame
-    public static Node SpawnProjectile(string scenePath, Node parentNode, int collisionFlag)
+    public static Node SpawnProjectile(string scenePath, Node parentNode)
     {
         Node projectile;
 
@@ -78,7 +103,6 @@ public class ProjectileManager : Node
 
         // Attatch to parent at the end of frame (if exist)
         projectile.GetParent()?.RemoveChild(projectile);
-        //parentNode?.CallDeferred("add_child", projectile);
         parentNode.AddChild(projectile);
 
         // Caller should set the node owner when saving
@@ -88,25 +112,18 @@ public class ProjectileManager : Node
         projectile.SetPhysicsProcess(true); // It reset to true in AddChild(projectile)
 
         // Initalize the projectile immediately, instead of waiting for _Ready()
-        if (projectile is Bullet bulletRef)
+        if (projectile is Bullet bullet)
         {
-            bulletRef.Initalize(); // TODO need clean up
-            bulletRef.CollisionFlag = collisionFlag;
-            //if(parentNode is IProjectileInfo info)
-            //{
-            //    bulletRef.CollisionFlag = info.FriendlyCollisionFlag;
-            //}
+            bullet.Initalize();
         }
-
-
 
         return projectile;
     }
 
     // Overload to use template
-    public static Node SpawnProjectile(Node template, Node parentNode, int collisionFlag)
+    public static Node SpawnProjectile(Node template, Node parentNode)
     {
-        Node projectile = SpawnProjectile(template.Filename, parentNode, collisionFlag);
+        Node projectile = SpawnProjectile(template.Filename, parentNode);
         return projectile;
     }
 
@@ -119,35 +136,20 @@ public class ProjectileManager : Node
         if (!_despawnPool.Contains(instanceID))
         {
             _despawnPool.Add(instanceID);
-            GD.Print($"{projectile.GetInstanceId()} Locked");
             Singleton.CallDeferred("DespawnProjectile", projectile, instanceID);
+            //GD.Print($"{projectile.GetInstanceId()} Locked");
         }
         else
         {
-            GD.Print($"{projectile.GetInstanceId()} Blocked");
+            //GD.Print($"{projectile.GetInstanceId()} Blocked");
         }
-
-        if (projectile is Bullet bullet)
-        {
-            bullet.CollisionLayer = (uint)0;
-            bullet.CollisionMask = (uint)0;
-            bullet.Position = Vector2.Zero;
-            bullet.SetProcess(false);
-            bullet.SetPhysicsProcess(false);
-            GD.Print($"{bullet.GetInstanceId()} Reset");
-            GD.Print($"{bullet.Position}");
-        } // TODO
     }
 
     // Recycle a projectile scene instance.
     // projectile:  Root node of a projectile scene
     private static void DespawnProjectile(Node projectile, ulong instanceID)
     {
-        GD.Print($"{projectile.GetInstanceId()} Despawned");
-        if (projectile is Bullet e)
-        {
-            GD.Print($"{e.Position}");
-        }
+        //GD.Print($"{projectile.GetInstanceId()} Despawned");
         
         if (projectile == null)
         {
@@ -157,7 +159,7 @@ public class ProjectileManager : Node
 
         if (projectile.Filename.Length == 0)
         {
-            GD.PrintErr("Warning: ProjectileManager despawned a node that is not a scene instance.");
+            GD.PrintErr("Warning: ProjectileManager cannot despawn a node that is not a scene instance.");
             return;
         }
 
@@ -166,7 +168,7 @@ public class ProjectileManager : Node
         projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
         // Detatch from parent (if exist)
-        projectile.GetParent().RemoveChild(projectile);
+        projectile.GetParent()?.RemoveChild(projectile);
 
         // Prevent scenes from saving this node
         projectile.Owner = null;
@@ -174,24 +176,24 @@ public class ProjectileManager : Node
         // Add to object pool
         _objectPools[projectile.Filename].Push(projectile);
         _despawnPool.Remove(instanceID);
-        GD.Print($"{projectile.GetInstanceId()} Unlocked");
+        //GD.Print($"{projectile.GetInstanceId()} Unlocked");
     }
 
     // - - - Bullet Emitter Functions - - -
 
     // Emit a bullet in a line shape
-    public static void EmitBulletLine(Bullet template, Node parentNode, int collisionFlag, Vector2 position)
+    public static void EmitBulletLine(Bullet template, Node parentNode, Vector2 position)
     {
-        Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
+        Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
         Bullet.CopyData(template, bullet);
-        bullet.Position = position + Vector2.Right * 100;
+        bullet.Position = position + Vector2.Right;
         // bullet.MovementNode.Direction = template.MovementNode.Direction;
-        GD.Print($"{bullet.GetInstanceId()} Emit");
-        GD.Print($"{bullet.Position}");
+        
+        //GD.Print($"{bullet.GetInstanceId()} Emit");
     }
 
     // Emit multiple bullet in a wall shape
-    public static void EmitBulletWall(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float separation)
+    public static void EmitBulletWall(Bullet template, Node parentNode, Vector2 position, int count, float separation)
     {
         if (count < 1)
         {
@@ -205,7 +207,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
             Bullet.CopyData(template, bullet);
             bullet.Position = position + (i * separation - half) * cross;
             // bullet.MovementNode.Direction = template.MovementNode.Direction;
@@ -214,7 +216,7 @@ public class ProjectileManager : Node
     }
 
     // Emit multiple bullets in a ring shape
-    public static void EmitBulletRing(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count)
+    public static void EmitBulletRing(Bullet template, Node parentNode, Vector2 position, int count)
     {
         if (count < 1)
         {
@@ -226,7 +228,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle);
@@ -237,7 +239,7 @@ public class ProjectileManager : Node
     // i.e. left/ right edges don't spawn bullets
     // spread is in radian
     // Note: Imagine dividing a triangular pizza, the internal edges are bullet tracks
-    public static void EmitBulletConeNarrow(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float spread)
+    public static void EmitBulletConeNarrow(Bullet template, Node parentNode, Vector2 position, int count, float spread)
     {
         if (count < 1)
         {
@@ -250,7 +252,7 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated((i + 1) * angle - half);
@@ -261,7 +263,7 @@ public class ProjectileManager : Node
     // i.e. left/ right edges always spawn bullets
     // spread is in radian
     // Note: Imagine dividing a triangular pizza, all edges are bullet tracks
-    public static void EmitBulletConeWide(Bullet template, Node parentNode, int collisionFlag, Vector2 position, int count, float spread)
+    public static void EmitBulletConeWide(Bullet template, Node parentNode, Vector2 position, int count, float spread)
     {
         if (count < 3)
         {
@@ -275,36 +277,11 @@ public class ProjectileManager : Node
 
         for (int i = 0; i < count + 2; i++)
         {
-            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode, collisionFlag);
+            Bullet bullet = (Bullet)SpawnProjectile(template, parentNode);
             Bullet.CopyData(template, bullet);
             bullet.Position = position;
             bullet.MovementNode.Direction = template.MovementNode.Direction.Rotated(i * angle - half);
         }
-    }
-
-    public override void _EnterTree()
-    {
-        base._EnterTree();
-
-        Singleton = this;
-    }
-
-    public override void _ExitTree()
-    {
-        base._ExitTree();
-
-        foreach (string key in _objectPools.Keys)
-        {
-            GD.Print("");
-            GD.Print(key);
-            while (_objectPools[key].Count > 0)
-            {
-                GD.Print(_objectPools[key].Pop().GetInstanceId());
-            }
-            GD.Print("--- Stack Bottom ---");
-            GD.Print("");
-        }
-
     }
 
 }

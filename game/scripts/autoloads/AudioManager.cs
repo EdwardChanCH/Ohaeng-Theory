@@ -23,6 +23,7 @@ public class AudioManager : Node
         AudioStreamPlayer audioPlayer = new AudioStreamPlayer();
         audioPlayer.Bus = "BGM";
         _bgmChannels = audioPlayer;
+        
         AddChild(audioPlayer);
     }
 
@@ -33,6 +34,7 @@ public class AudioManager : Node
 
         audioPlayer.Bus = "SFX";
         _sfxChannels.Add(soundPath, audioPlayer);
+        
         Singleton.AddChild(audioPlayer);
     }
 
