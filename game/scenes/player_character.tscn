@@ -24,6 +24,7 @@ script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("ProgressBar")
 PlayerSpritePath = NodePath("Sprite")
+MaxMovementBound = Vector2( 1400, 1080 )
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 show_behind_parent = true

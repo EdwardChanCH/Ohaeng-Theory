@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using static Globals;
 
 public class PlayerCharacter : KinematicBody2D
 {
@@ -63,6 +64,12 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public float SpriteTiltSpeed = 10.0f;
 
+    // The zone the player can move in
+    [Export]
+    public Vector2 MinMovementBound { get; private set; } = Vector2.Zero;
+    [Export]
+    public Vector2 MaxMovementBound { get; private set; } = Vector2.Zero;
+
     public Vector2 TargetLocation { get; private set; }
 
     public Vector2 Velocity { get; private set; }
@@ -73,6 +80,9 @@ public class PlayerCharacter : KinematicBody2D
 
 
     private Globals.Element _currentElement = Globals.Element.Water;
+
+    private int _CurrentPattern = 0;
+    private int _MaxPattern = 3;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
@@ -104,13 +114,14 @@ public class PlayerCharacter : KinematicBody2D
             // Warning: DO NOT attach template nodes to a parent
             bullet.Initalize();
             bullet.Position = Vector2.Zero;
-            bullet.Damage = 5; // The damage should be decided on the scene end
+            bullet.Damage = 5;
             bullet.Friendly = true;
             bullet.MovementNode.Direction = Vector2.Right;
             bullet.MovementNode.Speed = 1000; // TODO tune speed
         }
 
-
+        _bulletTemplates[$"Player_{Globals.Element.Metal}_Bullet"].Damage = 5;
+        _bulletTemplates[$"Player_{Globals.Element.Wood}_Bullet"].Damage = 1;
 
 
         // - - - Initialize Player Bullet Templates - - -
@@ -168,6 +179,15 @@ public class PlayerCharacter : KinematicBody2D
         {
             ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
         }
+
+        if (@event.IsActionPressed("Switch_Pattern"))
+        {
+            _CurrentPattern++;
+            if (_CurrentPattern >= _MaxPattern)
+            {
+                _CurrentPattern = 0;
+            }
+        }
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -175,7 +195,20 @@ public class PlayerCharacter : KinematicBody2D
     {
         if (UseMouseDirectedInput)
         {
-            TargetLocation = GetGlobalMousePosition();
+            var mouseLocation = GetGlobalMousePosition();
+            float targetY = mouseLocation.y;
+            float targetX = mouseLocation.x;
+
+            if(MinMovementBound.y >= targetY)
+                targetY = MinMovementBound.y;
+            if(MaxMovementBound.y <= targetY)
+                targetY = MaxMovementBound.y;
+            if(MinMovementBound.x >= targetX)
+                targetX = MinMovementBound.x;
+            if(MaxMovementBound.x <= targetX)
+                targetX = MaxMovementBound.x;
+
+            TargetLocation = new Vector2(targetX, targetY);
             MoveDirection = Position.DirectionTo(TargetLocation); // Normalized
         }
         else
@@ -183,22 +216,20 @@ public class PlayerCharacter : KinematicBody2D
             float yAxisMovement = 0;
             float xAxisMovement = 0;
 
-            if (Input.IsActionPressed("Move_Up"))
+
+            if (Input.IsActionPressed("Move_Up") && MinMovementBound.y < Position.y)
             {
                 yAxisMovement -= 1;
             }
-
-            if (Input.IsActionPressed("Move_Down"))
+            if (Input.IsActionPressed("Move_Down") && MaxMovementBound.y > Position.y)
             {
                 yAxisMovement += 1;
             }
-
-            if (Input.IsActionPressed("Move_Left"))
+            if (Input.IsActionPressed("Move_Left") && MinMovementBound.x < Position.x)
             {
                 xAxisMovement -= 1;
             }
-
-            if (Input.IsActionPressed("Move_Right") )
+            if (Input.IsActionPressed("Move_Right") && MaxMovementBound.x > Position.x)
             {
                 xAxisMovement += 1;
             }
@@ -280,6 +311,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * moveSpeed;
         }
 
+
         MoveAndSlide(Velocity);
     }
 
@@ -326,27 +358,18 @@ public class PlayerCharacter : KinematicBody2D
     private void Shoot()
     {
         // TODO All of these function calls can be stored in Callable()
-        switch (_currentElement)
+        switch (_CurrentPattern)
         {
-            case Globals.Element.Water:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+            case 0:
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(90));
                 break;
-            case Globals.Element.Wood:
+            case 1:
                 // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, 10);
                 break;
-            case Globals.Element.Fire:
+            case 2:
                 // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
-                break;
-            case Globals.Element.Earth:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
-                break;
-            case Globals.Element.Metal:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(45));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
