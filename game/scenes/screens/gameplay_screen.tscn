@@ -10,14 +10,14 @@
 script = ExtResource( 5 )
 
 [node name="Background" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.0784314 )
 position = Vector2( 936, 532 )
-scale = Vector2( 10, 10 )
+scale = Vector2( 15, 15 )
 texture = ExtResource( 1 )
 
-[node name="player_character" parent="." instance=ExtResource( 2 )]
+[node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]
 position = Vector2( 284, 540 )
-MoveSpeed = 500.0
-FireSpeed = 90
+FireSpeed = 15
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
@@ -29,16 +29,13 @@ position = Vector2( 1574, 246 )
 position = Vector2( 1587, 600 )
 
 [node name="EnemyCharacter5" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1607, 903 )
-
-[node name="LesserEnemyCharacter" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1726, 322 )
+position = Vector2( 1573, 878 )
 
 [node name="LesserEnemyCharacter2" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1731, 530 )
+position = Vector2( 1717, 102 )
 
 [node name="LesserEnemyCharacter3" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1734, 700 )
+position = Vector2( 1738, 433 )
 
 [node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1726, 837 )
+position = Vector2( 1740, 794 )

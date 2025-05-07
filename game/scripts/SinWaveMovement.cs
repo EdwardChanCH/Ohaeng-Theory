@@ -2,17 +2,33 @@ using Godot;
 using System;
 
 // This class is the entry point of the game.
-public class SinWaveMovement : Node, IMovement
+public class SinWaveMovement : BaseMovement
 {
-    private Vector2 _baseDirection = Vector2.Zero;
-
     private Vector2 _crossDirection = Vector2.Zero;
 
+    [Export]
+    public override Vector2 Direction
+    {
+        get { return _direction; }
+        set
+        {
+            _direction = value.Normalized();
+            _crossDirection = _direction.Rotated(Mathf.Pi / 2); // 2D cross product
+        }
+    }
+
+    private float _phase = 0;
     private float _cycle = 0;
 
-    // Speed relative to direction
     [Export]
-    public float Speed { get; set; } = 100; // in pixels per second
+    public float Phase {
+        get {return _phase; }
+        set
+        {
+            _phase = value; // in degrees out-of-phase
+            _cycle = Mathf.Deg2Rad(_phase); // initial sin wave offset
+        }
+    }
 
     // Magnitude of the sin wave
     [Export]
@@ -20,21 +36,14 @@ public class SinWaveMovement : Node, IMovement
 
     // Period of the sin wave
     [Export]
-    public float Period { get; set; } = 0.5f; // in seconds (= 1/frequency)
+    public float Period { get; set; } = 0.5f; // in seconds (1 / frequency)
 
-    public void ChangeDirection(Vector2 newDirection)
-    {
-        _baseDirection = newDirection.Normalized();
-        _crossDirection = _baseDirection.Rotated(Mathf.Pi / 2); // 2D cross product
-        _cycle = 0;
-    }
-
-    public Vector2 CalculateVector(float delta)
+    public override Vector2 CalculateVector(float delta)
     {
         _cycle = (_cycle + delta) % Period;
 
         // Note: Does not need to multiply by delta
-        return (_baseDirection * Speed) + (_crossDirection * Magnitude * Mathf.Cos(2 * Mathf.Pi * _cycle / Period));
+        return (_direction * Speed) + (_crossDirection * Magnitude * Mathf.Cos(2 * Mathf.Pi * _cycle / Period));
     }
 
 }

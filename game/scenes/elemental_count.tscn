@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://scripts/ElementalCount.cs" type="Script" id=1]
+
+[node name="ElementalCount" type="VBoxContainer"]
+margin_left = 41.0
+margin_top = -41.0
+margin_right = 53.0
+margin_bottom = 45.0
+script = ExtResource( 1 )
+ElementalCountLabelPaths = [ NodePath("WaterCount"), NodePath("WoodCount"), NodePath("FireCount"), NodePath("EarthCount"), NodePath("MetalCount") ]
+
+[node name="WaterCount" type="Label" parent="."]
+modulate = Color( 0, 0.929412, 1, 1 )
+margin_right = 12.0
+margin_bottom = 14.0
+text = "??"
+
+[node name="WoodCount" type="Label" parent="."]
+modulate = Color( 0.741176, 0.419608, 0, 1 )
+margin_top = 18.0
+margin_right = 12.0
+margin_bottom = 32.0
+text = "??"
+
+[node name="FireCount" type="Label" parent="."]
+modulate = Color( 1, 0.376471, 0, 1 )
+margin_top = 36.0
+margin_right = 12.0
+margin_bottom = 50.0
+text = "??"
+
+[node name="EarthCount" type="Label" parent="."]
+modulate = Color( 0.882353, 0.764706, 0.00784314, 1 )
+margin_top = 54.0
+margin_right = 12.0
+margin_bottom = 68.0
+text = "??"
+
+[node name="MetalCount" type="Label" parent="."]
+margin_top = 72.0
+margin_right = 12.0
+margin_bottom = 86.0
+text = "??"

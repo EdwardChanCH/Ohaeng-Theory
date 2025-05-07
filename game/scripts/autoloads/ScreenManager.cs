@@ -7,13 +7,13 @@ using System.Collections.Generic;
 public class ScreenManager : Node
 {
     // Screen paths
-    public const string TitleScreenPath = "TODO";
+    public const string MainMenuScreenPath = "res://scenes/screens/main_menu_screen.tscn";
     public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
     public const string PauseScreenPath = "TODO"; // popup?
     public const string WinScreenPath = "TODO"; // popup?
     public const string LoseScreenPath = "TODO"; // popup?
 
-    public const string SettingsScreenPath = "TODO"; // popup?
+    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup?
 
     public static ScreenManager Singleton { get; private set; }
 

@@ -27,6 +27,15 @@ public class Globals : Node
         Metal = 5 // Most important element
     }
 
+    public static readonly Element[] AllElements = 
+    {
+        Element.Water,
+        Element.Wood,
+        Element.Fire,
+        Element.Earth,
+        Element.Metal
+    };
+
     // Collision Layers
     public const int GroundLayerBit = 0; // Layer 1
     public const int PlayerLayerBit = 1; // Layer 2
@@ -40,12 +49,30 @@ public class Globals : Node
     public override void _Ready()
     {
         Singleton = this;
+        GameData.Add("UseMouseDirectedInput", "true");
+        GameData.Add("ToggleAttack", "true");
+        GameData.Add("ToggleSlow", "true");
+
     }
 
     public static void ChangeGameData(string key, string value)
     {
-        GameData[key] = value;
-        Singleton.EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
+        if (GameData.ContainsKey(key))
+        {
+            GameData[key] = value;
+            Singleton.EmitSignal("GameDataChanged", key, value); // Update the UI accordingly
+        }
+    }
+
+    public static bool String2Bool(string str)
+    {
+        return str.ToLower() == "true";
+    }
+    public static string Bool2String(bool var)
+    {
+        if (var)
+            return "true";
+        return "false";
     }
 
     // Increment element enum

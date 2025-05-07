@@ -1,0 +1,86 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=2]
+[ext_resource path="res://themes/main_ui_theme.tres" type="Theme" id=3]
+[ext_resource path="res://assets/textures/InnerCircle.png" type="Texture" id=4]
+[ext_resource path="res://scripts/MainMenuUI.cs" type="Script" id=5]
+
+
+[sub_resource type="DynamicFont" id=1]
+size = 143
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 91
+font_data = ExtResource( 1 )
+
+[node name="MainMenuUI" type="CanvasLayer"]
+script = ExtResource( 5 )
+
+[node name="Label" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -263.0
+margin_top = 82.0
+margin_right = 271.0
+margin_bottom = 241.0
+custom_fonts/font = SubResource( 1 )
+text = "Gogyo Theory"
+align = 1
+valign = 1
+
+[node name="TextureRect2" type="TextureRect" parent="."]
+modulate = Color( 1, 1, 1, 0.419608 )
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_left = -805.0
+margin_top = -249.0
+margin_right = -87.0
+margin_bottom = 469.0
+texture = ExtResource( 4 )
+expand = true
+
+[node name="TextureRect" type="TextureRect" parent="."]
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+margin_left = -805.0
+margin_top = -249.0
+margin_right = -87.0
+margin_bottom = 469.0
+texture = ExtResource( 2 )
+expand = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -143.0
+margin_top = -249.0
+margin_right = 143.0
+margin_bottom = -17.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayButton" type="Button" parent="VBoxContainer"]
+margin_right = 286.0
+margin_bottom = 108.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 2 )
+text = "Play"
+
+[node name="SettingButton" type="Button" parent="VBoxContainer"]
+margin_top = 112.0
+margin_right = 286.0
+margin_bottom = 220.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 2 )
+text = "Setting"
+
+[connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_OnPlayButtonPressed"]
+[connection signal="pressed" from="VBoxContainer/SettingButton" to="." method="_OnSettingButtonPressed"]

@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class PlayerCharacter : KinematicBody2D
 {
@@ -12,31 +13,34 @@ public class PlayerCharacter : KinematicBody2D
     private ProgressBar _healthBar;
 
     [Export]
-    public bool UseMouseDirectedInput { get; set; }= true;
+    public NodePath PlayerSpritePath { get; private set; } = new NodePath();
+    private Sprite _playerSprite;
+
+    [Export]
+    public bool UseMouseDirectedInput { get; set; } = true;
 
     [Export]
     public bool UseToggleShootInput { get; set; } = true;
 
+    [Export]
+    public bool UseToggleSlowInput { get; set; } = true;
 
     [Export]
-    public float MoveSpeed { get; set; } = 100.0f;
-    public Vector2 MoveDirection { get; private set; } = new Vector2();
+    public bool UseSmoothedMovemment { get; set; } = false;
 
-    // Ever unit is 0.01 seonds
-    [Export(PropertyHint.Range, "-100,100")]
-    public int FireSpeed { get; set; } = 1;
 
-    [Export(PropertyHint.Range, "0.01,100")]
-    public float TimeSubtractionPerFireSpeedUnit { get; set; } = 0.01f;
-   
+    [Export]
+    public float MaxMoveSpeed { get; set; } = 800.0f;
+    public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
+
+    // Bullet per second
+    // DON'T SET THIS TO 0
+    [Export]
+    public int FireSpeed { get; set; } = 60;
 
     public Vector2 TargetLocation { get; private set; }
 
     public Vector2 Velocity { get; private set; }
-
-    // Use to control movement at _PhysicsProcess()
-    private float _yAxisMovement = 0;
-    private float _xAxisMovement = 0;
 
     private bool _shouldShoot = false;
 
@@ -44,21 +48,34 @@ public class PlayerCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
-    private Globals.Element _currentElement = Globals.Element.Metal;
+    private Globals.Element _currentElement = Globals.Element.Water;
+
+    private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
+
+    private static PlayerCharacter _instance;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         _healthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
-        if (_healthComponent == null || _healthBar == null)
+        _playerSprite = GetNode<Sprite>(PlayerSpritePath);
+  
+        if (_healthComponent == null || _healthBar == null || _playerSprite == null)
         {
-            GD.PrintErr("Error: Player Controller Contrain Invalid Path");
+            GD.PrintErr("Error: PlayerController has invalid export variable path.");
             return;
         }
 
-        _fireDelay = Mathf.Clamp(1.0f - (FireSpeed * TimeSubtractionPerFireSpeedUnit), 0.01f, 100.0f);
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        _fireDelay = 1.0f / FireSpeed;
+
+
+        Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -66,52 +83,65 @@ public class PlayerCharacter : KinematicBody2D
     {
         if (UseMouseDirectedInput)
         {
-            //TargetLocation = GetViewport().GetMousePosition();
             TargetLocation = GetGlobalMousePosition();
-            MoveDirection = Position.DirectionTo(TargetLocation);
+            MoveDirection = Position.DirectionTo(TargetLocation); // Normalized
         }
         else
         {
-            _yAxisMovement = 0;
-            _xAxisMovement = 0;
+            float yAxisMovement = 0;
+            float xAxisMovement = 0;
 
             if (Input.IsActionPressed("Move_Up"))
             {
-                _yAxisMovement -= 1;
+                yAxisMovement -= 1;
             }
 
             if (Input.IsActionPressed("Move_Down"))
             {
-                _yAxisMovement += 1;
+                yAxisMovement += 1;
             }
 
             if (Input.IsActionPressed("Move_Left"))
             {
-                _xAxisMovement -= 1;
+                xAxisMovement -= 1;
             }
 
             if (Input.IsActionPressed("Move_Right") )
             {
-                _xAxisMovement += 1;
+                xAxisMovement += 1;
             }
 
-            MoveDirection = new Vector2(_xAxisMovement, _yAxisMovement);
+            MoveDirection = new Vector2(xAxisMovement, yAxisMovement).Normalized(); // Normalized
         }
 
         if(!UseToggleShootInput)
         {
             _shouldShoot = Input.IsActionPressed("Shoot");
         }
-            //GD.Print(_shouldShoot);
-
 
         _fireTimer += delta;
         if(_fireTimer >= _fireDelay && _shouldShoot)
         {
             _fireTimer = 0;
-            //GD.Print("Shoot");
             Shoot();
         }
+
+        // TODO: Tilt character sprite, need lerp smoothing
+        if (Velocity.x <= -300)
+        {
+            _playerSprite.RotationDegrees = -10;
+        }
+        else if (Velocity.x >= 300)
+        {
+            _playerSprite.RotationDegrees = 10;
+        }
+        else
+        {
+            _playerSprite.RotationDegrees = 0;
+        }
+
+        //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
+        //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
     }
 
     public override void _Input(InputEvent @event)
@@ -134,29 +164,50 @@ public class PlayerCharacter : KinematicBody2D
             _currentElement = Globals.NextElement(_currentElement);
         }
 
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            ScreenManager.AddPopupToScreen(ScreenManager.SettingsScreenPath);
+        }
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        Velocity = Vector2.Zero;
-        // TD: Clean this
-        if(UseMouseDirectedInput)
-        {
-            var distance = Position.DistanceTo(TargetLocation);
-            //Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance * 10 / MoveSpeed, 0, 1));
+        // TODO test only
+        //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
 
-            if (distance <= 5)
-                Velocity = MoveDirection * (MoveSpeed * Mathf.Clamp(distance / MoveSpeed, 0, 1));
+        // Calculate player velocity
+        if (UseMouseDirectedInput)
+        {
+            // Mouse control
+            if (UseSmoothedMovemment)
+            {
+                // Smoothed movement
+                float distanceToTarget = Position.DistanceTo(TargetLocation);
+                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / MaxMoveSpeed, 0, 1); // Decelerate when close to target
+                Velocity = MoveDirection * MaxMoveSpeed * smoothFactor;
+            }
             else
-                Velocity = MoveDirection * MoveSpeed;
+            {
+                // Constant speed movement
+                Velocity = MoveDirection * MaxMoveSpeed;
+                float distanceToTarget = Position.DistanceTo(TargetLocation);
+                float distanceAfter = MaxMoveSpeed * delta;
+
+                // Check if it will overshoot
+                if (distanceAfter > distanceToTarget)
+                {
+                    // TargetLocation == Position + Velocity * delta == Position + MoveDirection * distanceToTarget
+                    Velocity = MoveDirection * distanceToTarget / delta;
+                    //GD.Print("Overshoot prevented."); // TODO test
+                }
+            }
         }
         else
         {
-            Velocity = MoveDirection * MoveSpeed;
-            Velocity = Velocity.LimitLength(MoveSpeed);
+            // Keyboard control
+            Velocity = MoveDirection * MaxMoveSpeed;
         }
 
-        GD.Print(Velocity.Length()); // TODO test
         MoveAndSlide(Velocity);
     }
 
@@ -180,15 +231,100 @@ public class PlayerCharacter : KinematicBody2D
         QueueFree();
     }
 
-    private void UpdateSetting()
+    private void UpdateSetting(string key, string value)
     {
         _shouldShoot = false;
+
+        UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
+        UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
+        UseToggleSlowInput = Globals.String2Bool(Globals.GameData["ToggleSlow"]);
+    }
+
+    public static void EnableInput()
+    {
+        _instance?.SetProcess(true);
+        _instance?.SetPhysicsProcess(true);
+        _instance?.SetProcessInput(true);
+    }
+
+    public static void DisableInput()
+    {
+        _instance?.SetProcess(false);
+        _instance?.SetPhysicsProcess(false);
+        _instance?.SetProcessInput(false);
     }
 
     private void Shoot()
     {
-        ProjectileManager.EmitBulletSingle(_currentElement, GetTree().Root, Position, Vector2.Right, 1, true);
+        // TODO All of these function calls can be stored in Callable()
+        switch (_currentElement)
+        {
+            case Globals.Element.Water:
+                ProjectileManager.EmitBulletLine(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position);
+                break;
+            case Globals.Element.Wood:
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, 10);
+                break;
+            case Globals.Element.Fire:
+                ProjectileManager.EmitBulletRing(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 8);
+                break;
+            case Globals.Element.Earth:
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            case Globals.Element.Metal:
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 5, Mathf.Deg2Rad(90));
+                break;
+            default:
+                GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
+            break;
+        }
+        
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
+        public override void _EnterTree()
+    {
+        base._EnterTree();
+
+        _instance = this;
+
+        // - - - Initialize Bullet Templates - - -
+
+        Bullet template;
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Player_{element}_Bullet"] = template;
+        }
+
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Initalize();
+            bullet.SetCollisionLayerBit(Globals.PlayerProjectileLayerBit, true);
+            bullet.MovementNode.Direction = Vector2.Right;
+            bullet.MovementNode.Speed = 10000; // TODO tune speed
+        }
+
+        // - - - Initialize Bullet Templates - - -
+    }
+
+    public override void _ExitTree()
+    {
+        base._ExitTree();
+
+        if(_instance == this)
+        {
+            _instance = null;
+        }
+
+        // Free the bullet templates
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            bullet.QueueFree();
+        }
     }
 
 }
