@@ -262,7 +262,7 @@ public class EnemyCharacter : KinematicBody2D
             //AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
 
             //WavePatternAsync(15, 0.1f, 90f, 0.0f);
-            SpherePatternAsync(100, 0.05f);
+            //SpherePatternAsync(100, 0.05f);
             //_isAttacking = false;
         }
     }
