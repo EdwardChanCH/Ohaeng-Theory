@@ -12,14 +12,7 @@ public class GameplayScreen : Node2D
     {
         if (body is IHarmful harmful)
         {
-            if (body is Bullet bullet)
-            {
-                ProjectileManager.QueueDespawnProjectile(bullet);
-            }
-            else if (body is LesserEnemyCharacter lesser)
-            {
-                lesser.QueueFree();
-            }
+            harmful.Kill();
         }
     }
 

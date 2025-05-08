@@ -14,7 +14,7 @@ public class EnemyManager : Node2D
     {
         base._EnterTree();
 
-
+        
     }
 
     public override void _ExitTree()

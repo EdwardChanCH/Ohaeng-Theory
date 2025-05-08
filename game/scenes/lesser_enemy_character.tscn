@@ -30,6 +30,7 @@ modulate_color = Color( 0.172549, 0.172549, 0.172549, 0.219608 )
 [node name="LesserEnemyCharacter" type="KinematicBody2D"]
 scale = Vector2( 0.25, 0.25 )
 collision_layer = 8
+collision_mask = 0
 script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")

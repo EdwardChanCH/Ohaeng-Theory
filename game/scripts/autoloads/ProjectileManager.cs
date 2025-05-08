@@ -13,7 +13,9 @@ public class ProjectileManager : Node
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
 
-    private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
+    private static List<Node> _inactivePool= new List<Node>(); // TODO
+
+    //private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
 
     public static readonly Dictionary<Globals.Element, string> BulletScenePath = new Dictionary<Globals.Element, string>()
     {
@@ -72,7 +74,7 @@ public class ProjectileManager : Node
     // Get a projectile scene instance. The caller needs to set up the projectile.
     // Set parentNode to GetTree().Root in most cases
     // Returns the root node of a projectile scene
-    // Warning: do not call projectile.GetParent() in the same frame
+    // Warning: Do not call projectile.GetParent() in the same frame
     public static Node SpawnProjectile(string scenePath, Node parentNode)
     {
         Node projectile;
@@ -132,7 +134,7 @@ public class ProjectileManager : Node
         // Check if acceptable projectile type
         if (!(projectile is Bullet bullet))
         {
-            GD.Print($"Warning: {projectile.GetType()} type cannot be despawned by Projectilemanager.");
+            GD.Print($"Warning: {projectile.GetType()} type cannot be despawned by ProjectileManager.");
             return;
         }
         else
@@ -140,11 +142,12 @@ public class ProjectileManager : Node
             ulong instanceID = projectile.GetInstanceId();
 
             // Check if repeated calls
-            if (!_despawnPool.Contains(instanceID))
+            //if (bullet.Active && !_despawnPool.Contains(instanceID))
+            if (bullet.Active)
             {
-                _despawnPool.Add(instanceID);
-                
                 bullet.Active = false;
+
+                //_despawnPool.Add(instanceID);
 
                 Singleton.CallDeferred("DespawnProjectile", projectile, instanceID);
                 
@@ -183,7 +186,8 @@ public class ProjectileManager : Node
 
         // Add to object pool
         _objectPools[projectile.Filename].Push(projectile);
-        _despawnPool.Remove(instanceID);
+
+        //_despawnPool.Remove(instanceID);
         //GD.Print($"{projectile.GetInstanceId()} Unlocked");
     }
 

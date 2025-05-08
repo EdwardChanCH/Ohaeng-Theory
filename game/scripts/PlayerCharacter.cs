@@ -125,10 +125,6 @@ public class PlayerCharacter : KinematicBody2D
             bullet.MovementNode.Speed = 1000; // TODO tune speed
         }
 
-        _bulletTemplates[$"Player_{Globals.Element.Metal}_Bullet"].Damage = 5;
-        _bulletTemplates[$"Player_{Globals.Element.Wood}_Bullet"].Damage = 1;
-
-
         // - - - Initialize Player Bullet Templates - - -
     }
 

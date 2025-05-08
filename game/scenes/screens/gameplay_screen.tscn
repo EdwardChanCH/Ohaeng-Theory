@@ -5,7 +5,7 @@
 [ext_resource path="res://scenes/enemy_character.tscn" type="PackedScene" id=3]
 [ext_resource path="res://scenes/lesser_enemy_character.tscn" type="PackedScene" id=4]
 [ext_resource path="res://scripts/GameplayScreen.cs" type="Script" id=5]
-[ext_resource path="res://scripts/EnemyManager.cs" type="Script" id=6]
+[ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 1920, 1080 )
@@ -21,8 +21,7 @@ __meta__ = {
 }
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
-visible = false
-position = Vector2( 954.5, 555.5 )
+position = Vector2( 960, 540 )
 shape = SubResource( 1 )
 __meta__ = {
 "_edit_lock_": true
@@ -30,7 +29,7 @@ __meta__ = {
 
 [node name="Background" type="Sprite" parent="."]
 modulate = Color( 1, 1, 1, 0.0784314 )
-position = Vector2( 936, 532 )
+position = Vector2( 960, 540 )
 scale = Vector2( 15, 15 )
 texture = ExtResource( 1 )
 __meta__ = {
@@ -40,14 +39,13 @@ __meta__ = {
 [node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]
 position = Vector2( 401, 525 )
 FireSpeed = 15
-MinMovementBoundPath = NodePath("MinMovementBound")
-MaxMovementBoundPath = NodePath("MaxMovementBound")
+MinMovementBoundPath = NodePath("../MinMovementBound")
+MaxMovementBoundPath = NodePath("../MaxMovementBound")
 
-[node name="MinMovementBound" type="Node2D" parent="PlayerCharacter"]
-position = Vector2( -401, -525 )
+[node name="MinMovementBound" type="Node2D" parent="."]
 
-[node name="MaxMovementBound" type="Node2D" parent="PlayerCharacter"]
-position = Vector2( 999, 555 )
+[node name="MaxMovementBound" type="Node2D" parent="."]
+position = Vector2( 1400, 1080 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
@@ -56,13 +54,13 @@ __meta__ = {
 }
 
 [node name="EnemyCharacter" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1574, 246 )
+position = Vector2( 1565, 117 )
 
 [node name="EnemyCharacter3" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1587, 600 )
+position = Vector2( 1569, 347 )
 
 [node name="EnemyCharacter5" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1573, 878 )
+position = Vector2( 1572, 576 )
 
 [node name="LesserEnemyCharacter2" parent="." instance=ExtResource( 4 )]
 position = Vector2( 1717, 102 )
@@ -73,16 +71,7 @@ position = Vector2( 1738, 433 )
 [node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
 position = Vector2( 1740, 794 )
 
-[node name="DespawnArea" type="Area2D" parent="."]
-collision_layer = 0
-collision_mask = 30
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
-position = Vector2( 960, 540 )
-shape = SubResource( 1 )
-
-[node name="EnemyManager" type="Node2D" parent="."]
-script = ExtResource( 6 )
+[node name="EnemyManager" parent="." instance=ExtResource( 6 )]
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]
