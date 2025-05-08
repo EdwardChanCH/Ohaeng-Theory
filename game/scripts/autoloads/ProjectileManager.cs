@@ -68,6 +68,11 @@ public class ProjectileManager : Node
         projectile.SetProcess(false);
         projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
 
+        if (projectile is Bullet bullet)
+        {
+            bullet.Initalize();
+        }
+
         return projectile;
     }
 
