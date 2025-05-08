@@ -112,7 +112,7 @@ public class EnemyManager : Node2D
 
         // TODO unfinished
         //SplitEnemy(source, Globals.Element.None);
-        CallDeferred("SplitEnemy", source, Globals.Element.None);
+        //CallDeferred("SplitEnemy", source, Globals.Element.None);
     }
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
