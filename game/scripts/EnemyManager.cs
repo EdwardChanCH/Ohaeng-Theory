@@ -59,6 +59,8 @@ public class EnemyManager : Node2D
         f.Position = new Vector2(300, 600);
         f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
         f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
+
+        GD.Print("Reload");
     }
 
     public EnemyCharacter SpawnEnemy(Node parentNode)
@@ -112,7 +114,7 @@ public class EnemyManager : Node2D
 
         // TODO unfinished
         //SplitEnemy(source, Globals.Element.None);
-        //CallDeferred("SplitEnemy", source, Globals.Element.None);
+        CallDeferred("SplitEnemy", source, Globals.Element.None);
     }
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
