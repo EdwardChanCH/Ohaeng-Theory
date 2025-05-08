@@ -39,14 +39,8 @@ __meta__ = {
 [node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]
 position = Vector2( 401, 525 )
 FireSpeed = 15
-MinMovementBoundPath = NodePath("MinMovementBound")
-MaxMovementBoundPath = NodePath("MaxMovementBound")
-
-[node name="MinMovementBound" type="Node2D" parent="PlayerCharacter"]
-position = Vector2( -401, -525 )
-
-[node name="MaxMovementBound" type="Node2D" parent="PlayerCharacter"]
-position = Vector2( 999, 555 )
+MinMovementBoundPath = NodePath("../MinMovementBound")
+MaxMovementBoundPath = NodePath("../MaxMovementBound")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
@@ -71,6 +65,11 @@ position = Vector2( 1738, 433 )
 
 [node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
 position = Vector2( 1740, 794 )
+
+[node name="MinMovementBound" type="Node2D" parent="."]
+
+[node name="MaxMovementBound" type="Node2D" parent="."]
+position = Vector2( 1400, 1080 )
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]

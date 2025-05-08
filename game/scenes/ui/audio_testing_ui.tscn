@@ -1,7 +1,6 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://scripts/ui/AudioTestingUserInterface.cs" type="Script" id=1]
-[ext_resource path="res://assets/sfx/tabletop_jazz_cafe/Tabletop Jazz Cafe.wav" type="AudioStream" id=2]
 [ext_resource path="res://assets/sfx/bgm/infinite_perspective_short.wav" type="AudioStream" id=3]
 [ext_resource path="res://assets/sfx/test/bang.wav" type="AudioStream" id=4]
 [ext_resource path="res://assets/sfx/test/dead.wav" type="AudioStream" id=5]
@@ -10,11 +9,10 @@
 [ext_resource path="res://assets/sfx/test/record_scratch_sound.wav" type="AudioStream" id=8]
 [ext_resource path="res://assets/sfx/bgm/unwritten_return_fast.wav" type="AudioStream" id=9]
 
-
 [node name="AudioTestingUserInterface" type="CanvasLayer"]
 script = ExtResource( 1 )
 SoundPath = [ ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ), ExtResource( 7 ), ExtResource( 8 ) ]
-MusicPath = [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 9 ) ]
+MusicPath = [ ExtResource( 3 ), ExtResource( 9 ) ]
 ButtonContainer = NodePath("VBoxContainer")
 MasterSliderPath = NodePath("HSlider")
 SFXSliderPath = NodePath("HSlider2")
