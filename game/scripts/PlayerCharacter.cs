@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
+// Note: NOT a singleton
 public class PlayerCharacter : KinematicBody2D
 {
     [Export]

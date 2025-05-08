@@ -149,8 +149,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0)
-            return;
+        if (element == 0) { return; }    
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
@@ -159,11 +158,25 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0)
-            return;
+        if (element == 0) { return; }
 
-        ElementalCount[element] = Mathf.Clamp(ElementalCount[element] - count, 0, 255);
+        ElementalCount[element] -= count;
+        if (ElementalCount[element] < 0)
+        {
+            ElementalCount[element] = 0;
+        }
         EmitSignal("UpdateElement", element, ElementalCount[element]);
+        _currentElement = Globals.DominantElement(ElementalCount);
+    }
+
+    public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
+    {
+        foreach (Globals.Element key in newValue.Keys)
+        {
+            ElementalCount[key] = newValue[key];
+            EmitSignal("UpdateElement", key, ElementalCount[key]);
+        }
+
         _currentElement = Globals.DominantElement(ElementalCount);
     }
 
