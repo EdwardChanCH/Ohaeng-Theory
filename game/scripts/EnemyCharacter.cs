@@ -195,7 +195,7 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
     }
 
     public void Shoot()
