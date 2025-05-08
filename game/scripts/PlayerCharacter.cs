@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static Globals;
 
+// Note: NOT a singleton
 public class PlayerCharacter : KinematicBody2D
 {
     [Signal]
