@@ -97,7 +97,7 @@ public class PlayerCharacter : KinematicBody2D
     public override void _EnterTree()
     {
         base._EnterTree();
-
+        GameplayScreen.PlayerRef = this;
         Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
@@ -131,7 +131,7 @@ public class PlayerCharacter : KinematicBody2D
     public override void _ExitTree()
     {
         base._ExitTree();
-
+        GameplayScreen.PlayerRef = null;
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {

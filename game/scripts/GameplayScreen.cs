@@ -3,6 +3,8 @@ using System;
 
 public class GameplayScreen : Node2D
 {
+    public static Node2D PlayerRef;
+
     public void _OnPlayerDeath()
     {
         ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
@@ -12,7 +14,17 @@ public class GameplayScreen : Node2D
     {
         if (body is IHarmful harmful)
         {
+
             harmful.Kill();
+
+            if (body is Bullet bullet)
+            {
+                ProjectileManager.QueueDespawnProjectile(bullet);
+            }
+            else if (body is LesserEnemyCharacter lesser)
+            {
+                lesser.QueueFree();
+            }
         }
     }
 
