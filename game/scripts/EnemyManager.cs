@@ -11,8 +11,8 @@ public class EnemyManager : Node2D
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
-    public static List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
-    public static List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
+    public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
+    public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
 
     public const int EnemyBaseHealth = 100; // when at rank = 1
     public const int LesserEnemyBaseHealth = 50; // always at rank = 1
@@ -37,8 +37,6 @@ public class EnemyManager : Node2D
         base._ExitTree();
 
         // Free objects, prevent memory leak
-        EnemyCharacterScene = null;
-        LesserEnemyCharacterScene = null;
         EnemyList.Clear();
         EnemyList = null;
         LesserEnemyList.Clear();
@@ -59,37 +57,43 @@ public class EnemyManager : Node2D
         f.Position = new Vector2(300, 600);
         f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
         f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
-
-        GD.Print("Reload");
     }
 
-    public EnemyCharacter SpawnEnemy(Node parentNode)
+    public EnemyCharacter SpawnEnemy(Node2D parentNode)
     {
         EnemyCharacter instance = EnemyCharacterScene.Instance<EnemyCharacter>();
+
+        parentNode.AddChild(instance); // Must be done first
+
         instance.Connect("Killed", this, nameof(_OnEnemyKilled));
         instance.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         instance.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
-        EnemyList.Add(instance);
-        parentNode.AddChild(instance);
 
         instance.HealthComponent.SetHealth(EnemyBaseHealth * RankOfEnemy(instance));
+
+        EnemyList.Add(instance);
         
         return instance;
     }
 
-    public LesserEnemyCharacter SpawnLesserEnemy(Node parentNode)
+    public LesserEnemyCharacter SpawnLesserEnemy(Node2D parentNode)
     {
         LesserEnemyCharacter instance = LesserEnemyCharacterScene.Instance<LesserEnemyCharacter>();
+
+        parentNode.AddChild(instance); // Must be done first
+
         instance.Connect("Killed", this, nameof(_OnLesserEnemyKilled));
+
+        instance.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+
         LesserEnemyList.Add(instance);
-        parentNode.AddChild(instance);
         
         return instance;
     }
 
     public void _OnEnemyKilled(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Killed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Killed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnEnemyKilled));
@@ -98,7 +102,7 @@ public class EnemyManager : Node2D
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
     {
-        GD.Print($"Lesser Enemy {source.GetInstanceId()} Killed."); // TODO
+        //GD.Print($"Lesser Enemy {source.GetInstanceId()} Killed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnLesserEnemyKilled));
@@ -107,7 +111,7 @@ public class EnemyManager : Node2D
 
     public void _OnEnemySplitNeeded(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Split Needed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Split Needed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
@@ -119,7 +123,7 @@ public class EnemyManager : Node2D
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Merge Needed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Merge Needed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
