@@ -21,8 +21,6 @@ public class EnemyManager : Node2D
     {
         base._EnterTree();
 
-        GD.Print("Enemy Manager Enter Tree().");
-
         if (EnemyCharacterScene == null)
         {
             EnemyCharacterScene = GD.Load<PackedScene>(EnemyCharacterPath);
@@ -38,8 +36,6 @@ public class EnemyManager : Node2D
     {
         base._ExitTree();
 
-        GD.Print("Enemy Manager Exit Tree().");
-
         // Free objects, prevent memory leak
         EnemyList.Clear();
         EnemyList = null;
@@ -51,18 +47,16 @@ public class EnemyManager : Node2D
     {
         base._Ready();
 
-        GD.Print("Enemy Manager Ready().");
-
         // TODO test only
         EnemyCharacter e = SpawnEnemy(this);
         e.Position = new Vector2(200, 500);
-        //e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
-        //e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
+        e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
+        e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
 
         LesserEnemyCharacter f = SpawnLesserEnemy(this);
         f.Position = new Vector2(300, 600);
-        //f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
-        //f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
+        f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
+        f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
     }
 
     public EnemyCharacter SpawnEnemy(Node2D parentNode)
@@ -99,7 +93,7 @@ public class EnemyManager : Node2D
 
     public void _OnEnemyKilled(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Killed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Killed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnEnemyKilled));
@@ -108,7 +102,7 @@ public class EnemyManager : Node2D
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
     {
-        GD.Print($"Lesser Enemy {source.GetInstanceId()} Killed."); // TODO
+        //GD.Print($"Lesser Enemy {source.GetInstanceId()} Killed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnLesserEnemyKilled));
@@ -117,7 +111,7 @@ public class EnemyManager : Node2D
 
     public void _OnEnemySplitNeeded(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Split Needed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Split Needed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
@@ -129,7 +123,7 @@ public class EnemyManager : Node2D
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
     {
-        GD.Print($"Enemy {source.GetInstanceId()} Merge Needed."); // TODO
+        //GD.Print($"Enemy {source.GetInstanceId()} Merge Needed."); // TODO
 
         // Prevent multiple calls from Area2D bug
         source.Disconnect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
