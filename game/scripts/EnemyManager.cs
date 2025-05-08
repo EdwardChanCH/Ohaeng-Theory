@@ -11,8 +11,8 @@ public class EnemyManager : Node2D
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
-    public static List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
-    public static List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
+    public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
+    public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
 
     public const int EnemyBaseHealth = 100; // when at rank = 1
     public const int LesserEnemyBaseHealth = 50; // always at rank = 1
@@ -20,6 +20,8 @@ public class EnemyManager : Node2D
     public override void _EnterTree()
     {
         base._EnterTree();
+
+        GD.Print("Enemy Manager Enter Tree().");
 
         if (EnemyCharacterScene == null)
         {
@@ -36,9 +38,9 @@ public class EnemyManager : Node2D
     {
         base._ExitTree();
 
+        GD.Print("Enemy Manager Exit Tree().");
+
         // Free objects, prevent memory leak
-        EnemyCharacterScene = null;
-        LesserEnemyCharacterScene = null;
         EnemyList.Clear();
         EnemyList = null;
         LesserEnemyList.Clear();
@@ -49,38 +51,48 @@ public class EnemyManager : Node2D
     {
         base._Ready();
 
+        GD.Print("Enemy Manager Ready().");
+
         // TODO test only
         EnemyCharacter e = SpawnEnemy(this);
         e.Position = new Vector2(200, 500);
-        e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
-        e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
+        //e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
+        //e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
 
         LesserEnemyCharacter f = SpawnLesserEnemy(this);
         f.Position = new Vector2(300, 600);
-        f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
-        f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
+        //f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
+        //f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
     }
 
-    public EnemyCharacter SpawnEnemy(Node parentNode)
+    public EnemyCharacter SpawnEnemy(Node2D parentNode)
     {
         EnemyCharacter instance = EnemyCharacterScene.Instance<EnemyCharacter>();
+
+        parentNode.AddChild(instance); // Must be done first
+
         instance.Connect("Killed", this, nameof(_OnEnemyKilled));
         instance.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         instance.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
-        EnemyList.Add(instance);
-        parentNode.AddChild(instance);
 
         instance.HealthComponent.SetHealth(EnemyBaseHealth * RankOfEnemy(instance));
+
+        EnemyList.Add(instance);
         
         return instance;
     }
 
-    public LesserEnemyCharacter SpawnLesserEnemy(Node parentNode)
+    public LesserEnemyCharacter SpawnLesserEnemy(Node2D parentNode)
     {
         LesserEnemyCharacter instance = LesserEnemyCharacterScene.Instance<LesserEnemyCharacter>();
+
+        parentNode.AddChild(instance); // Must be done first
+
         instance.Connect("Killed", this, nameof(_OnLesserEnemyKilled));
+
+        instance.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+
         LesserEnemyList.Add(instance);
-        parentNode.AddChild(instance);
         
         return instance;
     }

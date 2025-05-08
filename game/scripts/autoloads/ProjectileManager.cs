@@ -102,9 +102,9 @@ public class ProjectileManager : Node
             projectile = _cachedScenes[scenePath].Instance();
         }
 
-        // Attatch to parent at the end of frame (if exist)
+        // Attatch to parent
         projectile.GetParent()?.RemoveChild(projectile);
-        parentNode.AddChild(projectile);
+        parentNode.AddChild(projectile); // Must be done first
 
         // Caller should set the node owner when saving
 
