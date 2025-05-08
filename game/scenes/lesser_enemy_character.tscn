@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://assets/textures/enemies/discount_earth.png" type="Texture" id=1]
 [ext_resource path="res://scripts/LesserEnemyCharacter.cs" type="Script" id=2]
@@ -6,6 +6,10 @@
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=4]
 [ext_resource path="res://scripts/StraightMovement.cs" type="Script" id=5]
 [ext_resource path="res://scenes/damage_popup.tscn" type="PackedScene" id=6]
+[ext_resource path="res://assets/textures/enemies/discount_fire.png" type="Texture" id=7]
+[ext_resource path="res://assets/textures/enemies/discount_water.png" type="Texture" id=8]
+[ext_resource path="res://assets/textures/enemies/discount_wood.png" type="Texture" id=9]
+[ext_resource path="res://assets/textures/enemies/discount_metal.png" type="Texture" id=10]
 
 [sub_resource type="CircleShape2D" id=5]
 radius = 100.0
@@ -26,17 +30,19 @@ modulate_color = Color( 0.172549, 0.172549, 0.172549, 0.219608 )
 [node name="LesserEnemyCharacter" type="KinematicBody2D"]
 scale = Vector2( 0.25, 0.25 )
 collision_layer = 8
+collision_mask = 0
 script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
 DamagePopupPath = NodePath("DamagePopup")
 MovementComponentPath = NodePath("MovementComponent")
+CharacterSpriteTexture = [ ExtResource( 8 ), ExtResource( 9 ), ExtResource( 7 ), ExtResource( 1 ), ExtResource( 10 ) ]
 CharacterSpirtePath = NodePath("Sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 3 )
-MaxHealth = 5
+MaxHealth = 50
 
 [node name="MovementComponent" type="Node" parent="."]
 script = ExtResource( 5 )

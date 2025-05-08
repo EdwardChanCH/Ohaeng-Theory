@@ -30,6 +30,11 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     [Export]
     public int CollisionDamage { get; set; } = 2;
 
+    [Export]
+    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+
+    private Globals.Element _dominantElement = Globals.Element.None;
+
     public override void _Ready()
     {
         HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
@@ -61,8 +66,25 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            HealthComponent.ApplyDamage(harmful.GetDamage());
-            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+            float floatDamage = (float)harmful.GetDamage();
+            float damageModifier = 1;
+
+            // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
+            if (harmful.GetElement() == _dominantElement || Globals.CounterToElement(harmful.GetElement()) == _dominantElement)
+            {
+                damageModifier = 0.5f;
+            }
+
+            // Do 200% damage if the element of the bullet count the _dominantElement
+            if (harmful.GetElement() == Globals.CounterByElement(_dominantElement))
+            {
+                damageModifier = 2f;
+            }
+
+            floatDamage *= damageModifier;
+            var damage = Mathf.CeilToInt(floatDamage);
+            HealthComponent.ApplyDamage(damage);
+            _damagePopup.AddToCumulativeDamage(damage);
             harmful.Kill();
         }
     }
@@ -98,4 +120,14 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         _OnHealthDepleted();
     }
 
+    public void SwitchSprite(Globals.Element element)
+    {
+        if (CharacterSpriteTexture.Length >= 5)
+            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
+    }
+
+    public Globals.Element GetElement()
+    {
+        return _dominantElement;
+    }
 }

@@ -15,9 +15,9 @@ public class Bullet : KinematicBody2D, IHarmful
 
     // - - - False-positive collision workaround - - -
     // How many physics ticks to wait before collision becomes active
-    private const int _physicsTicksTimer = 1; // Must be > 0 or Godot will freak out
-    private int _physicsTicks = -1;
-    private bool _active = false;
+    private const int _activationDelay = 1; // Number of physics tick to wait for (at least 1 tick or Godot's Area2D will freak out)
+    private int _activationTimer = -1;
+    private bool _active = true;
     [Export]
     public bool Active
     {
@@ -26,12 +26,14 @@ public class Bullet : KinematicBody2D, IHarmful
         {
             if (value)
             {
-                _physicsTicks = 0;
+                // Queue activate
+                _activationTimer = 0; //  Start timer
             }
             else
             {
-                _active = false;
-                _physicsTicks = -1;
+                // Immediately deactivate
+                _active = false; // Deactivate
+                _activationTimer = -1; // Stop timer
             }
         }
     }
@@ -64,17 +66,18 @@ public class Bullet : KinematicBody2D, IHarmful
     public override void _PhysicsProcess(float delta)
     {
         // Start a timer to enable collision check
-        if (_physicsTicks <= -1)
+        if (_activationTimer <= -1)
         {
-            // Disabled, do nothing
+            // Timer is off
         }
-        else if (_physicsTicks >= _physicsTicksTimer)
+        else if (_activationTimer >= _activationDelay)
         {
-            _active = true;
+            _active = true; // Activate
+            _activationTimer = -1; // Stop timer
         }
         else
         {
-            _physicsTicks += 1;
+            _activationTimer += 1; // Tick timer
         }
 
         MoveAndSlide(MovementNode.CalculateVector(delta)); // Should be the last line in _PhysicsProcess()
@@ -135,8 +138,11 @@ public class Bullet : KinematicBody2D, IHarmful
 
     public void Kill()
     {
-        Active = false;
         ProjectileManager.QueueDespawnProjectile(this); // Return to object pool
     }
 
+    public Globals.Element GetElement()
+    {
+        return Element;
+    }
 }

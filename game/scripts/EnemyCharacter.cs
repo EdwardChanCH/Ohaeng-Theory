@@ -27,14 +27,18 @@ public class EnemyCharacter : KinematicBody2D
     public NodePath DamagePopupPath { get; private set; } = new NodePath();
     private DamagePopup _damagePopup;
 
+    [Export]
+    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+
     // TODO Need a timer component
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
-    private Globals.Element _currentElement = Globals.Element.None;
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
+    private Globals.Element _dominantElement = Globals.Element.None;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
+
 
     public override void _EnterTree()
     {
@@ -100,7 +104,7 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", element, 0);
         }
 
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
 
         // TODO for testing remove later
         var rng = new RandomNumberGenerator();
@@ -129,9 +133,25 @@ public class EnemyCharacter : KinematicBody2D
     {
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            GD.Print($"{body.GetInstanceId()} {harmful.IsFriendly()} {harmful.IsActive()}"); // TODO debug
-            HealthComponent.ApplyDamage(harmful.GetDamage());
-            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+            float floatDamage = (float)harmful.GetDamage();
+            float damageModifier = 1;
+
+            // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
+            if (harmful.GetElement() == _dominantElement || Globals.CounterToElement(harmful.GetElement()) == _dominantElement)
+            {
+                damageModifier = 0.5f;
+            }
+
+            // Do 200% damage if the element of the bullet count the _dominantElement
+            if (harmful.GetElement() == Globals.CounterByElement(_dominantElement))
+            {
+                damageModifier = 2f;
+            }
+
+            floatDamage *= damageModifier;
+            var damage = Mathf.CeilToInt(floatDamage);
+            HealthComponent.ApplyDamage(damage);
+            _damagePopup.AddToCumulativeDamage(damage);
             harmful.Kill();
         }
     }
@@ -149,28 +169,51 @@ public class EnemyCharacter : KinematicBody2D
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0)
-            return;
+        if (element == 0) { return; }    
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _currentElement = Globals.DominantElement(ElementalCount);
+        if (Globals.DominantElement(ElementalCount) != _dominantElement)
+        {
+            _dominantElement = Globals.DominantElement(ElementalCount);
+            SwitchSprite(_dominantElement);
+        }
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0)
-            return;
+        if (element == 0) { return; }
 
-        ElementalCount[element] = Mathf.Clamp(ElementalCount[element] - count, 0, 255);
+        ElementalCount[element] -= count;
+        if (ElementalCount[element] < 0)
+        {
+            ElementalCount[element] = 0;
+        }
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
+    }
+
+    public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
+    {
+        foreach (Globals.Element key in newValue.Keys)
+        {
+            ElementalCount[key] = newValue[key];
+            EmitSignal("UpdateElement", key, ElementalCount[key]);
+        }
+
+        _dominantElement = Globals.DominantElement(ElementalCount);
+    }
+
+    public void SwitchSprite(Globals.Element element)
+    {
+        if(CharacterSpriteTexture.Length >= 5)  
+            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
     public void Shoot()
     {
         // Edit the bullet template instead of the function parameters
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, Position);
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 
