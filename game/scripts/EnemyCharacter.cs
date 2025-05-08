@@ -5,6 +5,15 @@ using System.Collections.Generic;
 public class EnemyCharacter : KinematicBody2D
 {
     [Signal]
+    public delegate void Killed(EnemyCharacter source);
+
+    [Signal]
+    public delegate void SplitNeeded(EnemyCharacter source);
+
+    [Signal]
+    public delegate void MergeNeeded(EnemyCharacter source);
+
+    [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
 
     [Export]
@@ -160,16 +169,31 @@ public class EnemyCharacter : KinematicBody2D
     {
         _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
         _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
+
+        // TODO test code
+        if (newHealth < HealthComponent.MaxHealth)
+        {
+            EmitSignal("SplitNeeded", this);
+        }
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree(); // TODO Add a publlic Kill() function
+        Kill();
+    }
+
+    public void Kill()
+    {
+        EmitSignal("Killed", this);
+        QueueFree();
     }
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }    
+        if (element == 0 || element == Globals.Element.None)
+        {
+            return;
+        }    
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
@@ -182,7 +206,10 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }
+        if (element == 0 || element == Globals.Element.None)
+        {
+            return;
+        }
 
         ElementalCount[element] -= count;
         if (ElementalCount[element] < 0)
@@ -193,15 +220,24 @@ public class EnemyCharacter : KinematicBody2D
         _dominantElement = Globals.DominantElement(ElementalCount);
     }
 
-    public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
+    // TODO Make a public void SetElementalCount(Globals.Element element, int value)
+    // Just like the SetHealth() function newly added in HealthComponent
+
+    public void SetElementalCount(Dictionary<Globals.Element, int> values)
     {
-        foreach (Globals.Element key in newValue.Keys)
+        if (values.ContainsKey(Globals.Element.None))
         {
-            ElementalCount[key] = newValue[key];
+            values.Remove(Globals.Element.None);
+        }
+
+        foreach (Globals.Element key in values.Keys)
+        {
+            ElementalCount[key] = values[key];
             EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
         _dominantElement = Globals.DominantElement(ElementalCount);
+        SwitchSprite(_dominantElement);
     }
 
     public void SwitchSprite(Globals.Element element)
@@ -215,6 +251,18 @@ public class EnemyCharacter : KinematicBody2D
         // Edit the bullet template instead of the function parameters
         ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+    }
+
+    public int TotalElementalCount()
+    {
+        int total = 0;
+
+        foreach (int count in ElementalCount.Values)
+        {
+            total += count;
+        }
+        
+        return total;
     }
 
 }

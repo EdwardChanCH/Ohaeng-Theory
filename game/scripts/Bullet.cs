@@ -28,12 +28,16 @@ public class Bullet : KinematicBody2D, IHarmful
             {
                 // Queue activate
                 _activationTimer = 0; //  Start timer
+                SetProcess(true);
+                SetPhysicsProcess(true);
             }
             else
             {
                 // Immediately deactivate
                 _active = false; // Deactivate
                 _activationTimer = -1; // Stop timer
+                SetProcess(false);
+                SetPhysicsProcess(false);
             }
         }
     }
