@@ -22,4 +22,8 @@ public abstract class BaseMovement : Node, IMovement
         return Direction * Speed;
     }
 
+    public virtual void Reset()
+    {
+        
+    }
 }

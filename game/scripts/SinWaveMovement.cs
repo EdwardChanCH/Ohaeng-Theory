@@ -46,4 +46,8 @@ public class SinWaveMovement : BaseMovement
         return (_direction * Speed) + (_crossDirection * Magnitude * Mathf.Cos(2 * Mathf.Pi * _cycle / Period));
     }
 
+    public override void Reset()
+    {
+        _cycle = Mathf.Deg2Rad(_phase);
+    }
 }
