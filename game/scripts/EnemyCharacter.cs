@@ -27,6 +27,9 @@ public class EnemyCharacter : KinematicBody2D
     public NodePath DamagePopupPath { get; private set; } = new NodePath();
     private DamagePopup _damagePopup;
 
+    [Export]
+    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+
     // TODO Need a timer component
     private float _fireDelay;
     private float _fireTimer = 0.0f;
@@ -35,6 +38,7 @@ public class EnemyCharacter : KinematicBody2D
     private Globals.Element _dominantElement = Globals.Element.None;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
+
 
     public override void _EnterTree()
     {
@@ -171,7 +175,11 @@ public class EnemyCharacter : KinematicBody2D
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _dominantElement = Globals.DominantElement(ElementalCount);
+        if (Globals.DominantElement(ElementalCount) != _dominantElement)
+        {
+            _dominantElement = Globals.DominantElement(ElementalCount);
+            SwitchSprite(_dominantElement);
+        }
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
@@ -196,6 +204,12 @@ public class EnemyCharacter : KinematicBody2D
         }
 
         _dominantElement = Globals.DominantElement(ElementalCount);
+    }
+
+    public void SwitchSprite(Globals.Element element)
+    {
+        if(CharacterSpriteTexture.Length >= 5)  
+            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
     public void Shoot()

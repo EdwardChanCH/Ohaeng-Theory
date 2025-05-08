@@ -30,6 +30,9 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     [Export]
     public int CollisionDamage { get; set; } = 2;
 
+    [Export]
+    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+
     private Globals.Element _dominantElement = Globals.Element.None;
 
     public override void _Ready()
@@ -115,6 +118,12 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     public void Kill()
     {
         _OnHealthDepleted();
+    }
+
+    public void SwitchSprite(Globals.Element element)
+    {
+        if (CharacterSpriteTexture.Length >= 5)
+            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
     public Globals.Element GetElement()
