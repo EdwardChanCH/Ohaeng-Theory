@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class EnemyCharacter : KinematicBody2D
 {
@@ -31,8 +32,10 @@ public class EnemyCharacter : KinematicBody2D
     public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
 
     // TODO Need a timer component
-    private float _fireDelay;
-    private float _fireTimer = 0.0f;
+    [Export]
+    private float FireDelay = 0.25f;
+    private float _fireTimer;
+    private bool _isAttacking = false;
 
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
     private Globals.Element _dominantElement = Globals.Element.None;
@@ -96,7 +99,7 @@ public class EnemyCharacter : KinematicBody2D
 
         _OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        _fireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
+        //FireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
 
         foreach (Globals.Element element in Globals.AllElements)
         {
@@ -105,7 +108,7 @@ public class EnemyCharacter : KinematicBody2D
         }
 
         _dominantElement = Globals.DominantElement(ElementalCount);
-
+        _fireTimer = FireDelay;
         // TODO for testing remove later
         var rng = new RandomNumberGenerator();
         rng.Randomize();
@@ -122,7 +125,7 @@ public class EnemyCharacter : KinematicBody2D
     public override void _Process(float delta)
     {
         _fireTimer += delta;
-        if (_fireTimer >= _fireDelay)
+        if (_fireTimer >= FireDelay)
         {
             _fireTimer = 0;
             Shoot();
@@ -210,11 +213,59 @@ public class EnemyCharacter : KinematicBody2D
             CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
+
+
+
     public void Shoot()
     {
-        // Edit the bullet template instead of the function parameters
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
-        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+        if(!_isAttacking)
+        {
+            _isAttacking = true;
+            // Edit the bullet template instead of the function parameters
+            //ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
+            //AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+
+            //WavePatternAsync(15, 0.1f, 90f, 0.0f);
+            SpherePatternAsync(100, 0.05f);
+            //_isAttacking = false;
+        }
     }
 
+
+    public async Task WavePatternAsync(int spawnCount, float delay, float angle, float speedIncrease)
+    {
+        var startingDirection = Vector2.Left;
+        for(int i = 0;  i < spawnCount; i++)
+        {
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount/2) * angle));
+            await Task.Delay(TimeSpan.FromSeconds(delay));
+            _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = direction;
+            ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
+            _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Speed += i * speedIncrease;
+        }
+
+
+
+        _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Speed = 200;
+        _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = Vector2.Left;
+        _isAttacking = false;
+    }
+
+    public async Task SpherePatternAsync(int spawnCount, float delay)
+    {
+        var startingDirection = Vector2.Left;
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var direction = startingDirection.Rotated(i);
+            await Task.Delay(TimeSpan.FromSeconds(delay));
+            _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = direction;
+            ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
+        }
+
+
+
+        _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Speed = 200;
+        _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = Vector2.Left;
+        _isAttacking = false;
+    }
 }

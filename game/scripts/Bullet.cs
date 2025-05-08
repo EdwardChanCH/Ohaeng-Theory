@@ -88,7 +88,7 @@ public class Bullet : KinematicBody2D, IHarmful
         MovementNode = GetNode<IMovement>(MovementNodePath);
         SpriteNode = GetNode<Sprite>(SpriteNodePath);
         CollisionShape2DNode = GetNode<CollisionShape2D>(CollisionShape2DNodePath);
-
+        MovementNode.Reset();
         if (MovementNode == null || SpriteNode == null || CollisionShape2DNode == null)
         {
             GD.PrintErr("Error: Invalid export node path in Bullet.");

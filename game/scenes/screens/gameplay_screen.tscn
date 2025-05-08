@@ -1,9 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://assets/textures/icon.png" type="Texture" id=1]
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/enemy_character.tscn" type="PackedScene" id=3]
-[ext_resource path="res://scenes/lesser_enemy_character.tscn" type="PackedScene" id=4]
 [ext_resource path="res://scripts/GameplayScreen.cs" type="Script" id=5]
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
@@ -53,25 +52,14 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="EnemyCharacter" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1565, 117 )
-
 [node name="EnemyCharacter3" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1569, 347 )
-
-[node name="EnemyCharacter5" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1572, 576 )
-
-[node name="LesserEnemyCharacter2" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1717, 102 )
-
-[node name="LesserEnemyCharacter3" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1738, 433 )
-
-[node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
-position = Vector2( 1740, 794 )
+position = Vector2( 1657, 540 )
+FireDelay = 2.5
 
 [node name="EnemyManager" parent="." instance=ExtResource( 6 )]
+__meta__ = {
+"_edit_lock_": true
+}
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]
