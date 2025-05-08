@@ -51,7 +51,6 @@ public class EnemyCharacter : KinematicBody2D
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-
     public override void _EnterTree()
     {
         base._EnterTree();
@@ -164,7 +163,7 @@ public class EnemyCharacter : KinematicBody2D
             var damage = Mathf.CeilToInt(floatDamage);
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
-            harmful.Kill();
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
         }
     }
 
@@ -258,12 +257,13 @@ public class EnemyCharacter : KinematicBody2D
         {
             _isAttacking = true;
             // Edit the bullet template instead of the function parameters
-            //ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
-            //AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+            ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, GlobalPosition); // Remember to use Global Position
+            AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+            GD.Print($"{Position}");
 
             //WavePatternAsync(15, 0.1f, 90f, 0.0f);
             //SpherePatternAsync(100, 0.05f);
-            //_isAttacking = false;
+            _isAttacking = false;
         }
     }
 

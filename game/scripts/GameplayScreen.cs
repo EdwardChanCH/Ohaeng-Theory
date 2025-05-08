@@ -15,8 +15,9 @@ public class GameplayScreen : Node2D
         if (body is IHarmful harmful)
         {
 
-            harmful.Kill();
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
 
+/*          // Unnecessary code
             if (body is Bullet bullet)
             {
                 ProjectileManager.QueueDespawnProjectile(bullet);
@@ -24,7 +25,7 @@ public class GameplayScreen : Node2D
             else if (body is LesserEnemyCharacter lesser)
             {
                 lesser.QueueFree();
-            }
+            } */
         }
     }
 

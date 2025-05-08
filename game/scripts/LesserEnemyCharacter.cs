@@ -88,7 +88,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
             var damage = Mathf.CeilToInt(floatDamage);
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
-            harmful.Kill();
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
         }
     }
 

@@ -329,7 +329,7 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
             PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
-            harmful.Kill();
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
         }
     }
 
@@ -369,15 +369,15 @@ public class PlayerCharacter : KinematicBody2D
         switch (_CurrentPattern)
         {
             case 0:
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, Mathf.Deg2Rad(90));
                 break;
             case 1:
                 // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, 10);
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, 10);
                 break;
             case 2:
                 // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(45));
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, Mathf.Deg2Rad(45));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
