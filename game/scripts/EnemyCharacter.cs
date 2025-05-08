@@ -88,7 +88,7 @@ public class EnemyCharacter : KinematicBody2D
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
-            bullet.QueueFree(); 
+            bullet.QueueFree();
         }
     }
 
@@ -99,7 +99,7 @@ public class EnemyCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        if (HealthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null
             || _healthText == null || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
@@ -196,7 +196,7 @@ public class EnemyCharacter : KinematicBody2D
         if (element == 0 || element == Globals.Element.None)
         {
             return;
-        }    
+        }
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
@@ -245,7 +245,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SwitchSprite(Globals.Element element)
     {
-        if(CharacterSpriteTexture.Length >= 5)  
+        if (CharacterSpriteTexture.Length >= 5)
             CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
@@ -254,7 +254,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void Shoot()
     {
-        if(!_isAttacking)
+        if (!_isAttacking)
         {
             _isAttacking = true;
             // Edit the bullet template instead of the function parameters
@@ -271,9 +271,9 @@ public class EnemyCharacter : KinematicBody2D
     public async Task WavePatternAsync(int spawnCount, float delay, float angle, float speedIncrease)
     {
         var startingDirection = Vector2.Left;
-        for(int i = 0;  i < spawnCount; i++)
+        for (int i = 0; i < spawnCount; i++)
         {
-            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount/2) * angle));
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount / 2) * angle));
             await Task.Delay(TimeSpan.FromSeconds(delay));
             _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = direction;
             ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
@@ -302,6 +302,7 @@ public class EnemyCharacter : KinematicBody2D
         _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = Vector2.Left;
         _isAttacking = false;
     }
+
     public int TotalElementalCount()
     {
         int total = 0;
@@ -310,11 +311,7 @@ public class EnemyCharacter : KinematicBody2D
         {
             total += count;
         }
-        
+
         return total;
-    }
-
-
-
     }
 }
