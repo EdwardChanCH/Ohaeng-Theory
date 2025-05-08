@@ -71,7 +71,7 @@ public class EnemyManager : Node2D
         parentNode.AddChild(instance);
 
         instance.HealthComponent.SetHealth(EnemyBaseHealth * RankOfEnemy(instance));
-
+        
         return instance;
     }
 
@@ -111,7 +111,8 @@ public class EnemyManager : Node2D
         source.Disconnect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
 
         // TODO unfinished
-        SplitEnemy(source, Globals.Element.None);
+        //SplitEnemy(source, Globals.Element.None);
+        CallDeferred("SplitEnemy", source, Globals.Element.None);
     }
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
