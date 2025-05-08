@@ -1,7 +1,6 @@
 using Godot;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using static Globals;
 
 public class EnemyCharacter : KinematicBody2D
 {
@@ -75,7 +74,6 @@ public class EnemyCharacter : KinematicBody2D
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
             // Warning: DO NOT attach template nodes to a parent
-            bullet.Initalize();
             bullet.Position = Vector2.Zero;
             bullet.Damage = 1;
             bullet.Friendly = false;
@@ -117,10 +115,6 @@ public class EnemyCharacter : KinematicBody2D
         }
 
         _dominantElement = Globals.DominantElement(ElementalCount);
-
-        _fireTimer = _fireDelay;
-        _attackBetweenTimer = AttackBetweenDelay;
-
 
 
         // TODO for testing remove later
@@ -164,9 +158,11 @@ public class EnemyCharacter : KinematicBody2D
         {
             _isAttacking = true;
 
-            SpherePattern(30);
-            //this.CallDeferred("SpherePattern", 15);
-            GD.Print("Does thing");
+            //SpherePattern(90, 3.3f);
+            //_fireDelay = 0.01f;
+
+            WavePattern(25, 4, 1);
+            _fireDelay = 0.05f;
         }
 
 
@@ -220,6 +216,7 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
+        _projectileQueue.Clear();
     }
 
     public void AddToElement(Globals.Element element, int count)
@@ -293,41 +290,52 @@ public class EnemyCharacter : KinematicBody2D
     }
 
 
-
     public void WavePattern(int spawnCount, float angle, float speedIncrease)
     {
-        var startingDirection = Vector2.Left;
+        var startingDirection = -Position.DirectionTo(GameplayScreen.PlayerRef.Position);
         for (int i = 0; i < spawnCount; i++)
         {
+            var bulletCopy = MakeBulletCopy(_dominantElement); ;
+            var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
 
-            var bulletCopy = _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"];
-            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount / 2) * angle));
-
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(bulletAngle));
             bulletCopy.MovementNode.Direction = direction;
             bulletCopy.MovementNode.Speed += i * speedIncrease;
-
             _projectileQueue.Enqueue(bulletCopy);
+        }
 
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var bulletCopy = MakeBulletCopy(_dominantElement); ;
+            var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
+
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(-bulletAngle));
+            bulletCopy.MovementNode.Direction = direction;
+            bulletCopy.MovementNode.Speed += i * speedIncrease;
+            _projectileQueue.Enqueue(bulletCopy);
         }
     }
 
-    public void SpherePattern(int spawnCount)
+    public void SpherePattern(int spawnCount, float angle = 45)
     {
         _isAttacking = true;
-        var startingDirection = Vector2.Left;
+        var startingDirection = Vector2.Down;
+        var anglePerI = 360.0f / angle;
+
         for (int i = 0; i < spawnCount; i++)
         {
-            var bulletCopy = (Bullet)ProjectileManager.SpawnProjectile(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root);
+            var bulletCopy = MakeBulletCopy(_dominantElement);
 
-
-            var direction = startingDirection.Rotated(i);
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(anglePerI * i));
             bulletCopy.MovementNode.Direction = direction;
             _projectileQueue.Enqueue(bulletCopy);
         }
     }
 
-
-
-
-
+    public Bullet MakeBulletCopy(Element element)
+    {
+        var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+        Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);
+        return bulletCopy;
+    }
 }
