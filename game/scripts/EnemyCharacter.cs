@@ -129,8 +129,6 @@ public class EnemyCharacter : KinematicBody2D
     {
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            GD.Print($"{body.GetInstanceId()} {harmful.IsFriendly()} {harmful.IsActive()}"); // TODO debug
-
             float floatDamage = (float)harmful.GetDamage();
             float damageModifier = 1;
 

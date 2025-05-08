@@ -150,6 +150,10 @@ public class ProjectileManager : Node
                 
                 //GD.Print($"{projectile.GetInstanceId()} Locked");
             }
+            else
+            {
+                //GD.Print($"{projectile.GetInstanceId()} Blocked");
+            }
         }
     }
 

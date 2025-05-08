@@ -20,8 +20,7 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
-visible = false
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="DespawnArea"]
 position = Vector2( 954.5, 555.5 )
 shape = SubResource( 1 )
 __meta__ = {
@@ -72,14 +71,6 @@ position = Vector2( 1738, 433 )
 
 [node name="LesserEnemyCharacter4" parent="." instance=ExtResource( 4 )]
 position = Vector2( 1740, 794 )
-
-[node name="DespawnArea" type="Area2D" parent="."]
-collision_layer = 0
-collision_mask = 30
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
-position = Vector2( 960, 540 )
-shape = SubResource( 1 )
 
 [node name="EnemyManager" type="Node2D" parent="."]
 script = ExtResource( 6 )
