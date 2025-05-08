@@ -5,6 +5,7 @@
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=3]
 
 [node name="setting_menu_ui" type="CanvasLayer"]
+pause_mode = 2
 script = ExtResource( 2 )
 MouseDirectedInputCheckBoxPath = NodePath("VBoxContainer/MouseDirectedInput")
 ToggleAttackCheckBoxPath = NodePath("VBoxContainer/ToggleAttack")

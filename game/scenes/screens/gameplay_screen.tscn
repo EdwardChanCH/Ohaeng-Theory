@@ -55,4 +55,5 @@ shape = SubResource( 1 )
 [node name="EnemyManager" type="Node2D" parent="."]
 script = ExtResource( 6 )
 
+[connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]

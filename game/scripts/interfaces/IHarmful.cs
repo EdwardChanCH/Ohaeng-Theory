@@ -6,6 +6,8 @@ public interface IHarmful
     // Return damage to be applied
     int GetDamage();
 
+    Globals.Element GetElement();
+
     // Return:
     // true  if it should harm Enemy/ Lesser Enemy
     // false if it should harm Player.

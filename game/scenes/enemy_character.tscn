@@ -34,7 +34,7 @@ CharacterSpirtePath = NodePath("Sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 3 )
-MaxHealth = 25
+MaxHealth = 250
 
 [node name="Sprite" type="Sprite" parent="."]
 texture = ExtResource( 1 )

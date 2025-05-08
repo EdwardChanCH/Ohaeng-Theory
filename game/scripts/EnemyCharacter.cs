@@ -31,8 +31,8 @@ public class EnemyCharacter : KinematicBody2D
     private float _fireDelay;
     private float _fireTimer = 0.0f;
 
-    private Globals.Element _currentElement = Globals.Element.None;
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
+    private Globals.Element _dominantElement = Globals.Element.None;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
@@ -100,7 +100,7 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", element, 0);
         }
 
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
 
         // TODO for testing remove later
         var rng = new RandomNumberGenerator();
@@ -130,8 +130,26 @@ public class EnemyCharacter : KinematicBody2D
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
             GD.Print($"{body.GetInstanceId()} {harmful.IsFriendly()} {harmful.IsActive()}"); // TODO debug
-            HealthComponent.ApplyDamage(harmful.GetDamage());
-            _damagePopup.AddToCumulativeDamage(harmful.GetDamage());
+
+            float floatDamage = (float)harmful.GetDamage();
+            float damageModifier = 1;
+
+            // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
+            if (harmful.GetElement() == _dominantElement || Globals.CounterToElement(harmful.GetElement()) == _dominantElement)
+            {
+                damageModifier = 0.5f;
+            }
+
+            // Do 200% damage if the element of the bullet count the _dominantElement
+            if (harmful.GetElement() == Globals.CounterByElement(_dominantElement))
+            {
+                damageModifier = 2f;
+            }
+
+            floatDamage *= damageModifier;
+            var damage = Mathf.CeilToInt(floatDamage);
+            HealthComponent.ApplyDamage(damage);
+            _damagePopup.AddToCumulativeDamage(damage);
             harmful.Kill();
         }
     }
@@ -153,7 +171,7 @@ public class EnemyCharacter : KinematicBody2D
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
@@ -166,7 +184,7 @@ public class EnemyCharacter : KinematicBody2D
             ElementalCount[element] = 0;
         }
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _currentElement = Globals.DominantElement(ElementalCount);
+        _dominantElement = Globals.DominantElement(ElementalCount);
     }
 
     public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
@@ -183,7 +201,7 @@ public class EnemyCharacter : KinematicBody2D
     public void Shoot()
     {
         // Edit the bullet template instead of the function parameters
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_currentElement}_Bullet"], GetTree().Root, Position);
+        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
         AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
     }
 
