@@ -6,6 +6,15 @@ using System.Threading.Tasks;
 public class EnemyCharacter : KinematicBody2D
 {
     [Signal]
+    public delegate void Killed(EnemyCharacter source);
+
+    [Signal]
+    public delegate void SplitNeeded(EnemyCharacter source);
+
+    [Signal]
+    public delegate void MergeNeeded(EnemyCharacter source);
+
+    [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
 
     [Export]
@@ -79,7 +88,7 @@ public class EnemyCharacter : KinematicBody2D
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
-            bullet.QueueFree(); 
+            bullet.QueueFree();
         }
     }
 
@@ -90,7 +99,7 @@ public class EnemyCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        if (HealthComponent == null || _healthBar == null 
+        if (HealthComponent == null || _healthBar == null
             || _healthText == null || _damagePopup == null || CharacterSprite == null)
         {
             GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
@@ -163,16 +172,31 @@ public class EnemyCharacter : KinematicBody2D
     {
         _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
         _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
+
+        // TODO test code
+        if (newHealth < HealthComponent.MaxHealth)
+        {
+            EmitSignal("SplitNeeded", this);
+        }
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree(); // TODO Add a publlic Kill() function
+        Kill();
+    }
+
+    public void Kill()
+    {
+        EmitSignal("Killed", this);
+        QueueFree();
     }
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }    
+        if (element == 0 || element == Globals.Element.None)
+        {
+            return;
+        }
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
@@ -185,7 +209,10 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }
+        if (element == 0 || element == Globals.Element.None)
+        {
+            return;
+        }
 
         ElementalCount[element] -= count;
         if (ElementalCount[element] < 0)
@@ -196,20 +223,29 @@ public class EnemyCharacter : KinematicBody2D
         _dominantElement = Globals.DominantElement(ElementalCount);
     }
 
-    public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
+    // TODO Make a public void SetElementalCount(Globals.Element element, int value)
+    // Just like the SetHealth() function newly added in HealthComponent
+
+    public void SetElementalCount(Dictionary<Globals.Element, int> values)
     {
-        foreach (Globals.Element key in newValue.Keys)
+        if (values.ContainsKey(Globals.Element.None))
         {
-            ElementalCount[key] = newValue[key];
+            values.Remove(Globals.Element.None);
+        }
+
+        foreach (Globals.Element key in values.Keys)
+        {
+            ElementalCount[key] = values[key];
             EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
         _dominantElement = Globals.DominantElement(ElementalCount);
+        SwitchSprite(_dominantElement);
     }
 
     public void SwitchSprite(Globals.Element element)
     {
-        if(CharacterSpriteTexture.Length >= 5)  
+        if (CharacterSpriteTexture.Length >= 5)
             CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
@@ -218,7 +254,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void Shoot()
     {
-        if(!_isAttacking)
+        if (!_isAttacking)
         {
             _isAttacking = true;
             // Edit the bullet template instead of the function parameters
@@ -226,7 +262,7 @@ public class EnemyCharacter : KinematicBody2D
             //AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
 
             //WavePatternAsync(15, 0.1f, 90f, 0.0f);
-            SpherePatternAsync(100, 0.05f);
+            //SpherePatternAsync(100, 0.05f);
             //_isAttacking = false;
         }
     }
@@ -235,9 +271,9 @@ public class EnemyCharacter : KinematicBody2D
     public async Task WavePatternAsync(int spawnCount, float delay, float angle, float speedIncrease)
     {
         var startingDirection = Vector2.Left;
-        for(int i = 0;  i < spawnCount; i++)
+        for (int i = 0; i < spawnCount; i++)
         {
-            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount/2) * angle));
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i - ((float)spawnCount / 2) * angle));
             await Task.Delay(TimeSpan.FromSeconds(delay));
             _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = direction;
             ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
@@ -262,10 +298,20 @@ public class EnemyCharacter : KinematicBody2D
             ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
         }
 
-
-
         _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Speed = 200;
         _bulletTemplates[$"Enemy_{_dominantElement}_Bullet"].MovementNode.Direction = Vector2.Left;
         _isAttacking = false;
+    }
+
+    public int TotalElementalCount()
+    {
+        int total = 0;
+
+        foreach (int count in ElementalCount.Values)
+        {
+            total += count;
+        }
+
+        return total;
     }
 }

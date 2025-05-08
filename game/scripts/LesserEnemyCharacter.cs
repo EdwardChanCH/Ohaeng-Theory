@@ -3,6 +3,9 @@ using System;
 
 public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 {
+    [Signal]
+    public delegate void Killed(LesserEnemyCharacter source);
+
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
     public HealthComponent HealthComponent { get; private set; }
@@ -97,7 +100,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void _OnHealthDepleted()
     {
-        QueueFree();
+        Kill();
     }
 
     public int GetDamage()
@@ -117,7 +120,8 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void Kill()
     {
-        _OnHealthDepleted();
+        EmitSignal("Killed", this);
+        QueueFree();
     }
 
     public void SwitchSprite(Globals.Element element)
@@ -129,5 +133,17 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     public Globals.Element GetElement()
     {
         return _dominantElement;
+    }
+
+    public void SetElement(Globals.Element value)
+    {
+        if (value == Globals.Element.None)
+        {
+            GD.PrintErr("Error: LesserEnemyCharacter cannot set element as None.");
+            return;
+        }
+
+        _dominantElement = value;
+        SwitchSprite(value);
     }
 }
