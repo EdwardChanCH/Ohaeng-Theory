@@ -4,6 +4,9 @@ using System;
 // This class is the entry point of the game.
 public class Bullet : KinematicBody2D, IHarmful
 {
+    [Signal]
+    public delegate void Killed(Bullet source);
+
     [Export]
     public Globals.Element Element { get; set; } = Globals.Element.None;
 
@@ -142,6 +145,7 @@ public class Bullet : KinematicBody2D, IHarmful
 
     public void Kill()
     {
+        EmitSignal("Killed", this);
         ProjectileManager.QueueDespawnProjectile(this); // Return to object pool
     }
 
