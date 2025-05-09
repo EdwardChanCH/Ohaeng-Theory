@@ -320,7 +320,7 @@ public class PlayerCharacter : KinematicBody2D
         }
 
 
-        MoveAndSlide(Velocity);
+        MoveAndSlide(Velocity); // Should be the last line in _PhysicsProcess()
     }
 
     // Called when other hitbody has enter the body

@@ -1,7 +1,6 @@
 using Godot;
 using System;
 
-// This class is the entry point of the game.
 public abstract class BaseMovement : Node, IMovement
 {
     protected Vector2 _direction = Vector2.Zero;
@@ -24,6 +23,6 @@ public abstract class BaseMovement : Node, IMovement
 
     public virtual void Reset()
     {
-        
+        // Do nothing
     }
 }

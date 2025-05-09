@@ -1,6 +1,7 @@
 using Godot;
+using System;
 using System.Collections.Generic;
-using static Globals;
+//using static Globals; // Please don't
 
 public class EnemyCharacter : KinematicBody2D
 {
@@ -15,6 +16,9 @@ public class EnemyCharacter : KinematicBody2D
 
     [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
+
+    [Signal]
+    public delegate void ReachedTarget(EnemyCharacter source);
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
@@ -55,6 +59,28 @@ public class EnemyCharacter : KinematicBody2D
 
 
     private Queue<Bullet> _projectileQueue = new Queue<Bullet>();
+
+    [Export]
+    public bool UseSmoothedMovemment { get; set; } = true;
+
+    private bool _targeting = true;
+    private Vector2 _moveDirection = Vector2.Zero; // Always normalized
+    private Vector2 _targetLocation = Vector2.Zero; // Global coordinate
+    public Vector2 TargetLocation
+    {
+        get { return _targetLocation; }
+        set
+        {
+            _targeting = _targetLocation != value; // Check if value changed
+            _targetLocation = value;
+            _moveDirection = GlobalPosition.DirectionTo(_targetLocation);
+        }
+    } 
+
+    [Export]
+    public float MaxMoveSpeed { get; set; } = 400.0f;
+
+    public Vector2 Velocity { get; private set; } = Vector2.Zero;
 
     public override void _EnterTree()
     {
@@ -139,7 +165,7 @@ public class EnemyCharacter : KinematicBody2D
             {
                 _fireTimer = 0;
                 var projectile = _projectileQueue.Dequeue();
-                GD.Print(projectile.MovementNode.Direction);
+                //GD.Print(projectile.MovementNode.Direction);
 
 
                 ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
@@ -166,6 +192,47 @@ public class EnemyCharacter : KinematicBody2D
         }
 
 
+    }
+
+    public override void _PhysicsProcess(float delta)
+    {
+        base._PhysicsProcess(delta);
+
+        // Target movement
+        if (_targeting) {
+            float distanceToTarget = GlobalPosition.DistanceTo(TargetLocation);
+            float distanceAfter;
+
+            if (UseSmoothedMovemment)
+            {
+                // Smoothed movement
+                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / MaxMoveSpeed, 0, 1); // Decelerate when close to target
+                Velocity = _moveDirection * MaxMoveSpeed * smoothFactor;
+                distanceAfter = MaxMoveSpeed * delta;
+            }
+            else
+            {
+                // Constant speed movement
+                Velocity = _moveDirection * MaxMoveSpeed;
+                distanceAfter = MaxMoveSpeed * delta;
+            }
+
+            // Check if it will overshoot
+            if (distanceAfter >= distanceToTarget)
+            {
+                // TargetLocation == Position + Velocity * delta == Position + _moveDirection * distanceToTarget
+                Velocity = _moveDirection * distanceToTarget / delta;
+                MoveAndSlide(Velocity);
+
+                GlobalPosition = TargetLocation; // Snap in place
+                Velocity = Vector2.Zero;
+                _targeting = false; // Stop moving
+
+                EmitSignal("ReachedTarget", this);
+            }
+        }
+        
+        MoveAndSlide(Velocity); // Should be the last line in _PhysicsProcess()
     }
 
     public void _OnHitboxBodyEntered(Node body)
@@ -292,7 +359,8 @@ public class EnemyCharacter : KinematicBody2D
 
     public void WavePattern(int spawnCount, float angle, float speedIncrease)
     {
-        var startingDirection = -Position.DirectionTo(GameplayScreen.PlayerRef.Position);
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+
         for (int i = 0; i < spawnCount; i++)
         {
             var bulletCopy = MakeBulletCopy(_dominantElement); ;
@@ -332,7 +400,7 @@ public class EnemyCharacter : KinematicBody2D
         }
     }
 
-    public Bullet MakeBulletCopy(Element element)
+    public Bullet MakeBulletCopy(Globals.Element element)
     {
         var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
         Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);

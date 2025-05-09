@@ -1,7 +1,6 @@
 using Godot;
 using System;
 
-// This class is the entry point of the game.
 public class SinWaveMovement : BaseMovement
 {
     private Vector2 _crossDirection = Vector2.Zero;
