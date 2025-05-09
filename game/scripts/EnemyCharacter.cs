@@ -45,7 +45,7 @@ public class EnemyCharacter : KinematicBody2D
 
     // TODO Need a timer component
     [Export]
-    public float AttackBetweenDelay = 0.5f;
+    public float AttackBetweenDelay = 2.5f;
     private float _attackBetweenTimer;
 
     private float _fireDelay = 0.25f;
@@ -57,8 +57,9 @@ public class EnemyCharacter : KinematicBody2D
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
+    const int MAXPROJECTILEQUEUE = 4;
+    private Queue<Bullet>[] _projectileQueue = new Queue<Bullet>[MAXPROJECTILEQUEUE];
 
-    private Queue<Bullet> _projectileQueue = new Queue<Bullet>();
 
     [Export]
     public bool UseSmoothedMovemment { get; set; } = true;
@@ -107,6 +108,10 @@ public class EnemyCharacter : KinematicBody2D
             bullet.MovementNode.Speed = 200; // TODO tune speed
         }
 
+        for (int i = 0; i < MAXPROJECTILEQUEUE; i++)
+        {
+            _projectileQueue[i] = new Queue<Bullet>();
+        }
         // - - - Initialize Enemy Bullet Templates - - -
     }
 
@@ -159,20 +164,30 @@ public class EnemyCharacter : KinematicBody2D
 
     public override void _Process(float delta)
     {
-        if(_isAttacking)
+
+        // Shotting projectile from the queue
+        if (_isAttacking)
         {
             _fireTimer += delta;
             if (_fireTimer >= _fireDelay)
             {
                 _fireTimer = 0;
-                var projectile = _projectileQueue.Dequeue();
-                //GD.Print(projectile.MovementNode.Direction);
+                bool areAllQueueEmpty = true;
 
+                foreach (var queue in _projectileQueue)
+                {
+                    
+                    if(queue.Count >= 1)
+                    {
+                        areAllQueueEmpty = false;
+                        var projectile = queue.Dequeue();
+                        //GD.Print(projectile.MovementNode.Direction);
+                        ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                    }
+                    
+                }
 
-                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
-
-
-                if(_projectileQueue.Count <= 0)
+                if (areAllQueueEmpty)
                 {
                     _isAttacking = false;
                     _attackBetweenTimer = 0;
@@ -180,19 +195,36 @@ public class EnemyCharacter : KinematicBody2D
             }
         }
 
+        // Add projectile to the queue
         _attackBetweenTimer += delta;
         if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
         {
             _isAttacking = true;
 
-            //SpherePattern(90, 3.3f);
-            //_fireDelay = 0.01f;
+            //add a switch statment when got every pattern
 
-            WavePattern(25, 4, 1);
-            _fireDelay = 0.05f;
+            switch (_dominantElement)
+            {
+                case Globals.Element.Water:
+                    //_fireDelay = 0.05f;
+                    //WavePattern(50, 4, 5);
+                    break;
+                case Globals.Element.Wood:
+                    break;
+                case Globals.Element.Fire:
+                    //3.3 // fire
+                    //33.3
+                    _fireDelay = 0.005f;
+                    SpinnyPattern(180, 4.3f);
+                    break;
+                case Globals.Element.Earth:
+                    break;
+                case Globals.Element.Metal:
+                    break;
+            }
+
+
         }
-
-
     }
 
     public override void _PhysicsProcess(float delta)
@@ -284,7 +316,11 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
-        _projectileQueue.Clear();
+
+        foreach (var item in _projectileQueue)
+        {
+            item.Clear();
+        }
     }
 
     public void AddToElement(Globals.Element element, int count)
@@ -358,7 +394,7 @@ public class EnemyCharacter : KinematicBody2D
     }
 
 
-    public void WavePattern(int spawnCount, float angle, float speedIncrease)
+    public void WavePattern(int spawnCount, float angle, float speedIncrease = 0)
     {
         var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
 
@@ -370,7 +406,7 @@ public class EnemyCharacter : KinematicBody2D
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(bulletAngle));
             bulletCopy.MovementNode.Direction = direction;
             bulletCopy.MovementNode.Speed += i * speedIncrease;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy);
         }
 
         for (int i = 0; i < spawnCount; i++)
@@ -381,11 +417,11 @@ public class EnemyCharacter : KinematicBody2D
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(-bulletAngle));
             bulletCopy.MovementNode.Direction = direction;
             bulletCopy.MovementNode.Speed += i * speedIncrease;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy, 1);
         }
     }
 
-    public void SpherePattern(int spawnCount, float angle = 45)
+    public void SpinnyPattern(int spawnCount, float angle = 45)
     {
         _isAttacking = true;
         var startingDirection = Vector2.Down;
@@ -397,7 +433,7 @@ public class EnemyCharacter : KinematicBody2D
 
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(anglePerI * i));
             bulletCopy.MovementNode.Direction = direction;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy);
         }
     }
 
@@ -406,5 +442,14 @@ public class EnemyCharacter : KinematicBody2D
         var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
         Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);
         return bulletCopy;
+    }
+
+    public void AddToProjecileQueue(Bullet projectile, int queue = 0)
+    {
+        if (MAXPROJECTILEQUEUE <= queue || queue <= -1)
+            return;
+
+        _projectileQueue[queue].Enqueue(projectile);
+        //GD.Print("Added");
     }
 }

@@ -16,6 +16,7 @@ public class ScreenManager : Node
     public const string LoseScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup
     public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup
 
+
     // The current loaded screen (not a popup) (may add popups as children)
     public static Node CurrentScreen { get; private set; } = null;
 
