@@ -149,10 +149,10 @@ public class EnemyCharacter : KinematicBody2D
             ElementalCount[element] = 0;
             EmitSignal("UpdateElement", element, 0);
         }
-
-
-        AddToElement(DominantElement, 1);
         SwitchSprite(DominantElement);
+
+
+        //AddToElement(DominantElement, 1);
         //DominantElement = Globals.DominantElement(ElementalCount);
         // TODO for testing remove later
         //var rng = new RandomNumberGenerator();
@@ -330,6 +330,9 @@ public class EnemyCharacter : KinematicBody2D
 
             floatDamage *= damageModifier;
             var damage = Mathf.CeilToInt(floatDamage);
+
+            GameplayScreen.Score += damage;
+
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
             harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
@@ -357,7 +360,7 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
-
+        GameplayScreen.Score += 1000;
         foreach (var item in _projectileQueue)
         {
             item.Clear();
