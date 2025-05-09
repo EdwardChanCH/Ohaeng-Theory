@@ -57,7 +57,7 @@ public class EnemyCharacter : KinematicBody2D
     private float _fireDelay = 0.25f;
     private float _fireTimer;
     private bool _isAttacking = false;
-
+    private int _attackCounter = 0;
 
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
@@ -178,10 +178,9 @@ public class EnemyCharacter : KinematicBody2D
             {
                 _fireTimer = 0;
                 bool areAllQueueEmpty = true;
-
                 foreach (var queue in _projectileQueue)
                 {
-                    
+                    GD.Print("Metal");
                     if(queue.Count >= 1)
                     {
                         areAllQueueEmpty = false;
@@ -212,7 +211,8 @@ public class EnemyCharacter : KinematicBody2D
                                 break;
 
                             case Globals.Element.Metal:
-                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 6, 15);
+                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 1 + _attackCounter, 80);
+                                //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
                                 break;
                         }
 
@@ -220,16 +220,20 @@ public class EnemyCharacter : KinematicBody2D
                     
                 }
 
+                _attackCounter++;
                 if (areAllQueueEmpty)
                 {
                     _isAttacking = false;
                     _attackBetweenTimer = 0;
+                    _attackCounter = 0;
                 }
             }
         }
-
-        // Add projectile to the queue
-        _attackBetweenTimer += delta;
+        else
+        {
+            _attackBetweenTimer += delta;
+        }
+            // Add projectile to the queue
         if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
         {
             _isAttacking = true;
@@ -244,7 +248,7 @@ public class EnemyCharacter : KinematicBody2D
                     break;
                 case Globals.Element.Wood:
                     _fireDelay = 0.1f;
-                    SpherePattern(24, 15, 8);
+                    SpherePattern(24, 15, 8, 100);
                     break;
                 case Globals.Element.Fire:
                     _fireDelay = 0.005f;
@@ -255,8 +259,8 @@ public class EnemyCharacter : KinematicBody2D
                     WallPattern(15, 15f, 50);
                     break;
                 case Globals.Element.Metal:
-                    _fireDelay = 0.05f;
-                    WallPattern(15, 15f, 50);
+                    _fireDelay = 0.1f;
+                    WallPattern(10, -10f, 250);
                     break;
             }
 
@@ -502,37 +506,15 @@ public class EnemyCharacter : KinematicBody2D
         }
     }
 
-    public void WallPattern2(int waves, float speedChangePerWave, float startingSpeed = 100)
+    public void SinglePattern(int waves, float speedChangePerWave, float startingSpeed = 100)
     {
         var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
         for (int i = 0; i < waves; i++)
         {
             var bulletCopy = MakeBulletCopy(DominantElement);
-            //var direction = startingDirection.Rotated(Mathf.Deg2Rad(i)); ;
-
             bulletCopy.MovementNode.Direction = startingDirection;
             bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
             AddToProjecileQueue(bulletCopy);
-        }
-
-        for (int i = 0; i < waves; i++)
-        {
-            var bulletCopy = MakeBulletCopy(DominantElement);
-            var direction = startingDirection.Rotated(Mathf.Deg2Rad(30)); ;
-
-            bulletCopy.MovementNode.Direction = startingDirection;
-            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
-            AddToProjecileQueue(bulletCopy, 1);
-        }
-
-        for (int i = 0; i < waves; i++)
-        {
-            var bulletCopy = MakeBulletCopy(DominantElement);
-            var direction = startingDirection.Rotated(Mathf.Deg2Rad(-30)); ;
-
-            bulletCopy.MovementNode.Direction = startingDirection;
-            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
-            AddToProjecileQueue(bulletCopy, 2);
         }
     }
 
