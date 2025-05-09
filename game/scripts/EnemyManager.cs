@@ -290,7 +290,7 @@ public class EnemyManager : Node2D
         smaller.Kill();
     }
 
-    public int RankOfEnemy(EnemyCharacter enemy)
+    public static int RankOfEnemy(EnemyCharacter enemy)
     {
         int total = enemy.TotalElementalCount();
 

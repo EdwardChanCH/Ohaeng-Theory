@@ -131,7 +131,9 @@ public class PlayerCharacter : KinematicBody2D
     public override void _ExitTree()
     {
         base._ExitTree();
-        GameplayScreen.PlayerRef = null;
+        if(GameplayScreen.PlayerRef == this)
+            GameplayScreen.PlayerRef = null;
+
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {

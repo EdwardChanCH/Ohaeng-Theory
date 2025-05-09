@@ -65,6 +65,9 @@ public class SettingMenuUI : Node
             _MainMenuButton.Visible = false;
         }
     }
+
+
+
     public override void _ExitTree()
     {
         GetTree().Paused = false;

@@ -43,22 +43,28 @@ public class EnemyCharacter : KinematicBody2D
     [Export]
     public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
 
-    // TODO Need a timer component
     [Export]
-    public float AttackBetweenDelay = 0.5f;
+    public Globals.Element DominantElement = Globals.Element.None;
+
+    [Export]
+    public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
+
+
+    [Export]
+    public float AttackBetweenDelay = 2.5f;
     private float _attackBetweenTimer;
 
     private float _fireDelay = 0.25f;
     private float _fireTimer;
     private bool _isAttacking = false;
 
-    public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
-    private Globals.Element _dominantElement = Globals.Element.None;
+
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
+    const int MAXPROJECTILEQUEUE = 4;
+    private Queue<Bullet>[] _projectileQueue = new Queue<Bullet>[MAXPROJECTILEQUEUE];
 
-    private Queue<Bullet> _projectileQueue = new Queue<Bullet>();
 
     [Export]
     public bool UseSmoothedMovemment { get; set; } = true;
@@ -107,7 +113,12 @@ public class EnemyCharacter : KinematicBody2D
             bullet.MovementNode.Speed = 200; // TODO tune speed
         }
 
+        for (int i = 0; i < MAXPROJECTILEQUEUE; i++)
+        {
+            _projectileQueue[i] = new Queue<Bullet>();
+        }
         // - - - Initialize Enemy Bullet Templates - - -
+        _attackBetweenTimer = AttackBetweenDelay;
     }
 
     public override void _ExitTree()
@@ -132,8 +143,6 @@ public class EnemyCharacter : KinematicBody2D
 
         _OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        //FireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
-
         // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
         {
@@ -141,38 +150,77 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", element, 0);
         }
 
-        _dominantElement = Globals.DominantElement(ElementalCount);
 
-
+        AddToElement(DominantElement, 1);
+        SwitchSprite(DominantElement);
+        //DominantElement = Globals.DominantElement(ElementalCount);
         // TODO for testing remove later
-        var rng = new RandomNumberGenerator();
-        rng.Randomize();
-        int loop = rng.RandiRange(1, 3);
-        for (int i = 0; i < loop; i++)
-        {
-            rng.Randomize();
-            int randomElement = rng.RandiRange(1, 5);
-            rng.Randomize();
-            AddToElement((Globals.Element)randomElement, rng.RandiRange(1, 100));
-        }
+        //var rng = new RandomNumberGenerator();
+        //rng.Randomize();
+        //int loop = rng.RandiRange(1, 3);
+        //for (int i = 0; i < loop; i++)
+        //{
+        //    rng.Randomize();
+        //    int randomElement = rng.RandiRange(1, 5);
+        //    rng.Randomize();
+        //    AddToElement((Globals.Element)randomElement, rng.RandiRange(1, 100));
+        //}
     }
 
     public override void _Process(float delta)
     {
-        if(_isAttacking)
+
+        // Shotting projectile from the queue
+        if (_isAttacking)
         {
             _fireTimer += delta;
             if (_fireTimer >= _fireDelay)
             {
                 _fireTimer = 0;
-                var projectile = _projectileQueue.Dequeue();
-                //GD.Print(projectile.MovementNode.Direction);
+                bool areAllQueueEmpty = true;
 
+                foreach (var queue in _projectileQueue)
+                {
+                    
+                    if(queue.Count >= 1)
+                    {
+                        areAllQueueEmpty = false;
+                        var projectile = queue.Dequeue();
+                        //GD.Print(projectile.MovementNode.Direction);
+                        //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
 
-                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                        switch (DominantElement)
+                        {
+                            case Globals.Element.Water:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
 
+                            case Globals.Element.Wood:
 
-                if(_projectileQueue.Count <= 0)
+                                // 45.0f
+                                // 90.0f 
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 15, 180.0f);
+                                break;
+
+                            case Globals.Element.Fire:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+
+                            case Globals.Element.Earth:
+                                //ProjectileManager.EmitBulletRing
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 5, 1.0f);
+                                break;
+
+                            case Globals.Element.Metal:
+                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 6, 15);
+                                break;
+                        }
+
+                    }
+                    
+                }
+
+                if (areAllQueueEmpty)
                 {
                     _isAttacking = false;
                     _attackBetweenTimer = 0;
@@ -180,19 +228,40 @@ public class EnemyCharacter : KinematicBody2D
             }
         }
 
+        // Add projectile to the queue
         _attackBetweenTimer += delta;
         if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
         {
             _isAttacking = true;
 
-            //SpherePattern(90, 3.3f);
-            //_fireDelay = 0.01f;
+            //add a switch statment when got every pattern
 
-            WavePattern(25, 4, 1);
-            _fireDelay = 0.05f;
+            switch (DominantElement)
+            {
+                case Globals.Element.Water:
+                    _fireDelay = 0.05f;
+                    WavePattern(50, 4, 5);
+                    break;
+                case Globals.Element.Wood:
+                    _fireDelay = 0.1f;
+                    SpherePattern(24, 15, 8);
+                    break;
+                case Globals.Element.Fire:
+                    _fireDelay = 0.005f;
+                    SpinnyPattern(180, 4.3f);
+                    break;
+                case Globals.Element.Earth:
+                    _fireDelay = 0.1f;
+                    WallPattern(15, 15f, 50);
+                    break;
+                case Globals.Element.Metal:
+                    _fireDelay = 0.05f;
+                    WallPattern(15, 15f, 50);
+                    break;
+            }
+
+
         }
-
-
     }
 
     public override void _PhysicsProcess(float delta)
@@ -244,13 +313,13 @@ public class EnemyCharacter : KinematicBody2D
             float damageModifier = 1;
 
             // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
-            if (harmful.GetElement() == _dominantElement || Globals.CounterToElement(harmful.GetElement()) == _dominantElement)
+            if (harmful.GetElement() == DominantElement || Globals.CounterToElement(harmful.GetElement()) == DominantElement)
             {
                 damageModifier = 0.5f;
             }
 
             // Do 200% damage if the element of the bullet count the _dominantElement
-            if (harmful.GetElement() == Globals.CounterByElement(_dominantElement))
+            if (harmful.GetElement() == Globals.CounterByElement(DominantElement))
             {
                 damageModifier = 2f;
             }
@@ -284,7 +353,11 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
-        _projectileQueue.Clear();
+
+        foreach (var item in _projectileQueue)
+        {
+            item.Clear();
+        }
     }
 
     public void AddToElement(Globals.Element element, int count)
@@ -296,10 +369,10 @@ public class EnemyCharacter : KinematicBody2D
 
         ElementalCount[element] += count;
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        if (Globals.DominantElement(ElementalCount) != _dominantElement)
+        if (Globals.DominantElement(ElementalCount) != DominantElement)
         {
-            _dominantElement = Globals.DominantElement(ElementalCount);
-            SwitchSprite(_dominantElement);
+            DominantElement = Globals.DominantElement(ElementalCount);
+            SwitchSprite(DominantElement);
         }
     }
 
@@ -316,7 +389,7 @@ public class EnemyCharacter : KinematicBody2D
             ElementalCount[element] = 0;
         }
         EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _dominantElement = Globals.DominantElement(ElementalCount);
+        DominantElement = Globals.DominantElement(ElementalCount);
     }
 
     // TODO Make a public void SetElementalCount(Globals.Element element, int value)
@@ -335,8 +408,8 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
-        _dominantElement = Globals.DominantElement(ElementalCount);
-        SwitchSprite(_dominantElement);
+        DominantElement = Globals.DominantElement(ElementalCount);
+        SwitchSprite(DominantElement);
     }
 
     public int TotalElementalCount()
@@ -358,34 +431,34 @@ public class EnemyCharacter : KinematicBody2D
     }
 
 
-    public void WavePattern(int spawnCount, float angle, float speedIncrease)
+    public void WavePattern(int spawnCount, float angle, float speedIncrease = 0)
     {
         var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
 
         for (int i = 0; i < spawnCount; i++)
         {
-            var bulletCopy = MakeBulletCopy(_dominantElement); ;
+            var bulletCopy = MakeBulletCopy(DominantElement); ;
             var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
 
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(bulletAngle));
             bulletCopy.MovementNode.Direction = direction;
             bulletCopy.MovementNode.Speed += i * speedIncrease;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy);
         }
 
         for (int i = 0; i < spawnCount; i++)
         {
-            var bulletCopy = MakeBulletCopy(_dominantElement); ;
+            var bulletCopy = MakeBulletCopy(DominantElement); ;
             var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
 
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(-bulletAngle));
             bulletCopy.MovementNode.Direction = direction;
             bulletCopy.MovementNode.Speed += i * speedIncrease;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy, 1);
         }
     }
 
-    public void SpherePattern(int spawnCount, float angle = 45)
+    public void SpinnyPattern(int spawnCount, float angle = 45)
     {
         _isAttacking = true;
         var startingDirection = Vector2.Down;
@@ -393,18 +466,90 @@ public class EnemyCharacter : KinematicBody2D
 
         for (int i = 0; i < spawnCount; i++)
         {
-            var bulletCopy = MakeBulletCopy(_dominantElement);
+            var bulletCopy = MakeBulletCopy(DominantElement);
 
             var direction = startingDirection.Rotated(Mathf.Deg2Rad(anglePerI * i));
             bulletCopy.MovementNode.Direction = direction;
-            _projectileQueue.Enqueue(bulletCopy);
+            AddToProjecileQueue(bulletCopy);
         }
     }
+
+    public void SpherePattern(int waves, float speedChangePerWave, float angle = 1, float startingSpeed = 150)
+    {
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i * angle)); ;
+
+            bulletCopy.MovementNode.Direction = direction;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+    public void WallPattern(int waves, float speedChangePerWave, float startingSpeed = 100)
+    {
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            //var direction = startingDirection.Rotated(Mathf.Deg2Rad(i)); ;
+
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+    public void WallPattern2(int waves, float speedChangePerWave, float startingSpeed = 100)
+    {
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            //var direction = startingDirection.Rotated(Mathf.Deg2Rad(i)); ;
+
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(30)); ;
+
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy, 1);
+        }
+
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(-30)); ;
+
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy, 2);
+        }
+    }
+
 
     public Bullet MakeBulletCopy(Globals.Element element)
     {
         var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
         Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);
         return bulletCopy;
+    }
+
+    public void AddToProjecileQueue(Bullet projectile, int queue = 0)
+    {
+        if (MAXPROJECTILEQUEUE <= queue || queue <= -1)
+            return;
+
+        _projectileQueue[queue].Enqueue(projectile);
+        //GD.Print("Added");
     }
 }
