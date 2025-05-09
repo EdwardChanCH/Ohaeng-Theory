@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 // This singleton class contains global constants.
 // Note: Godot autoload requires Node type.
@@ -170,6 +171,58 @@ public class Globals : Node
         }
 
         return dominant;
+    }
+
+    public static string EncodeAllElement(Dictionary<Element, int> elementCounts)
+    {
+        string encoding = "";
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts.ContainsKey(element))
+            {
+                encoding += $",{elementCounts[element]}";
+            }
+        }
+
+        if (encoding.StartsWith(","))
+        {
+            encoding = encoding.Remove(0, 1);
+        }
+
+        return encoding;
+    }
+
+    public static Dictionary<Element, int> DecodeAllElement(string encoding)
+    {
+        Dictionary<Element, int> elementCounts = new Dictionary<Element, int>();
+
+        foreach (Element element in AllElements)
+        {
+            elementCounts[element] = 0;
+        }
+
+        // - - - Start parsing data - - -
+
+        String[] parts = encoding.Split(",");
+
+        if (parts.Length != AllElements.Length)
+        {
+            GD.Print($"Warning: Failed to parse element data '{encoding}'.");
+            return elementCounts;
+        }
+
+        foreach (Element element in AllElements)
+        {
+            int count = 0;
+
+            if (Int32.TryParse(parts[(int)element - 1], out count))
+            {
+                elementCounts[element] += count;
+            }
+        }
+
+        return elementCounts;
     }
 
 }

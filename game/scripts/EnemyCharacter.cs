@@ -134,6 +134,7 @@ public class EnemyCharacter : KinematicBody2D
 
         //FireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
 
+        // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
         {
             ElementalCount[element] = 0;

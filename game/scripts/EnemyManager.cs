@@ -48,16 +48,102 @@ public class EnemyManager : Node2D
         base._Ready();
 
         // TODO test only
-        EnemyCharacter e = SpawnEnemy(this);
-        e.Position = new Vector2(200, 500);
-        e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
-        e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
-        e.TargetLocation = new Vector2(100, 100);
+        EnemyCharacter e1 = SpawnEnemy(this);
+        e1.Position = new Vector2(200, 500);
+        e1.HealthComponent.MaxHealth = RankOfEnemy(e1) * EnemyBaseHealth;
+        e1.HealthComponent.SetHealth(RankOfEnemy(e1) * EnemyBaseHealth);
+        e1.TargetLocation = new Vector2(100, 100);
+
+        EnemyCharacter e2 = SpawnEnemy(this);
+        e2.Position = new Vector2(300, 500);
+        e2.HealthComponent.MaxHealth = RankOfEnemy(e2) * EnemyBaseHealth;
+        e2.HealthComponent.SetHealth(RankOfEnemy(e2) * EnemyBaseHealth);
+        e2.TargetLocation = new Vector2(600, 600);
 
         LesserEnemyCharacter f = SpawnLesserEnemy(this);
         f.Position = new Vector2(300, 600);
         f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
         f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
+
+/*         string s1 = Globals.EncodeAllElement(e1.ElementalCount);
+        var d1 = Globals.DecodeAllElement(s1);
+        GD.Print(s1);
+        foreach (Globals.Element key in d1.Keys)
+        {
+            GD.Print($"{key} = {d1[key]}");
+        } */
+
+        string s2 = EncodeAllAliveEnemy();
+        GD.Print($"Encoded string: {s2}.");
+        var d2 = DecodeAllSpawnEnemy(s2);
+        
+    }
+
+    // Encode all enemy on screen as a string
+    public string EncodeAllAliveEnemy()
+    {
+        string encoding = "";
+
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            encoding += $"/{Globals.EncodeAllElement(enemy.ElementalCount)}";
+        }
+
+        if (encoding.StartsWith("/"))
+        {
+            encoding = encoding.Remove(0, 1);
+        }
+
+        encoding += "/";
+
+        return encoding;
+    }
+
+    // Decode string and spawn all enemy on screen
+    public List<EnemyCharacter> DecodeAllSpawnEnemy(string encoding)
+    {
+        List<EnemyCharacter> enemySpawned = new List<EnemyCharacter>();
+
+        // - - - Start parsing data - - -
+
+        String[] parts = encoding.Split("/");
+
+        if (parts.Length == 0)
+        {
+            GD.Print($"Warning: Failed to parse enemy data '{encoding}'.");
+            return enemySpawned;
+        }
+
+        foreach (string part in parts)
+        {
+            if (part.Length > 0)
+            {
+                EnemyCharacter enemy = SpawnEnemy(this);
+                enemySpawned.Add(enemy);
+                enemy.SetElementalCount(Globals.DecodeAllElement(part));
+                GD.Print($"Spawned enemy = '{part}'.");
+            }
+        }
+
+        // TODO reset enemy positions
+
+        return enemySpawned;
+    }
+
+    // Disable all enemy and lesser enemy movement
+    public void DisableAllEnemy(bool disable)
+    {
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            enemy.SetProcess(!disable);
+            enemy.SetPhysicsProcess(!disable);
+        }
+
+        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
+        {
+            lesser.SetProcess(!disable);
+            lesser.SetPhysicsProcess(!disable);
+        }
     }
 
     public EnemyCharacter SpawnEnemy(Node2D parentNode)
