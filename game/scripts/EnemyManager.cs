@@ -52,6 +52,7 @@ public class EnemyManager : Node2D
         e.Position = new Vector2(200, 500);
         e.HealthComponent.MaxHealth = RankOfEnemy(e) * EnemyBaseHealth;
         e.HealthComponent.SetHealth(RankOfEnemy(e) * EnemyBaseHealth);
+        e.TargetLocation = new Vector2(100, 100);
 
         LesserEnemyCharacter f = SpawnLesserEnemy(this);
         f.Position = new Vector2(300, 600);
