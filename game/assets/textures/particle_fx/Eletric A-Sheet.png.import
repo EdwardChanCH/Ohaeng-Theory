@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Sakuras.png-e7ee3da6fe7dc61567937e4021eca022.stex"
+path="res://.import/Eletric A-Sheet.png-573576b7ec95242e1995f35f0e68167d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Sakuras.png"
-dest_files=[ "res://.import/Sakuras.png-e7ee3da6fe7dc61567937e4021eca022.stex" ]
+source_file="res://assets/textures/particle_fx/Eletric A-Sheet.png"
+dest_files=[ "res://.import/Eletric A-Sheet.png-573576b7ec95242e1995f35f0e68167d.stex" ]
 
 [params]
 

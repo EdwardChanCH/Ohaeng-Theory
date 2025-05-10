@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=1]
-[ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://scripts/ui/GameplayUI.cs" type="Script" id=3]
 
 [sub_resource type="DynamicFont" id=1]
@@ -19,17 +19,19 @@ margin_right = 231.0
 margin_bottom = 98.0
 
 [node name="Score" type="Label" parent="HBoxContainer"]
-margin_right = 117.0
-margin_bottom = 63.0
+margin_top = 3.0
+margin_right = 136.0
+margin_bottom = 60.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "Score: "
 valign = 1
 
 [node name="Score2" type="Label" parent="HBoxContainer"]
-margin_left = 121.0
-margin_right = 175.0
-margin_bottom = 63.0
+margin_left = 140.0
+margin_top = 3.0
+margin_right = 206.0
+margin_bottom = 60.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "???"

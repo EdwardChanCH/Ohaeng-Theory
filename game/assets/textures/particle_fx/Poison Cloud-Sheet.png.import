@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Blood Splat.png-22e3e112c76206717b7a5b7b5672a91f.stex"
+path="res://.import/Poison Cloud-Sheet.png-ddd3248c8fc1c467dfefc4ce412b257f.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Blood Splat.png"
-dest_files=[ "res://.import/Blood Splat.png-22e3e112c76206717b7a5b7b5672a91f.stex" ]
+source_file="res://assets/textures/particle_fx/Poison Cloud-Sheet.png"
+dest_files=[ "res://.import/Poison Cloud-Sheet.png-ddd3248c8fc1c467dfefc4ce412b257f.stex" ]
 
 [params]
 

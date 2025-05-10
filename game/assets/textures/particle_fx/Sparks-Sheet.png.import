@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Smoke2-Sheet.png-da58b8c619c8714d46c3ce3d823dfae5.stex"
+path="res://.import/Sparks-Sheet.png-496299d25094f7344b03307c7b8d0f05.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Smoke2-Sheet.png"
-dest_files=[ "res://.import/Smoke2-Sheet.png-da58b8c619c8714d46c3ce3d823dfae5.stex" ]
+source_file="res://assets/textures/particle_fx/Sparks-Sheet.png"
+dest_files=[ "res://.import/Sparks-Sheet.png-496299d25094f7344b03307c7b8d0f05.stex" ]
 
 [params]
 

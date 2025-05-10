@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Rocket Fire 2-Sheet.png-18ad06d63d38c38b7b1b90c209086684.stex"
+path="res://.import/Leaves-Sheet.png-6f04cc1e3effe1f1157b3ec3c8303676.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Rocket Fire 2-Sheet.png"
-dest_files=[ "res://.import/Rocket Fire 2-Sheet.png-18ad06d63d38c38b7b1b90c209086684.stex" ]
+source_file="res://assets/textures/particle_fx/Leaves-Sheet.png"
+dest_files=[ "res://.import/Leaves-Sheet.png-6f04cc1e3effe1f1157b3ec3c8303676.stex" ]
 
 [params]
 

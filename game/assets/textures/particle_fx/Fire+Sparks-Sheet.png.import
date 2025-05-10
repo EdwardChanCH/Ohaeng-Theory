@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Gravity-Sheet.png-edb1c6775884d1236d0586295a292c1f.stex"
+path="res://.import/Fire+Sparks-Sheet.png-3fb1de14e574a37a746b11ae2648d1c2.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Gravity-Sheet.png"
-dest_files=[ "res://.import/Gravity-Sheet.png-edb1c6775884d1236d0586295a292c1f.stex" ]
+source_file="res://assets/textures/particle_fx/Fire+Sparks-Sheet.png"
+dest_files=[ "res://.import/Fire+Sparks-Sheet.png-3fb1de14e574a37a746b11ae2648d1c2.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Spark1-Sheet.png-1fd92f161eebeabb051e3066f77ba989.stex"
+path="res://.import/Rocket Fire 2-Sheet.png-8fce06af3e012609b6431f99ea62ce55.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Spark1-Sheet.png"
-dest_files=[ "res://.import/Spark1-Sheet.png-1fd92f161eebeabb051e3066f77ba989.stex" ]
+source_file="res://assets/textures/particle_fx/Rocket Fire 2-Sheet.png"
+dest_files=[ "res://.import/Rocket Fire 2-Sheet.png-8fce06af3e012609b6431f99ea62ce55.stex" ]
 
 [params]
 

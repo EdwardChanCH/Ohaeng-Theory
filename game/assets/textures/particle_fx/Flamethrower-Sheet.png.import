@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Poison Cloud-Sheet.png-6b9697d95ecc4e5fdc290fd22c296534.stex"
+path="res://.import/Flamethrower-Sheet.png-7feb0dcffed9d98f116abda317cd7388.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Poison Cloud-Sheet.png"
-dest_files=[ "res://.import/Poison Cloud-Sheet.png-6b9697d95ecc4e5fdc290fd22c296534.stex" ]
+source_file="res://assets/textures/particle_fx/Flamethrower-Sheet.png"
+dest_files=[ "res://.import/Flamethrower-Sheet.png-7feb0dcffed9d98f116abda317cd7388.stex" ]
 
 [params]
 

@@ -1,8 +1,19 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=1]
 [ext_resource path="res://scripts/ui/SettingMenuUI.cs" type="Script" id=2]
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=3]
+[ext_resource path="res://themes/gasalt/Gasalt-Regular.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=5]
+[ext_resource path="res://themes/button_theme.tres" type="Theme" id=6]
+
+[sub_resource type="DynamicFont" id=1]
+size = 34
+font_data = ExtResource( 4 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 72
+font_data = ExtResource( 5 )
 
 [node name="setting_menu_ui" type="CanvasLayer"]
 pause_mode = 2
@@ -13,7 +24,7 @@ ToggleSlowCheckBoxPath = NodePath("VBoxContainer/ToggleSlow")
 MasterSliderPath = NodePath("VBoxContainer/MasterSlider")
 SFXSliderPath = NodePath("VBoxContainer/SFXSlider")
 MusicSliderPath = NodePath("VBoxContainer/BGMSlider")
-MainMenuButtonPath = NodePath("HBoxContainer/MainMenuButton")
+MainMenuButtonPath = NodePath("VBoxContainer2/MainMenuButton")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 modulate = Color( 0.0313726, 0.0313726, 0.0313726, 0.654902 )
@@ -34,92 +45,98 @@ margin_bottom = 195.0
 
 [node name="Label4" type="Label" parent="VBoxContainer"]
 margin_right = 384.0
-margin_bottom = 37.0
+margin_bottom = 35.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "Use Mouse Directed Input"
 
 [node name="MouseDirectedInput" type="CheckBox" parent="VBoxContainer"]
-margin_top = 41.0
+margin_top = 39.0
 margin_right = 384.0
-margin_bottom = 81.0
+margin_bottom = 79.0
 rect_min_size = Vector2( 0, 30 )
 theme = ExtResource( 3 )
 
 [node name="Label5" type="Label" parent="VBoxContainer"]
-margin_top = 85.0
+margin_top = 83.0
 margin_right = 384.0
-margin_bottom = 122.0
+margin_bottom = 118.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "Toggle Attack"
 
 [node name="ToggleAttack" type="CheckBox" parent="VBoxContainer"]
-margin_top = 126.0
+margin_top = 122.0
 margin_right = 384.0
-margin_bottom = 166.0
+margin_bottom = 162.0
 rect_min_size = Vector2( 0, 30 )
 theme = ExtResource( 3 )
 
 [node name="Label6" type="Label" parent="VBoxContainer"]
-margin_top = 170.0
+margin_top = 166.0
 margin_right = 384.0
-margin_bottom = 207.0
+margin_bottom = 201.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "Toggle Slow"
 
 [node name="ToggleSlow" type="CheckBox" parent="VBoxContainer"]
-margin_top = 211.0
+margin_top = 205.0
 margin_right = 384.0
-margin_bottom = 251.0
+margin_bottom = 245.0
 rect_min_size = Vector2( 0, 30 )
 theme = ExtResource( 3 )
 
 [node name="Space" type="Control" parent="VBoxContainer"]
-margin_top = 255.0
+margin_top = 249.0
 margin_right = 384.0
-margin_bottom = 295.0
+margin_bottom = 289.0
 rect_min_size = Vector2( 0, 40 )
 
 [node name="Label" type="Label" parent="VBoxContainer"]
-margin_top = 299.0
+margin_top = 293.0
 margin_right = 384.0
-margin_bottom = 336.0
+margin_bottom = 328.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "Master"
 
 [node name="MasterSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 340.0
+margin_top = 332.0
 margin_right = 384.0
-margin_bottom = 372.0
+margin_bottom = 364.0
 theme = ExtResource( 3 )
 max_value = 1.0
 step = 0.01
 
 [node name="Label2" type="Label" parent="VBoxContainer"]
-margin_top = 376.0
+margin_top = 368.0
 margin_right = 384.0
-margin_bottom = 413.0
+margin_bottom = 403.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "SFX"
 
 [node name="SFXSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 417.0
+margin_top = 407.0
 margin_right = 384.0
-margin_bottom = 449.0
+margin_bottom = 439.0
 theme = ExtResource( 3 )
 max_value = 1.0
 step = 0.01
 
 [node name="Label3" type="Label" parent="VBoxContainer"]
-margin_top = 453.0
+margin_top = 443.0
 margin_right = 384.0
-margin_bottom = 490.0
+margin_bottom = 478.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
 text = "BGM"
 
 [node name="BGMSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 494.0
+margin_top = 482.0
 margin_right = 384.0
-margin_bottom = 526.0
+margin_bottom = 514.0
 theme = ExtResource( 3 )
 max_value = 1.0
 step = 0.01
@@ -132,39 +149,34 @@ margin_top = 158.0
 margin_right = 166.0
 margin_bottom = 284.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 2 )
 text = "Setting"
 align = 1
 valign = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-margin_left = -20.0
-margin_top = -228.0
-margin_right = 20.0
-margin_bottom = -188.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="VBoxContainer2" type="VBoxContainer" parent="."]
+margin_left = 784.0
+margin_top = 800.0
+margin_right = 1185.0
+margin_bottom = 966.0
 
-[node name="BackButton" type="Button" parent="HBoxContainer"]
-margin_right = 120.0
-margin_bottom = 50.0
+[node name="MainMenuButton" type="Button" parent="VBoxContainer2"]
+margin_right = 401.0
+margin_bottom = 81.0
 rect_min_size = Vector2( 120, 50 )
-theme = ExtResource( 3 )
-text = "Back"
-
-[node name="MainMenuButton" type="Button" parent="HBoxContainer"]
-margin_left = 124.0
-margin_right = 244.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 120, 50 )
-theme = ExtResource( 3 )
+theme = ExtResource( 6 )
 text = "Main Menu"
+
+[node name="BackButton" type="Button" parent="VBoxContainer2"]
+margin_top = 85.0
+margin_right = 401.0
+margin_bottom = 166.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 6 )
+text = "Back"
 
 [connection signal="toggled" from="VBoxContainer/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
 [connection signal="toggled" from="VBoxContainer/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
 [connection signal="toggled" from="VBoxContainer/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
-[connection signal="pressed" from="HBoxContainer/BackButton" to="." method="_OnBackButtonPressed"]
-[connection signal="pressed" from="HBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
+[connection signal="pressed" from="VBoxContainer2/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
+[connection signal="pressed" from="VBoxContainer2/BackButton" to="." method="_OnBackButtonPressed"]

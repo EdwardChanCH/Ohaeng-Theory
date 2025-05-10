@@ -22,6 +22,10 @@ public class PlayerCharacter : KinematicBody2D
     private Sprite _playerSprite;
 
     [Export]
+    public NodePath ElementPath { get; private set; } = new NodePath();
+    private ElementCircle _elementCircle;
+
+    [Export]
     public bool UseMouseDirectedInput { get; set; } = true;
 
     [Export]
@@ -94,6 +98,9 @@ public class PlayerCharacter : KinematicBody2D
     private float _firingAudioDelay = 0.1f;
     private float _firingAudioTimer = 1f;
 
+    private float _elementCircleHideDelay = 2.5f;
+    private float _elementCircleTimer = 0;
+
     public override void _EnterTree()
     {
         base._EnterTree();
@@ -153,6 +160,8 @@ public class PlayerCharacter : KinematicBody2D
         PlayerHealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
+        _elementCircle = GetNode<ElementCircle>(ElementPath);
+
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
 
@@ -165,9 +174,9 @@ public class PlayerCharacter : KinematicBody2D
         {
             _minMovementBoundVector = GetViewportRect().Position;
             _maxMovementBoundVector = GetViewportRect().End;
-            //_minMovementBoundVector = Vector2.Zero;
-            //_maxMovementBoundVector = new Vector2(1920, 1080);
         }
+
+        _elementCircle.SetElement(_currentElement);
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
 
@@ -177,6 +186,7 @@ public class PlayerCharacter : KinematicBody2D
         //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav", 0.2f);
         //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav", 0.2f);
     }
+
     public override void _Input(InputEvent @event)
     {
         if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
@@ -192,12 +202,16 @@ public class PlayerCharacter : KinematicBody2D
         if (@event.IsActionPressed("Previous_Element"))
         {
             _currentElement = Globals.PreviousElement(_currentElement);
+            _elementCircle.SetElement(_currentElement);
+            _elementCircleTimer = _elementCircleHideDelay;
             AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
         if (@event.IsActionPressed("Next_Element"))
         {
             _currentElement = Globals.NextElement(_currentElement);
+            _elementCircle.SetElement(_currentElement);
+            _elementCircleTimer = _elementCircleHideDelay;
             AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
@@ -285,6 +299,8 @@ public class PlayerCharacter : KinematicBody2D
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
 
+        _elementCircleTimer -= delta;
+        _elementCircle.SetA(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
 
         //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
         //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
