@@ -98,8 +98,11 @@ public class PlayerCharacter : KinematicBody2D
     private float _firingAudioDelay = 0.1f;
     private float _firingAudioTimer = 1f;
 
-    private float _elementCircleHideDelay = 2.5f;
+    private float _elementCircleHideDelay = 1.0f;
     private float _elementCircleTimer = 0;
+
+    [Export]
+    public Vector2 ShootOffset = Vector2.Zero;
 
     public override void _EnterTree()
     {
@@ -129,7 +132,7 @@ public class PlayerCharacter : KinematicBody2D
             bullet.Damage = 5;
             bullet.Friendly = true;
             bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 1000; // TODO tune speed
+            bullet.MovementNode.Speed = 2000; // TODO tune speed
         }
 
         // - - - Initialize Player Bullet Templates - - -
@@ -161,6 +164,12 @@ public class PlayerCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
         _elementCircle = GetNode<ElementCircle>(ElementPath);
+
+        if (PlayerHealthComponent == null || _healthBar == null || _playerSprite == null || _elementCircle == null)
+        {
+            GD.PrintErr("Error: PlayerCharacter has missing export properties.");
+            return;
+        }
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
@@ -300,7 +309,7 @@ public class PlayerCharacter : KinematicBody2D
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
 
         _elementCircleTimer -= delta;
-        _elementCircle.SetA(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
+        _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
 
         //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
         //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
@@ -308,22 +317,20 @@ public class PlayerCharacter : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
-        // TODO test only
-        //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
         float moveSpeed;
-        if (!_ShouldSlowMovement)
+        if (_ShouldSlowMovement)
         {
-            moveSpeed = DefaultMoveSpeed;
+            moveSpeed = SlowMoveSpeed;
         }
         else
         {
-            moveSpeed = SlowMoveSpeed;
+            moveSpeed = DefaultMoveSpeed;
         }
 
 
 
         // Calculate player velocity
-        if (UseMouseDirectedInput) // TODO use Globals.GameData
+        if (UseMouseDirectedInput)
         {
             // Mouse control
             if (UseSmoothedMovemment)
@@ -406,19 +413,17 @@ public class PlayerCharacter : KinematicBody2D
         switch (_CurrentPattern)
         {
             case 0:
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 4, 10);
                 break;
             case 1:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, 10);
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 6, Mathf.Deg2Rad(45));
                 break;
             case 2:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition, 4, Mathf.Deg2Rad(45));
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 6, Mathf.Deg2Rad(180));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
-            break;
+                break;
         }
         
         if(_firingAudioTimer >= _firingAudioDelay)
