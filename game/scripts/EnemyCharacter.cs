@@ -157,6 +157,8 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", element, 0);
         }
 
+        SwitchSprite(DominantElement);
+
         if (CharacterSpriteTexture.Length != 5)
         {
             GD.PrintErr("Error: EnemyCharacter has missing sprites.");
@@ -327,6 +329,9 @@ public class EnemyCharacter : KinematicBody2D
 
             floatDamage *= damageModifier;
             var damage = Mathf.CeilToInt(floatDamage);
+
+            GameplayScreen.Score += damage;
+
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
             harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
@@ -353,6 +358,13 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
+        GameplayScreen.Score += 1000;
+        
+        // Moved to _ExitTree()
+        //foreach (var item in _projectileQueue)
+        //{
+        //    item.Clear();
+        //}
     }
 
     public void AddToElement(Globals.Element element, int count)

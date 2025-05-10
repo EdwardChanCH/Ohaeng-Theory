@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://themes/setting_theme.tres" type="Theme" id=1]
+[ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://scripts/ui/GameplayUI.cs" type="Script" id=3]
+
+[sub_resource type="DynamicFont" id=1]
+size = 56
+font_data = ExtResource( 2 )
+
+[node name="GameplayUI" type="CanvasLayer"]
+script = ExtResource( 3 )
+ScoreLabelPath = NodePath("HBoxContainer/Score2")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_left = 56.0
+margin_top = 35.0
+margin_right = 231.0
+margin_bottom = 98.0
+
+[node name="Score" type="Label" parent="HBoxContainer"]
+margin_right = 117.0
+margin_bottom = 63.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "Score: "
+valign = 1
+
+[node name="Score2" type="Label" parent="HBoxContainer"]
+margin_left = 121.0
+margin_right = 175.0
+margin_bottom = 63.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "???"
+valign = 1

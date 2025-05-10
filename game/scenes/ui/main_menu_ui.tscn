@@ -61,9 +61,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 margin_left = -143.0
-margin_top = -249.0
+margin_top = -174.0
 margin_right = 143.0
-margin_bottom = -17.0
+margin_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -73,14 +73,29 @@ margin_bottom = 108.0
 theme = ExtResource( 3 )
 custom_fonts/font = SubResource( 2 )
 text = "Play"
+__meta__ = {
+"_edit_lock_": true
+}
 
-[node name="SettingButton" type="Button" parent="VBoxContainer"]
+[node name="Control" type="Control" parent="VBoxContainer"]
 margin_top = 112.0
 margin_right = 286.0
-margin_bottom = 220.0
+margin_bottom = 162.0
+rect_min_size = Vector2( 0, 50 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="SettingButton" type="Button" parent="VBoxContainer"]
+margin_top = 166.0
+margin_right = 286.0
+margin_bottom = 274.0
 theme = ExtResource( 3 )
 custom_fonts/font = SubResource( 2 )
 text = "Setting"
+__meta__ = {
+"_edit_lock_": true
+}
 
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_OnPlayButtonPressed"]
 [connection signal="pressed" from="VBoxContainer/SettingButton" to="." method="_OnSettingButtonPressed"]

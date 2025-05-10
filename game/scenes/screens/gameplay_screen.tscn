@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://assets/textures/icon.png" type="Texture" id=1]
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scenes/ui/gameplay_ui.tscn" type="PackedScene" id=3]
 [ext_resource path="res://scripts/GameplayScreen.cs" type="Script" id=5]
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
@@ -10,6 +11,7 @@ extents = Vector2( 1920, 1080 )
 
 [node name="GameplayScreen" type="Node2D"]
 script = ExtResource( 5 )
+GameplayUIPath = NodePath("GameplayUI")
 
 [node name="DespawnArea" type="Area2D" parent="."]
 collision_layer = 0
@@ -52,6 +54,9 @@ __meta__ = {
 }
 
 [node name="EnemyManager" parent="." instance=ExtResource( 6 )]
+
+[node name="GameplayUI" parent="." instance=ExtResource( 3 )]
+layer = 0
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]

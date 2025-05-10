@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/52_Dive_02.wav-ac071e0c871de5060aa68e6e797192eb.sample"
+
+[deps]
+
+source_file="res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/52_Dive_02.wav"
+dest_files=[ "res://.import/52_Dive_02.wav-ac071e0c871de5060aa68e6e797192eb.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0
