@@ -14,16 +14,18 @@ public class AudioManager : Node
 
     private static AudioStreamPlayer _bgmChannels;
 
-    public override void _EnterTree()
+    public override void _Ready()
     {
-        base._EnterTree();
-
         Singleton = this;
 
+        PauseMode = PauseModeEnum.Process;
         AudioStreamPlayer audioPlayer = new AudioStreamPlayer();
         audioPlayer.Bus = "BGM";
+        audioPlayer.Name = "BGMChannel";
         _bgmChannels = audioPlayer;
-        
+        _bgmChannels.PauseMode = PauseModeEnum.Process;
+        _bgmChannels.Connect("finished", this, "_OnBGMFinish");
+
         AddChild(audioPlayer);
     }
 
@@ -33,8 +35,9 @@ public class AudioManager : Node
         audioPlayer.Stream = GD.Load<AudioStream>(soundPath);
 
         audioPlayer.Bus = "SFX";
+        audioPlayer.PauseMode = PauseModeEnum.Stop;
         _sfxChannels.Add(soundPath, audioPlayer);
-        
+
         Singleton.AddChild(audioPlayer);
     }
 
@@ -60,13 +63,17 @@ public class AudioManager : Node
         PlayBGMInternal(soundPath, volume);
     }
 
-    public static void PlayBGMInternal(string soundPath, float volume = 0.5f)
+    private static void PlayBGMInternal(string soundPath, float volume = 0.5f)
     {
         _bgmChannels.Stream = GD.Load<AudioStream>(soundPath);
         _bgmChannels.VolumeDb = GD.Linear2Db(volume);
         _bgmChannels.Play();
     }
 
+    private static void _OnBGMFinish()
+    {
+        _bgmChannels.Play();
+    }
 
     public static void SetSFXChannelVolume(string soundPath, float volume)
     {
