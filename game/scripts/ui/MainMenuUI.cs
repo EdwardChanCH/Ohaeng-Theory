@@ -6,6 +6,7 @@ public class MainMenuUI : Node
     public override void _Ready()
     {
         AudioManager.PlayBMG("res://assets/sfx/bgm/infinite_perspective_short.wav", 0.25f);
+        ProjectileManager.Clear();
         //Score = 0;
     }
 

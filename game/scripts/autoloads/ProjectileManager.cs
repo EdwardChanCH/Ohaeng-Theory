@@ -13,8 +13,6 @@ public class ProjectileManager : Node
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
 
-    private static List<Node> _inactivePool= new List<Node>(); // TODO
-
     //private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
 
     public static readonly Dictionary<Globals.Element, string> BulletScenePath = new Dictionary<Globals.Element, string>()
@@ -37,19 +35,23 @@ public class ProjectileManager : Node
     public override void _ExitTree()
     {
         base._ExitTree();
+    }
 
-/*         foreach (string key in _objectPools.Keys)
+    // Free all bullets
+    public static void Clear()
+    {
+        foreach (Stack<Node> stack in _objectPools.Values)
         {
-            GD.Print("");
-            GD.Print(key);
-            while (_objectPools[key].Count > 0)
+            foreach (Node node in stack)
             {
-                GD.Print(_objectPools[key].Pop().GetInstanceId());
+                if (node is Bullet bullet)
+                {
+                    bullet.Kill();
+                }
             }
-            GD.Print("--- Stack Bottom ---");
-            GD.Print("");
-        } */
 
+            stack.Clear();
+        }
     }
 
     // Return a non-moving, non-parented projectile as template.
