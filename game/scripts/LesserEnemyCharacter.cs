@@ -72,6 +72,8 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
             bullet.MovementNode.Direction = Vector2.Left;
             bullet.MovementNode.Speed = 500; // TODO tune speed
         }
+
+        _fireTimer = _fireDelay / 2.0f;
     }
 
     public override void _Process(float delta)
@@ -153,6 +155,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         EmitSignal("Killed", this);
         QueueFree();
+        GameplayScreen.Score += 100;
     }
 
     public void SwitchSprite(Globals.Element element)
