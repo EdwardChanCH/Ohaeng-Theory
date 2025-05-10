@@ -37,7 +37,7 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public float DefaultMoveSpeed { get; set; } = 800.0f;
     [Export]
-    public float SlowMoveSpeed { get; set; } = 400.0f;
+    public float SlowMoveSpeed { get; set; } = 100.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
     [Export]
@@ -126,6 +126,12 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         // - - - Initialize Player Bullet Templates - - -
+
+
+
+
+
+
     }
 
     public override void _ExitTree()
@@ -164,6 +170,12 @@ public class PlayerCharacter : KinematicBody2D
         }
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+
+        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav", 0.2f);
+        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav", 0.2f);
+        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav", 0.2f);
+        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav", 0.2f);
+        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav", 0.2f);
     }
     public override void _Input(InputEvent @event)
     {
@@ -180,11 +192,13 @@ public class PlayerCharacter : KinematicBody2D
         if (@event.IsActionPressed("Previous_Element"))
         {
             _currentElement = Globals.PreviousElement(_currentElement);
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
         if (@event.IsActionPressed("Next_Element"))
         {
             _currentElement = Globals.NextElement(_currentElement);
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
         if (@event.IsActionPressed("Open_Setting_Menu"))
@@ -199,6 +213,7 @@ public class PlayerCharacter : KinematicBody2D
             {
                 _CurrentPattern = 0;
             }
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/098_Unpause_04.wav");
         }
     }
 
@@ -333,6 +348,7 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
             PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/61_Hit_03.wav");
             harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
         }
     }
@@ -340,6 +356,7 @@ public class PlayerCharacter : KinematicBody2D
     // Called when health value got change
     public void _OnHealthUpdate(int newHealth)
     {
+        GD.Print("Take damage");
         _healthBar.Value = (float)newHealth / (float)PlayerHealthComponent.MaxHealth;
     }
 
@@ -390,7 +407,35 @@ public class PlayerCharacter : KinematicBody2D
         
         if(_firingAudioTimer >= _firingAudioDelay)
         {
-            AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+
+            switch (_currentElement)
+            {
+                case Element.None:
+                    AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+                    break;
+
+                case Element.Water:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav");
+                    break;
+
+                case Element.Wood:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav");
+                    break;
+
+                case Element.Fire:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav");
+                    break;
+
+                case Element.Earth:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav");
+                    break;
+
+                case Element.Metal:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav");
+                    break;
+            }
+
+
             _firingAudioTimer = 0;
         }
     }
