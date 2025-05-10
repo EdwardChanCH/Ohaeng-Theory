@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=1]
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=2]
 [ext_resource path="res://scripts/ui/EndGameUI.cs" type="Script" id=3]
-[ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://themes/gasalt/Gasalt-Regular.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://themes/button_theme.tres" type="Theme" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 114
@@ -25,89 +26,46 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource( 2 )
 expand = true
-__meta__ = {
-"_edit_lock_": true
-}
 
 [node name="GameoverLabel" type="Label" parent="."]
 anchor_left = 0.5
 anchor_right = 0.5
-margin_left = -166.0
-margin_top = 158.0
-margin_right = 166.0
-margin_bottom = 284.0
-rect_pivot_offset = Vector2( 166, 63 )
+margin_left = -224.0
+margin_top = 144.0
+margin_right = 225.0
+margin_bottom = 270.0
+rect_pivot_offset = Vector2( 224, 63 )
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "Gameover"
 align = 1
 valign = 1
-__meta__ = {
-"_edit_lock_": true
-}
-
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -174.0
-margin_top = 75.0
-margin_right = 174.0
-margin_bottom = 125.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 2
-size_flags_vertical = 2
-alignment = 1
-__meta__ = {
-"_edit_lock_": true
-}
-
-[node name="RestartButton" type="Button" parent="HBoxContainer"]
-margin_right = 120.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 120, 50 )
-theme = ExtResource( 1 )
-text = "Restart"
-
-[node name="Control" type="Control" parent="HBoxContainer"]
-margin_left = 124.0
-margin_right = 224.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 100, 0 )
-
-[node name="MainMenuButton" type="Button" parent="HBoxContainer"]
-margin_left = 228.0
-margin_right = 348.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 120, 50 )
-theme = ExtResource( 1 )
-text = "MainMenu"
 
 [node name="HighScoreContainer" type="HBoxContainer" parent="."]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -142.0
-margin_top = -288.0
-margin_right = 129.0
-margin_bottom = -220.0
+margin_left = -168.0
+margin_top = -284.0
+margin_right = 168.0
+margin_bottom = -216.0
 grow_horizontal = 0
 alignment = 1
 
 [node name="Label" type="Label" parent="HighScoreContainer"]
-margin_right = 210.0
-margin_bottom = 68.0
+margin_top = 3.0
+margin_right = 257.0
+margin_bottom = 65.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "High Score: "
 
 [node name="HighScore" type="Label" parent="HighScoreContainer"]
-margin_left = 214.0
-margin_right = 271.0
-margin_bottom = 68.0
+margin_left = 261.0
+margin_top = 3.0
+margin_right = 336.0
+margin_bottom = 65.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "???"
@@ -117,27 +75,56 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -174.0
-margin_top = -220.0
-margin_right = 160.0
-margin_bottom = -152.0
+margin_left = -208.0
+margin_top = -216.0
+margin_right = 201.0
+margin_bottom = -148.0
 grow_horizontal = 0
 alignment = 1
 
 [node name="Label" type="Label" parent="CurrentScoreContainer"]
-margin_right = 273.0
-margin_bottom = 68.0
+margin_top = 3.0
+margin_right = 330.0
+margin_bottom = 65.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "Current Score: "
 
 [node name="CurrentScore" type="Label" parent="CurrentScoreContainer"]
-margin_left = 277.0
-margin_right = 334.0
-margin_bottom = 68.0
+margin_left = 334.0
+margin_top = 3.0
+margin_right = 409.0
+margin_bottom = 65.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "???"
 
-[connection signal="pressed" from="HBoxContainer/RestartButton" to="." method="_OnRestartButtonPressed"]
-[connection signal="pressed" from="HBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_left = 760.0
+margin_top = 688.0
+margin_right = 1161.0
+margin_bottom = 908.0
+
+[node name="RestartButton" type="Button" parent="VBoxContainer"]
+margin_right = 401.0
+margin_bottom = 81.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 5 )
+text = "Restart"
+
+[node name="Control" type="Control" parent="VBoxContainer"]
+margin_top = 85.0
+margin_right = 401.0
+margin_bottom = 135.0
+rect_min_size = Vector2( 100, 50 )
+
+[node name="MainMenuButton" type="Button" parent="VBoxContainer"]
+margin_top = 139.0
+margin_right = 401.0
+margin_bottom = 220.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 5 )
+text = "Main Menu"
+
+[connection signal="pressed" from="VBoxContainer/RestartButton" to="." method="_OnRestartButtonPressed"]
+[connection signal="pressed" from="VBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]

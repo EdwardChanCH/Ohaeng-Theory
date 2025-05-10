@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Flamethrower-Sheet.png-b50e44b5d5aa5fa7e139cb7f6246bfa9.stex"
+path="res://.import/Water Vortex Splash-Sheet.png-bd3b9d8078d75cdcec70a5d296af355c.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Flamethrower-Sheet.png"
-dest_files=[ "res://.import/Flamethrower-Sheet.png-b50e44b5d5aa5fa7e139cb7f6246bfa9.stex" ]
+source_file="res://assets/textures/particle_fx/Water Vortex Splash-Sheet.png"
+dest_files=[ "res://.import/Water Vortex Splash-Sheet.png-bd3b9d8078d75cdcec70a5d296af355c.stex" ]
 
 [params]
 

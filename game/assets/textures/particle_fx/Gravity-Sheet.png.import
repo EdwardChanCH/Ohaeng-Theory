@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Eletric A-Sheet.png-13ffc88a34be6c91e032584325c860fb.stex"
+path="res://.import/Gravity-Sheet.png-5e0c71538ac8efcf71ed421b4ad6deab.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Eletric A-Sheet.png"
-dest_files=[ "res://.import/Eletric A-Sheet.png-13ffc88a34be6c91e032584325c860fb.stex" ]
+source_file="res://assets/textures/particle_fx/Gravity-Sheet.png"
+dest_files=[ "res://.import/Gravity-Sheet.png-5e0c71538ac8efcf71ed421b4ad6deab.stex" ]
 
 [params]
 

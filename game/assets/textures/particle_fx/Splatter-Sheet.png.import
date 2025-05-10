@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Splatter-Sheet.png-dc57062477304f630563cbffe9cd93d0.stex"
+path="res://.import/Splatter-Sheet.png-f1e674b9a8cea4d85454acbec6d2414c.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Splatter-Sheet.png"
-dest_files=[ "res://.import/Splatter-Sheet.png-dc57062477304f630563cbffe9cd93d0.stex" ]
+source_file="res://assets/textures/particle_fx/Splatter-Sheet.png"
+dest_files=[ "res://.import/Splatter-Sheet.png-f1e674b9a8cea4d85454acbec6d2414c.stex" ]
 
 [params]
 
