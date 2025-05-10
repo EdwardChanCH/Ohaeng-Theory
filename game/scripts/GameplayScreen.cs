@@ -23,11 +23,13 @@ public class GameplayScreen : Node2D
 
 
 
-
+    public override void _EnterTree()
+    {
+        _gameplayUI = GetNode<GameplayUI>(GameplayUIPath);
+    }
 
     public override void _Ready()
     {
-        _gameplayUI = GetNode<GameplayUI>(GameplayUIPath);
         Score = 0;
     }
 
@@ -42,8 +44,14 @@ public class GameplayScreen : Node2D
 
     public void _OnPlayerDeath()
     {
-        ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
         SaveScore();
+        //ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
+        CallDeferred("OpenLoseScreen");
+    }
+
+    public void OpenLoseScreen()
+    {
+        ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
     }
 
     public void SaveScore()
@@ -52,6 +60,7 @@ public class GameplayScreen : Node2D
         if (!Globals.TempData.ContainsKey("HighScore"))
         {
             Globals.TempData.Add("HighScore", Score.ToString());
+            GD.Print("Adding Socre");
         }
         else
         {

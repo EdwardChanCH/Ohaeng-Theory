@@ -73,6 +73,15 @@ public class SettingMenuUI : Node
         GetTree().Paused = false;
     }
 
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            QueueFree();
+        }
+    }
+
     public void _OnBackButtonPressed()
     {
         QueueFree();

@@ -149,6 +149,7 @@ public class EnemyCharacter : KinematicBody2D
             ElementalCount[element] = 0;
             EmitSignal("UpdateElement", element, 0);
         }
+
         SwitchSprite(DominantElement);
 
         if (CharacterSpriteTexture.Length != 5)
