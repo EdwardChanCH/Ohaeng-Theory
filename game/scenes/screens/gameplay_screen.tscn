@@ -7,7 +7,7 @@
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 1920, 1080 )
+extents = Vector2( 1010, 590 )
 
 [node name="GameplayScreen" type="Node2D"]
 script = ExtResource( 5 )
