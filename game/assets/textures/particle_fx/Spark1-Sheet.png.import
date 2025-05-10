@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Eletric Aura.png-0fbfd0d78811b070a8854fbd8ac254f3.stex"
+path="res://.import/Spark1-Sheet.png-395359e5dabea35a2b3963c10a1f2e5e.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Eletric Aura.png"
-dest_files=[ "res://.import/Eletric Aura.png-0fbfd0d78811b070a8854fbd8ac254f3.stex" ]
+source_file="res://assets/textures/particle_fx/Spark1-Sheet.png"
+dest_files=[ "res://.import/Spark1-Sheet.png-395359e5dabea35a2b3963c10a1f2e5e.stex" ]
 
 [params]
 

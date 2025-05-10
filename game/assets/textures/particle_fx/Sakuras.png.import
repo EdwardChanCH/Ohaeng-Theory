@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Water Vortex Splash-Sheet.png-8f7e9f73fa6c2c40a1773cdf87504549.stex"
+path="res://.import/Sakuras.png-f010967049671f30400952b44ee2ae08.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Water Vortex Splash-Sheet.png"
-dest_files=[ "res://.import/Water Vortex Splash-Sheet.png-8f7e9f73fa6c2c40a1773cdf87504549.stex" ]
+source_file="res://assets/textures/particle_fx/Sakuras.png"
+dest_files=[ "res://.import/Sakuras.png-f010967049671f30400952b44ee2ae08.stex" ]
 
 [params]
 

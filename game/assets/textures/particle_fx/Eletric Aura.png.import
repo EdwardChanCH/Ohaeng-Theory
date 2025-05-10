@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Smoke-Sheet.png-9fac9ba8d0e8caf6e935e52d5fa330fb.stex"
+path="res://.import/Eletric Aura.png-0ef90635135d51ea1877f8deaaf9a8f6.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Smoke-Sheet.png"
-dest_files=[ "res://.import/Smoke-Sheet.png-9fac9ba8d0e8caf6e935e52d5fa330fb.stex" ]
+source_file="res://assets/textures/particle_fx/Eletric Aura.png"
+dest_files=[ "res://.import/Eletric Aura.png-0ef90635135d51ea1877f8deaaf9a8f6.stex" ]
 
 [params]
 

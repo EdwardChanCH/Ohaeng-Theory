@@ -347,6 +347,7 @@ public class EnemyManager : Node2D
             mother.TargetLocation = mother.GlobalPosition + Vector2.Up * 100;
             daughter.TargetLocation = mother.GlobalPosition + Vector2.Down * 100;
         }
+        AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/22_Slash_04.wav");
     }
 
     public void MergeEnemy(EnemyCharacter enemyA, EnemyCharacter enemyB)
@@ -382,7 +383,7 @@ public class EnemyManager : Node2D
                 larger.AddToElement(element, smaller.ElementalCount[element]);
             }
         }
-
+        AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/77_flesh_02.wav");
         smaller.Kill();
     }
 

@@ -214,7 +214,7 @@ public class EnemyCharacter : KinematicBody2D
                                 //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
                                 break;
                         }
-
+                        projectile.QueueFree();
                     }
                     
                 }

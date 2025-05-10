@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Regen.png-ce7e78012135cf8395185e819590623e.stex"
+path="res://.import/Blood Splat.png-073ae7ef4029881f8ecd64c82d162bef.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/particle fx/Regen.png"
-dest_files=[ "res://.import/Regen.png-ce7e78012135cf8395185e819590623e.stex" ]
+source_file="res://assets/textures/particle_fx/Blood Splat.png"
+dest_files=[ "res://.import/Blood Splat.png-073ae7ef4029881f8ecd64c82d162bef.stex" ]
 
 [params]
 
