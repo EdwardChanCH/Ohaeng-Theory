@@ -4,16 +4,24 @@ using System;
 public class EndGameUI : Node
 {
     [Export]
-    public NodePath ScoreLabelPath = new NodePath();
-    private Label _scoreLabel;
+    public NodePath HighScoreLabelPath = new NodePath();
+    private Label _highScoreLabel;
+
+    [Export]
+    public NodePath CurrentScoreLabelPath = new NodePath();
+    private Label _CurrentScoreLabel;
 
     public override void _EnterTree()
     {
-        _scoreLabel = GetNode<Label>(ScoreLabelPath);
-        if (!Globals.TempData.ContainsKey("HighScore"))
+        _highScoreLabel = GetNode<Label>(HighScoreLabelPath);
+        _CurrentScoreLabel = GetNode<Label>(CurrentScoreLabelPath);
+
+
+        if (Globals.TempData.ContainsKey("HighScore"))
         {
-            _scoreLabel.Text = Globals.TempData["HighScore"];
+            _highScoreLabel.Text = Globals.TempData["HighScore"];
         }
+        _CurrentScoreLabel.Text = Globals.TempData["CurrentScore"];
     }
 
     public override void _Ready()

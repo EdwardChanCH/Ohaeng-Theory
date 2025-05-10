@@ -16,7 +16,8 @@ font_data = ExtResource( 4 )
 [node name="EndGameUI" type="CanvasLayer"]
 pause_mode = 2
 script = ExtResource( 3 )
-ScoreLabelPath = NodePath("HighScoreContainer/Label2")
+HighScoreLabelPath = NodePath("HighScoreContainer/HighScore")
+CurrentScoreLabelPath = NodePath("CurrentScoreContainer/CurrentScore")
 
 [node name="Background" type="TextureRect" parent="."]
 modulate = Color( 0.129412, 0.129412, 0.129412, 1 )
@@ -103,9 +104,36 @@ theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "High Score: "
 
-[node name="Label2" type="Label" parent="HighScoreContainer"]
+[node name="HighScore" type="Label" parent="HighScoreContainer"]
 margin_left = 214.0
 margin_right = 271.0
+margin_bottom = 68.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 2 )
+text = "???"
+
+[node name="CurrentScoreContainer" type="HBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -174.0
+margin_top = -220.0
+margin_right = 160.0
+margin_bottom = -152.0
+grow_horizontal = 0
+alignment = 1
+
+[node name="Label" type="Label" parent="CurrentScoreContainer"]
+margin_right = 273.0
+margin_bottom = 68.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 2 )
+text = "Current Score: "
+
+[node name="CurrentScore" type="Label" parent="CurrentScoreContainer"]
+margin_left = 277.0
+margin_right = 334.0
 margin_bottom = 68.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )

@@ -26,6 +26,7 @@ public class GameplayScreen : Node2D
     public override void _EnterTree()
     {
         _gameplayUI = GetNode<GameplayUI>(GameplayUIPath);
+        AudioManager.PlayBMG("res://assets/sfx/bgm/unwritten_return_fast.wav", 0.25f);
     }
 
     public override void _Ready()
@@ -56,11 +57,11 @@ public class GameplayScreen : Node2D
 
     public void SaveScore()
     {
+        Globals.TempData["CurrentScore"] = Score.ToString();
 
         if (!Globals.TempData.ContainsKey("HighScore"))
         {
             Globals.TempData.Add("HighScore", Score.ToString());
-            GD.Print("Adding Socre");
         }
         else
         {
