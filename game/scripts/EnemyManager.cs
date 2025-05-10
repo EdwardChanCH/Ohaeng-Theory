@@ -11,6 +11,11 @@ public class EnemyManager : Node2D
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
+    [Export]
+    public int EnemyBaseHealth { get; set; } = 200; // when at rank = 1
+    [Export]
+    public int LesserEnemyBaseHealth { get; set; } = 50; // always at rank = 1
+
     // The zone the enemy/ lesser enemy can spawn in
     [Export]
     public NodePath MinSpawnNodePath { get; set; }
@@ -25,9 +30,6 @@ public class EnemyManager : Node2D
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
 
     public Queue<EnemyCharacter> MergeQueue = new Queue<EnemyCharacter>();
-
-    public const int EnemyBaseHealth = 100; // when at rank = 1
-    public const int LesserEnemyBaseHealth = 100; // always at rank = 1
 
     public override void _EnterTree()
     {
@@ -165,9 +167,6 @@ public class EnemyManager : Node2D
         instance.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         instance.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
 
-        instance.HealthComponent.MaxHealth = EnemyBaseHealth;
-        instance.HealthComponent.SetHealth(EnemyBaseHealth);
-
         EnemyList.Add(instance);
         
         return instance;
@@ -181,9 +180,6 @@ public class EnemyManager : Node2D
 
         instance.Connect("Killed", this, nameof(_OnLesserEnemyKilled));
 
-        instance.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
-        instance.HealthComponent.SetHealth(LesserEnemyBaseHealth);
-
         LesserEnemyList.Add(instance);
         
         return instance;
@@ -191,6 +187,12 @@ public class EnemyManager : Node2D
 
     public void _OnEnemyKilled(EnemyCharacter source)
     {
+        if (source == null)
+        {
+            GD.PrintErr("Error: Enemy killed is null.");
+            return;
+        }
+
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnEnemyKilled));
 
@@ -199,6 +201,12 @@ public class EnemyManager : Node2D
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
     {
+        if (source == null)
+        {
+            GD.PrintErr("Error: Lesser enemy killed is null.");
+            return;
+        }
+
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnLesserEnemyKilled));
 
@@ -223,85 +231,103 @@ public class EnemyManager : Node2D
 
     public void SplitEnemy(EnemyCharacter mother)
     {
-        Dictionary<Globals.Element, int> motherElements = new Dictionary<Globals.Element, int>(); // Temporary copy
-        Dictionary<Globals.Element, int> daughterElements = new Dictionary<Globals.Element, int>();
-        int daughterElementsSum = 0;
+        if (mother == null)
+        {
+            GD.PrintErr("Error: Failed to split null enemy.");
+            return;
+        }
+
+        // Reconnect the signal
+        mother.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
+
+        bool motherAsEnemy; // If mother is still Enemy after split
+        bool daughterAsEnemy; // If daughter is still Enemy after split
         LesserEnemyCharacter lesser;
         EnemyCharacter daughter;
 
-        // Copy the mother elements (because cannot update dictionary values inside foreach loop)
-        foreach (Globals.Element element in mother.ElementalCount.Keys)
-        {
-            motherElements[element] = mother.ElementalCount[element];
-        }
+        // Copy the mother elements
+        // (because dictionary values cannot be modified inside foreach loop)
+        Dictionary<Globals.Element, int> motherElements = Globals.CopyElements(mother.ElementalCount);
+        Dictionary<Globals.Element, int> daughterElements = Globals.CopyElements();
 
         // Calculate mother/ daughter elements
-        foreach (Globals.Element element in mother.ElementalCount.Keys)
+        foreach (Globals.Element element in Globals.AllElements)
         {
-            // Spawn a lesser enemy if odd
-            if (motherElements[element] % 2 == 1)
+            if (!mother.ElementalCount.ContainsKey(element))
             {
-                motherElements[element] -= 1;
-
-                lesser = SpawnLesserEnemy(this);
-                lesser.SetElement(element);
-                // 72deg * n
-                lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)element - 1) / 5.0f);
-                lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
-                lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+                // Assume it is 0
+                continue;
             }
 
-            int half = motherElements[element] / 2; // Integer division, round towards zero
-            
-            daughterElements[element] = half;
-            daughterElementsSum += half;
+            if (motherElements[element] % 2 == 1)
+            {
+                // Odd number, spawn a lesser enemy
+                lesser = SpawnLesserEnemy(this);
+                lesser.SetElement(element);
+                lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
+                lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+                // angle = (360 / 5) * n, radius = 100
+                lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)element - 1) / 5.0f);
 
+                motherElements[element] -= 1;
+            }
+
+            daughterElements[element] = motherElements[element] / 2; // Integer division, round towards zero
             motherElements[element] -= daughterElements[element];
         }
 
-        // Set the new values
+        // Update mother
+        Vector2 newScale = mother.Scale * 0.8f; // Reduce the size
         mother.SetElementalCount(motherElements);
 
-        // Check if mother downgrades to lesser enemy
         if (mother.SumElementalCount() <= 0)
         {
+            // Mother despawn (this should never happen here?)
             mother.Kill();
-            mother = null;
+            motherAsEnemy = false;
         }
         else if (mother.SumElementalCount() == 1)
         {
+            // Mother downgrades to lesser enemy
             lesser = SpawnLesserEnemy(this);
             lesser.SetElement(Globals.DominantElement(daughterElements));
-            lesser.GlobalPosition = mother.GlobalPosition;
             lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
             lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+            lesser.GlobalPosition = mother.GlobalPosition;
 
             mother.Kill();
-            mother = null;
+            motherAsEnemy = false;
         }
         else // > 1
         {
             mother.HealthComponent.MaxHealth = RankOfEnemy(mother) * EnemyBaseHealth;
             mother.HealthComponent.SetHealth(RankOfEnemy(mother) * EnemyBaseHealth);
-            mother.Scale /= 2; // Half the size
+            mother.Scale = newScale; // Reduce the size
+
+            motherAsEnemy = true;
         }
 
         // Spawn daughter
-        if (daughterElementsSum <= 0)
+        if (Globals.SumElements(daughterElements) <= 0)
         {
             // Do nothing
             daughter = null;
+            daughterAsEnemy = false;
         }
-        else if (daughterElementsSum == 1)
+        else if (Globals.SumElements(daughterElements) == 1)
         {
+            // Daughter downgrades to lesser enemy
+            Globals.Element newElement = Globals.DominantElement(daughterElements);
+
             lesser = SpawnLesserEnemy(this);
-            lesser.SetElement(Globals.DominantElement(daughterElements));
-            // 72deg * n + 36deg
-            lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)lesser.GetElement() - 1 + 0.5f) / 5.0f);
+            lesser.SetElement(newElement);
             lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
             lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+            // angle = (360 / 5) * n, radius = 100
+            lesser.GlobalPosition = mother.GlobalPosition + 150 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)newElement - 1) / 5.0f);
 
             daughter = null;
+            daughterAsEnemy = false;
         }
         else // > 1
         {
@@ -309,25 +335,52 @@ public class EnemyManager : Node2D
             daughter.SetElementalCount(daughterElements);
             daughter.HealthComponent.MaxHealth = RankOfEnemy(daughter) * EnemyBaseHealth;
             daughter.HealthComponent.SetHealth(RankOfEnemy(daughter) * EnemyBaseHealth);
-            daughter.Scale /= 2; // Half the size
             daughter.GlobalPosition = mother.GlobalPosition;
+            daughter.Scale = newScale; // Reduce the size
             
-            //daughter.TargetLocation = new Vector2(100, 100);
+            daughterAsEnemy = true;
         }
 
-        // Move the mother and daughter
-        if (mother != null && daughter != null)
+        // Move the mother and daughter apart
+        if (motherAsEnemy && daughterAsEnemy)
         {
-            mother.TargetLocation = mother.GlobalPosition + Vector2.Up * 100; // TODO
-            daughter.TargetLocation = mother.GlobalPosition + Vector2.Down * 100; // TODO
+            mother.TargetLocation = mother.GlobalPosition + Vector2.Up * 100;
+            daughter.TargetLocation = mother.GlobalPosition + Vector2.Down * 100;
         }
     }
 
-    public void MergeEnemy(EnemyCharacter larger, EnemyCharacter smaller)
+    public void MergeEnemy(EnemyCharacter enemyA, EnemyCharacter enemyB)
     {
-        foreach (Globals.Element key in smaller.ElementalCount.Keys)
+        if (enemyA == null || enemyB == null)
         {
-            larger.AddToElement(key, smaller.ElementalCount[key]);
+            GD.PrintErr("Error: Failed to merge null enemy.");
+            return;
+        }
+
+        // Reconnect the signal
+        enemyA.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
+        enemyB.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
+
+        EnemyCharacter larger;
+        EnemyCharacter smaller;
+
+        if (enemyA.SumElementalCount() >= enemyB.SumElementalCount())
+        {
+            larger = enemyA;
+            smaller = enemyB;
+        }
+        else
+        {
+            smaller = enemyA;
+            larger = enemyB;
+        }
+
+        foreach (Globals.Element element in Globals.AllElements)
+        {
+            if (smaller.ElementalCount.ContainsKey(element))
+            {
+                larger.AddToElement(element, smaller.ElementalCount[element]);
+            }
         }
 
         smaller.Kill();

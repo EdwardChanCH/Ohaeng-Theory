@@ -130,6 +130,13 @@ public class EnemyCharacter : KinematicBody2D
         {
             bullet.QueueFree();
         }
+
+        // Free projectile queue
+        foreach (Queue<Bullet> item in _projectileQueue)
+        {
+            item.Clear();
+        }
+        _projectileQueue = null;
     }
 
     public override void _Ready()
@@ -157,22 +164,6 @@ public class EnemyCharacter : KinematicBody2D
             GD.PrintErr("Error: EnemyCharacter has missing sprites.");
             return;
         }
-
-
-        //AddToElement(DominantElement, 1);
-        //SwitchSprite(DominantElement);
-        //DominantElement = Globals.DominantElement(ElementalCount);
-        // TODO for testing remove later
-        //var rng = new RandomNumberGenerator();
-        //rng.Randomize();
-        //int loop = rng.RandiRange(1, 3);
-        //for (int i = 0; i < loop; i++)
-        //{
-        //    rng.Randomize();
-        //    int randomElement = rng.RandiRange(1, 5);
-        //    rng.Randomize();
-        //    AddToElement((Globals.Element)randomElement, rng.RandiRange(1, 100));
-        //}
     }
 
     public override void _Process(float delta)
@@ -368,46 +359,65 @@ public class EnemyCharacter : KinematicBody2D
         EmitSignal("Killed", this);
         QueueFree();
         GameplayScreen.Score += 1000;
-        foreach (var item in _projectileQueue)
-        {
-            item.Clear();
-        }
+        
+        // Moved to _ExitTree()
+        //foreach (var item in _projectileQueue)
+        //{
+        //    item.Clear();
+        //}
     }
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0 || element == Globals.Element.None)
+        if (ElementalCount.ContainsKey(element))
         {
-            return;
+            SetElementCount(element, ElementalCount[element] + count);
         }
-
-        ElementalCount[element] += count;
-        EmitSignal("UpdateElement", element, ElementalCount[element]);
-        if (Globals.DominantElement(ElementalCount) != DominantElement)
+        else // oldCount = 0
         {
-            DominantElement = Globals.DominantElement(ElementalCount);
-            SwitchSprite(DominantElement);
+            SetElementCount(element, count);
         }
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0 || element == Globals.Element.None)
+        if (ElementalCount.ContainsKey(element))
         {
+            SetElementCount(element, ElementalCount[element] - count);
+        }
+        else // oldCount = 0
+        {
+            SetElementCount(element, 0);
+        }
+    }
+
+    public void SetElementCount(Globals.Element element, int newCount)
+    {
+        if (element == Globals.Element.None || element < 0)
+        {
+            GD.PrintErr($"Error: Cannot set {element} element to {newCount} count.");
             return;
         }
 
-        ElementalCount[element] -= count;
-        if (ElementalCount[element] < 0)
+        if (newCount < 0)
         {
-            ElementalCount[element] = 0;
+            newCount = 0;
         }
-        EmitSignal("UpdateElement", element, ElementalCount[element]);
-        DominantElement = Globals.DominantElement(ElementalCount);
-    }
 
-    // TODO Make a public void SetElementalCount(Globals.Element element, int value)
-    // Just like the SetHealth() function newly added in HealthComponent
+        ElementalCount[element] = newCount;
+        EmitSignal("UpdateElement", element, ElementalCount[element]);
+
+        DominantElement = Globals.DominantElement(ElementalCount);
+
+        if (DominantElement == Globals.Element.None)
+        {
+            // No element left
+            Kill();
+            return;
+        }
+
+        SwitchSprite(DominantElement);
+    }
 
     public void SetElementalCount(Dictionary<Globals.Element, int> values)
     {
@@ -428,7 +438,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public int SumElementalCount()
     {
-        return Globals.SumElement(ElementalCount);
+        return Globals.SumElements(ElementalCount);
     }
 
     public void SwitchSprite(Globals.Element element)

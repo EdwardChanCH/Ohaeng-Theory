@@ -173,8 +173,8 @@ public class Globals : Node
         return dominant;
     }
 
-    // Return the sum of all elements
-    public static int SumElement(Dictionary<Element, int> elementCounts)
+    // Return the sum of all element counts
+    public static int SumElements(Dictionary<Element, int> elementCounts)
     {
         int count = 0;
 
@@ -187,6 +187,27 @@ public class Globals : Node
         }
 
         return count;
+    }
+
+    // Return a copy of all element counts
+    // Returns zero-initialized copy if elementCounts = null
+    public static Dictionary<Element, int> CopyElements(Dictionary<Element, int> elementCounts=null)
+    {
+        Dictionary<Element, int> newCopy = new Dictionary<Element, int>();
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts != null && elementCounts.ContainsKey(element))
+            {
+                newCopy[element] = elementCounts[element];
+            }
+            else
+            {
+                newCopy[element] = 0;
+            }
+        }
+
+        return newCopy;
     }
 
     public static string EncodeAllElement(Dictionary<Element, int> elementCounts)
