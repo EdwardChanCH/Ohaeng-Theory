@@ -11,6 +11,13 @@ public class EnemyManager : Node2D
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
+    public bool WaveInProgress = false; // If the wave is still going on
+    public int WaveNumber { get; set; } = 0; // Number of waves successfully completed
+    public float TimeElapsed { get; set; } = 0.0f; // Time spent in the current wave
+    private float _waveCooldownTimer { get; set; } = 0.0f; // Delay at the start and end of each wave
+    public float WaveCooldown { get; set; } = 1.0f; // Delay at the start and end of each wave
+    public string CurrentWaveEncoding { get; set; } = ""; // Current wave enemies in string encoding
+
     [Export]
     public int EnemyBaseHealth { get; set; } = 200; // when at rank = 1
     [Export]
@@ -28,7 +35,6 @@ public class EnemyManager : Node2D
 
     public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
-
     public Queue<EnemyCharacter> MergeQueue = new Queue<EnemyCharacter>();
 
     public override void _EnterTree()
@@ -81,7 +87,7 @@ public class EnemyManager : Node2D
         e1.TargetLocation = new Vector2(100, 100); */
 
         EnemyCharacter e2 = SpawnEnemy(this);
-        e2.SetElementalCount(Globals.DecodeAllElement("15,0,0,0,0"));
+        e2.SetElementalCount(Globals.DecodeAllElement("15,0,0,0,0")); // 
         e2.GlobalPosition = new Vector2(1500, 500);
         e2.HealthComponent.MaxHealth = RankOfEnemy(e2) * EnemyBaseHealth;
         e2.HealthComponent.SetHealth(RankOfEnemy(e2) * EnemyBaseHealth);
@@ -93,6 +99,47 @@ public class EnemyManager : Node2D
         f.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
         f.HealthComponent.SetHealth(LesserEnemyBaseHealth); */
         
+    }
+
+    public override void _PhysicsProcess(float delta)
+    {
+        base._PhysicsProcess(delta);
+
+        if (WaveInProgress)
+        {
+            TimeElapsed += delta;
+        }
+    }
+
+    // Free all enemy and lesser enemy
+    public void Clear()
+    {
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            enemy?.Kill();
+        }
+
+        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
+        {
+            lesser?.Kill();
+        }
+
+        MergeQueue.Clear();
+    }
+
+    public void LoadWave()
+    {
+        GD.Print("Wave loading.");
+    }
+
+    public void StartWave()
+    {
+        GD.Print("Wave started.");
+    }
+
+    public void StopWave()
+    {
+        GD.Print("Wave ended.");
     }
 
     // Encode all enemy on screen as a string
@@ -114,7 +161,7 @@ public class EnemyManager : Node2D
     }
 
     // Decode string and spawn all enemy on screen
-    public List<EnemyCharacter> DecodeAllSpawnEnemy(string encoding)
+    public List<EnemyCharacter> DecodeAllSpawnEnemy(string encoding, Node parentNode)
     {
         List<EnemyCharacter> enemySpawned = new List<EnemyCharacter>();
 
@@ -136,6 +183,15 @@ public class EnemyManager : Node2D
                 enemySpawned.Add(enemy);
                 enemy.SetElementalCount(Globals.DecodeAllElement(part));
             }
+        }
+
+        // - - - Initialize each enemy - - -
+        foreach (EnemyCharacter enemy in enemySpawned)
+        {
+            enemy.HealthComponent.MaxHealth = RankOfEnemy(enemy) * EnemyBaseHealth;
+            enemy.HealthComponent.SetHealth(RankOfEnemy(enemy) * EnemyBaseHealth);
+            //enemy.GlobalPosition = enemy.GlobalPosition; // TODO
+            //enemy.Scale = ; // Reduce the size // TODO
         }
 
         return enemySpawned;
