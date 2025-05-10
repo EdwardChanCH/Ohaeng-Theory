@@ -12,10 +12,10 @@ public class ElementCircle : Node2D
         //Modulate
     }
 
-    public void SetA(float a)
+    public void SetAlpha(float alpha)
     {
         var color = new Color(Modulate);
-        color.a = a;
+        color.a = alpha;
         Modulate = color;
     }
 }
