@@ -16,9 +16,9 @@ public class HealthComponent : Node
     public delegate void HealthDepleted();
 
     [Export]
-    public int MaxHealth { get; set; } = 10;
+    public int MaxHealth { get; set; } = 100;
 
-    public int CurrentHealth { get; private set; }
+    public int CurrentHealth { get; private set; } = 100;
 
     public override void _Ready()
     {
@@ -56,12 +56,12 @@ public class HealthComponent : Node
     {
         if (newHealth <= 0)
         {
-            EmitSignal("HealthUpdate", newHealth);
+            //EmitSignal("HealthUpdate", newHealth); // This should not be here
             EmitSignal("HealthDepleted");
         }
         else if (newHealth > MaxHealth)
         {
-            GD.Print("Warning: New health cannot exceed max health.");
+            GD.PrintErr($"Error: New health {newHealth} cannot exceed max health {MaxHealth}.");
             CurrentHealth = MaxHealth;
             EmitSignal("HealthUpdate", CurrentHealth);
         }

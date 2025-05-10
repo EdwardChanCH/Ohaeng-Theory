@@ -157,11 +157,13 @@ public class PlayerCharacter : KinematicBody2D
         }
         else
         {
-            _minMovementBoundVector = Vector2.Zero;
-            _maxMovementBoundVector = new Vector2(1920, 1080);
+            _minMovementBoundVector = GetViewportRect().Position;
+            _maxMovementBoundVector = GetViewportRect().End;
+            //_minMovementBoundVector = Vector2.Zero;
+            //_maxMovementBoundVector = new Vector2(1920, 1080);
         }
 
-            AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
     public override void _Input(InputEvent @event)
     {

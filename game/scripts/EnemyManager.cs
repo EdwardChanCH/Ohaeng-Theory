@@ -11,11 +11,23 @@ public class EnemyManager : Node2D
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
+    // The zone the enemy/ lesser enemy can spawn in
+    [Export]
+    public NodePath MinSpawnNodePath { get; set; }
+    [Export]
+    public NodePath MaxSpawnNodePath { get; set; }
+    private Node2D _minSpawnNode = null;
+    private Node2D _maxSpawnNode = null;
+    private Vector2 _minSpawnArea = Vector2.Zero;
+    private Vector2 _maxSpawnArea = Vector2.Zero;
+
     public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
 
+    public Queue<EnemyCharacter> MergeQueue = new Queue<EnemyCharacter>();
+
     public const int EnemyBaseHealth = 100; // when at rank = 1
-    public const int LesserEnemyBaseHealth = 50; // always at rank = 1
+    public const int LesserEnemyBaseHealth = 100; // always at rank = 1
 
     public override void _EnterTree()
     {
@@ -47,35 +59,37 @@ public class EnemyManager : Node2D
     {
         base._Ready();
 
+        _minSpawnNode = GetNode<Node2D>(MinSpawnNodePath);
+        _maxSpawnNode = GetNode<Node2D>(MaxSpawnNodePath);
+
+        if (_minSpawnNode == null || _maxSpawnNode == null)
+        {
+            GD.PrintErr("Error: EnemyManager has missing export properties.");
+            return;
+        }
+
+        _minSpawnArea = _minSpawnNode.GlobalPosition;
+        _maxSpawnArea = _maxSpawnNode.GlobalPosition;
+
         // TODO test only
-        EnemyCharacter e1 = SpawnEnemy(this);
-        e1.Position = new Vector2(200, 500);
+/*         EnemyCharacter e1 = SpawnEnemy(this);
+        e1.GlobalPosition = new Vector2(200, 500);
         e1.HealthComponent.MaxHealth = RankOfEnemy(e1) * EnemyBaseHealth;
         e1.HealthComponent.SetHealth(RankOfEnemy(e1) * EnemyBaseHealth);
-        e1.TargetLocation = new Vector2(100, 100);
+        e1.TargetLocation = new Vector2(100, 100); */
 
         EnemyCharacter e2 = SpawnEnemy(this);
-        e2.Position = new Vector2(300, 500);
+        e2.SetElementalCount(Globals.DecodeAllElement("15,0,0,0,0"));
+        e2.GlobalPosition = new Vector2(1500, 500);
         e2.HealthComponent.MaxHealth = RankOfEnemy(e2) * EnemyBaseHealth;
         e2.HealthComponent.SetHealth(RankOfEnemy(e2) * EnemyBaseHealth);
-        e2.TargetLocation = new Vector2(600, 600);
+        e2.TargetLocation = new Vector2(1600, 600);
 
-        LesserEnemyCharacter f = SpawnLesserEnemy(this);
-        f.Position = new Vector2(300, 600);
-        f.HealthComponent.MaxHealth = RankOfLesserEnemy(f) * LesserEnemyBaseHealth;
-        f.HealthComponent.SetHealth(RankOfLesserEnemy(f) * LesserEnemyBaseHealth);
-
-/*         string s1 = Globals.EncodeAllElement(e1.ElementalCount);
-        var d1 = Globals.DecodeAllElement(s1);
-        GD.Print(s1);
-        foreach (Globals.Element key in d1.Keys)
-        {
-            GD.Print($"{key} = {d1[key]}");
-        } */
-
-        string s2 = EncodeAllAliveEnemy();
-        GD.Print($"Encoded string: {s2}.");
-        var d2 = DecodeAllSpawnEnemy(s2);
+        /* LesserEnemyCharacter f = SpawnLesserEnemy(this);
+        f.SetElement(Globals.Element.Water);
+        f.GlobalPosition = new Vector2(1600, 600);
+        f.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
+        f.HealthComponent.SetHealth(LesserEnemyBaseHealth); */
         
     }
 
@@ -93,8 +107,6 @@ public class EnemyManager : Node2D
         {
             encoding = encoding.Remove(0, 1);
         }
-
-        encoding += "/";
 
         return encoding;
     }
@@ -121,11 +133,8 @@ public class EnemyManager : Node2D
                 EnemyCharacter enemy = SpawnEnemy(this);
                 enemySpawned.Add(enemy);
                 enemy.SetElementalCount(Globals.DecodeAllElement(part));
-                GD.Print($"Spawned enemy = '{part}'.");
             }
         }
-
-        // TODO reset enemy positions
 
         return enemySpawned;
     }
@@ -156,7 +165,8 @@ public class EnemyManager : Node2D
         instance.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         instance.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
 
-        instance.HealthComponent.SetHealth(EnemyBaseHealth * RankOfEnemy(instance));
+        instance.HealthComponent.MaxHealth = EnemyBaseHealth;
+        instance.HealthComponent.SetHealth(EnemyBaseHealth);
 
         EnemyList.Add(instance);
         
@@ -171,6 +181,7 @@ public class EnemyManager : Node2D
 
         instance.Connect("Killed", this, nameof(_OnLesserEnemyKilled));
 
+        instance.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
         instance.HealthComponent.SetHealth(LesserEnemyBaseHealth);
 
         LesserEnemyList.Add(instance);
@@ -180,108 +191,140 @@ public class EnemyManager : Node2D
 
     public void _OnEnemyKilled(EnemyCharacter source)
     {
-        //GD.Print($"Enemy {source.GetInstanceId()} Killed."); // TODO
-
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnEnemyKilled));
+
         EnemyList.Remove(source);
     }
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
     {
-        //GD.Print($"Lesser Enemy {source.GetInstanceId()} Killed."); // TODO
-
         // Prevent multiple calls from Area2D bug
         source.Disconnect("Killed", this, nameof(_OnLesserEnemyKilled));
+
         LesserEnemyList.Remove(source);
     }
 
     public void _OnEnemySplitNeeded(EnemyCharacter source)
     {
-        //GD.Print($"Enemy {source.GetInstanceId()} Split Needed."); // TODO
-
         // Prevent multiple calls from Area2D bug
         source.Disconnect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
 
-        // TODO unfinished
-        //SplitEnemy(source, Globals.Element.None);
-        CallDeferred("SplitEnemy", source, Globals.Element.None);
+        CallDeferred("SplitEnemy", source);
     }
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
     {
-        //GD.Print($"Enemy {source.GetInstanceId()} Merge Needed."); // TODO
-
         // Prevent multiple calls from Area2D bug
         source.Disconnect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
 
-        // TODO unfinished
+        MergeQueue.Enqueue(source);
     }
 
-    public void SplitEnemy(EnemyCharacter mother, Globals.Element bulletElement)
+    public void SplitEnemy(EnemyCharacter mother)
     {
-        // TODO requires new movement code
+        Dictionary<Globals.Element, int> motherElements = new Dictionary<Globals.Element, int>(); // Temporary copy
+        Dictionary<Globals.Element, int> daughterElements = new Dictionary<Globals.Element, int>();
+        int daughterElementsSum = 0;
+        LesserEnemyCharacter lesser;
+        EnemyCharacter daughter;
 
-        // TODO test code
-        RandomNumberGenerator rng = new RandomNumberGenerator();
-        int offset;
-        LesserEnemyCharacter lesser = null;
-
-        rng.Randomize();
-        offset = rng.RandiRange(-50, 50);
-
-        // If countered, spawn an additional lesser enemy
-        if (bulletElement != Globals.Element.None)
+        // Copy the mother elements (because cannot update dictionary values inside foreach loop)
+        foreach (Globals.Element element in mother.ElementalCount.Keys)
         {
-            mother.SubtractFromElement(Globals.CounterByElement(bulletElement), 1);
-            lesser = SpawnLesserEnemy(this);
-            lesser.SetElement(bulletElement);
-            lesser.Position = new Vector2(200 + offset, 500 + offset);
+            motherElements[element] = mother.ElementalCount[element];
         }
 
-        Dictionary<Globals.Element, int> halved = new Dictionary<Globals.Element, int>();
-
-        // TODO has error
-        foreach (Globals.Element key in mother.ElementalCount.Keys)
+        // Calculate mother/ daughter elements
+        foreach (Globals.Element element in mother.ElementalCount.Keys)
         {
-            halved[key] = mother.ElementalCount[key] / 2; // Integer division
-            //mother.SubtractFromElement(key, halved[key]); // TODO error
-            
-            if (mother.ElementalCount[key] % 2 == 1)
+            // Spawn a lesser enemy if odd
+            if (motherElements[element] % 2 == 1)
             {
-                // Odd, spawn an extra lesser enemy
+                motherElements[element] -= 1;
 
-                //mother.SubtractFromElement(key, 1); // TODO error
                 lesser = SpawnLesserEnemy(this);
-                lesser.SetElement(key);
-
-                // TODO test code
-                rng.Randomize();
-                offset = rng.RandiRange(-50, 50);
-
-                lesser.Position = new Vector2(200 + offset, 500 + offset);
+                lesser.SetElement(element);
+                // 72deg * n
+                lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)element - 1) / 5.0f);
+                lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
+                lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
             }
+
+            int half = motherElements[element] / 2; // Integer division, round towards zero
+            
+            daughterElements[element] = half;
+            daughterElementsSum += half;
+
+            motherElements[element] -= daughterElements[element];
         }
 
-        rng.Randomize();
-        offset = rng.RandiRange(-100, 100);
+        // Set the new values
+        mother.SetElementalCount(motherElements);
 
-        EnemyCharacter daughter = SpawnEnemy(this);
-        daughter.SetElementalCount(halved);
-        daughter.Position = new Vector2(mother.Position.x, mother.Position.y + offset);
-        daughter.HealthComponent.MaxHealth = mother.HealthComponent.MaxHealth / 2;
-        daughter.HealthComponent.SetHealth(mother.HealthComponent.MaxHealth / 2);
-        GD.Print($"{daughter.Position}");
-        if (RankOfEnemy(daughter) <= 1)
+        // Check if mother downgrades to lesser enemy
+        if (mother.SumElementalCount() <= 0)
         {
-            daughter.Kill(); // TODO temp fix
+            mother.Kill();
+            mother = null;
+        }
+        else if (mother.SumElementalCount() == 1)
+        {
+            lesser = SpawnLesserEnemy(this);
+            lesser.SetElement(Globals.DominantElement(daughterElements));
+            lesser.GlobalPosition = mother.GlobalPosition;
+            lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
+            lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+
+            mother.Kill();
+            mother = null;
+        }
+        else // > 1
+        {
+            mother.HealthComponent.MaxHealth = RankOfEnemy(mother) * EnemyBaseHealth;
+            mother.HealthComponent.SetHealth(RankOfEnemy(mother) * EnemyBaseHealth);
+            mother.Scale /= 2; // Half the size
+        }
+
+        // Spawn daughter
+        if (daughterElementsSum <= 0)
+        {
+            // Do nothing
+            daughter = null;
+        }
+        else if (daughterElementsSum == 1)
+        {
+            lesser = SpawnLesserEnemy(this);
+            lesser.SetElement(Globals.DominantElement(daughterElements));
+            // 72deg * n + 36deg
+            lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)lesser.GetElement() - 1 + 0.5f) / 5.0f);
+            lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
+            lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
+
+            daughter = null;
+        }
+        else // > 1
+        {
+            daughter = SpawnEnemy(this);
+            daughter.SetElementalCount(daughterElements);
+            daughter.HealthComponent.MaxHealth = RankOfEnemy(daughter) * EnemyBaseHealth;
+            daughter.HealthComponent.SetHealth(RankOfEnemy(daughter) * EnemyBaseHealth);
+            daughter.Scale /= 2; // Half the size
+            daughter.GlobalPosition = mother.GlobalPosition;
+            
+            //daughter.TargetLocation = new Vector2(100, 100);
+        }
+
+        // Move the mother and daughter
+        if (mother != null && daughter != null)
+        {
+            mother.TargetLocation = mother.GlobalPosition + Vector2.Up * 100; // TODO
+            daughter.TargetLocation = mother.GlobalPosition + Vector2.Down * 100; // TODO
         }
     }
 
     public void MergeEnemy(EnemyCharacter larger, EnemyCharacter smaller)
     {
-        // TODO requires new movement code
-
         foreach (Globals.Element key in smaller.ElementalCount.Keys)
         {
             larger.AddToElement(key, smaller.ElementalCount[key]);
@@ -292,11 +335,11 @@ public class EnemyManager : Node2D
 
     public static int RankOfEnemy(EnemyCharacter enemy)
     {
-        int total = enemy.TotalElementalCount();
+        int total = enemy.SumElementalCount();
 
         if (total < 1)
         {
-            GD.Print("Warning: EnemyCharacter has 0 elements and rank.");
+            GD.Print($"Warning: EnemyCharacter has {total} elements, rank = 0.");
             return 0; // Because log2(0) == -inf
         }
 
@@ -304,16 +347,10 @@ public class EnemyManager : Node2D
         return rank;
     }
 
-    public int RankOfLesserEnemy(LesserEnemyCharacter lesser)
-    {
-        return 1; // TODO Hard coded for now; may switch to public constant
-    }
-
     public void RepositionEnemies()
     {
         throw new NotImplementedException();
         // TODO missing code to reposition all the enemies at even spacing
     }
-
 
 }

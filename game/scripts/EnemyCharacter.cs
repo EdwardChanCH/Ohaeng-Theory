@@ -41,10 +41,10 @@ public class EnemyCharacter : KinematicBody2D
     private DamagePopup _damagePopup;
 
     [Export]
-    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+    public Texture[] CharacterSpriteTexture { get; set; } = new Texture[0];
 
     [Export]
-    public Globals.Element DominantElement = Globals.Element.None;
+    public Globals.Element DominantElement = Globals.Element.Water; // None would have out-of-bound error in switch sprite
 
     [Export]
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
@@ -141,7 +141,7 @@ public class EnemyCharacter : KinematicBody2D
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
 
 
-        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        //_OnHealthUpdate(HealthComponent.CurrentHealth);
 
         // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
@@ -150,9 +150,15 @@ public class EnemyCharacter : KinematicBody2D
             EmitSignal("UpdateElement", element, 0);
         }
 
+        if (CharacterSpriteTexture.Length != 5)
+        {
+            GD.PrintErr("Error: EnemyCharacter has missing sprites.");
+            return;
+        }
 
-        AddToElement(DominantElement, 1);
-        SwitchSprite(DominantElement);
+
+        //AddToElement(DominantElement, 1);
+        //SwitchSprite(DominantElement);
         //DominantElement = Globals.DominantElement(ElementalCount);
         // TODO for testing remove later
         //var rng = new RandomNumberGenerator();
@@ -180,7 +186,7 @@ public class EnemyCharacter : KinematicBody2D
                 bool areAllQueueEmpty = true;
                 foreach (var queue in _projectileQueue)
                 {
-                    GD.Print("Metal");
+                    //GD.Print("Metal");
                     if(queue.Count >= 1)
                     {
                         areAllQueueEmpty = false;
@@ -341,8 +347,7 @@ public class EnemyCharacter : KinematicBody2D
         _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
         _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
 
-        // TODO test code
-        if (newHealth < HealthComponent.MaxHealth)
+        if (newHealth < HealthComponent.MaxHealth / 2)
         {
             EmitSignal("SplitNeeded", this);
         }
@@ -416,22 +421,20 @@ public class EnemyCharacter : KinematicBody2D
         SwitchSprite(DominantElement);
     }
 
-    public int TotalElementalCount()
+    public int SumElementalCount()
     {
-        int total = 0;
-
-        foreach (int count in ElementalCount.Values)
-        {
-            total += count;
-        }
-
-        return total;
+        return Globals.SumElement(ElementalCount);
     }
 
     public void SwitchSprite(Globals.Element element)
     {
-        if (CharacterSpriteTexture.Length >= 5)
-            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
+        if (element == Globals.Element.None)
+        {
+            GD.PrintErr($"Error: EnemyCharacter does not have texture for {element} element.");
+            return;
+        }
+
+        CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
 
