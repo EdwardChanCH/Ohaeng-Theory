@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/mc_sprite_art.png-aa5d76c7bd17f17d6c799607629250ad.stex"
+path="res://.import/enemy_head.png-f9f1942c2e430e6d2978b8715f728f0f.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/players/mc_sprite_art.png"
-dest_files=[ "res://.import/mc_sprite_art.png-aa5d76c7bd17f17d6c799607629250ad.stex" ]
+source_file="res://assets/textures/enemies/enemy_head.png"
+dest_files=[ "res://.import/enemy_head.png-f9f1942c2e430e6d2978b8715f728f0f.stex" ]
 
 [params]
 
