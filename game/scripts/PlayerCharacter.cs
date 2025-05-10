@@ -37,7 +37,7 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public float DefaultMoveSpeed { get; set; } = 800.0f;
     [Export]
-    public float SlowMoveSpeed { get; set; } = 100.0f;
+    public float SlowMoveSpeed { get; set; } = 200.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
     [Export]
