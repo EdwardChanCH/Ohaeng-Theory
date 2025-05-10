@@ -173,6 +173,22 @@ public class Globals : Node
         return dominant;
     }
 
+    // Return the sum of all elements
+    public static int SumElement(Dictionary<Element, int> elementCounts)
+    {
+        int count = 0;
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts.ContainsKey(element))
+            {
+                count += elementCounts[element];
+            }
+        }
+
+        return count;
+    }
+
     public static string EncodeAllElement(Dictionary<Element, int> elementCounts)
     {
         string encoding = "";
