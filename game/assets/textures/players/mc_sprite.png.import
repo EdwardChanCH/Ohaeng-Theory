@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Game_Jam_MC.png-61fe33d93dcd4b285a70dcb75c6bc560.stex"
+path="res://.import/mc_sprite.png-4830ad230fda93a284e3ddc21dd53583.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/players/Game_Jam_MC.png"
-dest_files=[ "res://.import/Game_Jam_MC.png-61fe33d93dcd4b285a70dcb75c6bc560.stex" ]
+source_file="res://assets/textures/players/mc_sprite.png"
+dest_files=[ "res://.import/mc_sprite.png-4830ad230fda93a284e3ddc21dd53583.stex" ]
 
 [params]
 

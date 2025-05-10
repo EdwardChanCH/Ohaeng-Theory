@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/mc_sprite_art.png-aa5d76c7bd17f17d6c799607629250ad.stex"
+path="res://.import/Potions_02.png-e4b02c2022af489ea97f9d18cc65a5f6.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/players/mc_sprite_art.png"
-dest_files=[ "res://.import/mc_sprite_art.png-aa5d76c7bd17f17d6c799607629250ad.stex" ]
+source_file="res://assets/textures/Potions_02.png"
+dest_files=[ "res://.import/Potions_02.png-e4b02c2022af489ea97f9d18cc65a5f6.stex" ]
 
 [params]
 
