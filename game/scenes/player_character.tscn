@@ -39,6 +39,7 @@ percent_visible = false
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 4 )
+MaxHealth = 10
 
 [node name="Sprite" type="Sprite" parent="."]
 texture = ExtResource( 1 )
