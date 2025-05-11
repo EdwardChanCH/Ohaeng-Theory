@@ -8,6 +8,9 @@ public class PlayerCharacter : KinematicBody2D
     [Signal]
     public delegate void PlayerDeath();
 
+    [Signal]
+    public delegate void HealthUpdate(int newHealth);
+
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
     public HealthComponent PlayerHealthComponent;
@@ -27,6 +30,10 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public NodePath ElementPath { get; private set; } = new NodePath();
     private ElementCircle _elementCircle;
+
+    [Export]
+    public NodePath HealthTextPath { get; private set; } = new NodePath();
+    private Label _healthText;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; } = true;
@@ -376,8 +383,9 @@ public class PlayerCharacter : KinematicBody2D
     // Called when health value got change
     public void _OnHealthUpdate(int newHealth)
     {
-        //GD.Print("Take damage");
         _healthBar.Value = (float)newHealth / (float)PlayerHealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + PlayerHealthComponent.MaxHealth;
+        EmitSignal("HealthUpdate", newHealth);
     }
 
     // Called when health is deplated

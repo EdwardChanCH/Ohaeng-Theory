@@ -27,7 +27,7 @@ MusicSliderPath = NodePath("VBoxContainer/BGMSlider")
 MainMenuButtonPath = NodePath("VBoxContainer2/MainMenuButton")
 
 [node name="TextureRect" type="TextureRect" parent="."]
-modulate = Color( 0.0313726, 0.0313726, 0.0313726, 0.654902 )
+modulate = Color( 0.137255, 0.137255, 0.137255, 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource( 1 )

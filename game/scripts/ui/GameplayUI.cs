@@ -5,15 +5,33 @@ public class GameplayUI : Node
 {
     [Export]
     public NodePath ScoreLabelPath = new NodePath();
-    private static Label _scoreLabel;
+    private Label _scoreLabel;
 
     [Export]
     public NodePath WaveLabelPath = new NodePath();
-    private static Label _waveLabel;
+    private Label _waveLabel;
 
     [Export]
     public NodePath HighestWaveLabelPath = new NodePath();
-    private static Label _highestWaveLabel;
+    private Label _highestWaveLabel;
+
+    [Export]
+    public NodePath PlayerHealthBarPath = new NodePath();
+    private ProgressBar _playerHealthBar;
+
+    [Export]
+    public NodePath EnemyProgressBarPath = new NodePath();
+    private ProgressBar _enemyProgressBar;
+
+
+    public override void _EnterTree()
+    {
+        _scoreLabel = GetNode<Label>(ScoreLabelPath);
+        _waveLabel = GetNode<Label>(WaveLabelPath);
+        _highestWaveLabel = GetNode<Label>(HighestWaveLabelPath);
+        _playerHealthBar = GetNode<ProgressBar>(PlayerHealthBarPath);
+        _enemyProgressBar = GetNode<ProgressBar>(EnemyProgressBarPath);
+    }
 
     public override void _Ready()
     {
@@ -22,18 +40,6 @@ public class GameplayUI : Node
         Globals.Singleton.Connect("ScoreChanged", this, nameof(UpdateScoreLabel));
     }
 
-    public override void _EnterTree()
-    {
-        _scoreLabel = GetNode<Label>(ScoreLabelPath);
-        _waveLabel = GetNode<Label>(WaveLabelPath);
-        _highestWaveLabel = GetNode<Label>(HighestWaveLabelPath);
-
-        if (_scoreLabel == null || _waveLabel == null || _highestWaveLabel == null)
-        {
-            GD.PrintErr("Error: GameplayUI is missing export variables.");
-            return;
-        }
-    }
 
     public void UpdateScoreLabel()
     {
