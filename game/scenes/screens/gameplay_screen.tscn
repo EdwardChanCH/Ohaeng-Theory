@@ -1,19 +1,37 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://assets/textures/icon.png" type="Texture" id=1]
+[ext_resource path="res://assets/textures/background_parallex_base_no_clouds.png" type="Texture" id=1]
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/ui/gameplay_ui.tscn" type="PackedScene" id=3]
+[ext_resource path="res://assets/textures/background_parallex_kites.png" type="Texture" id=4]
 [ext_resource path="res://scripts/GameplayScreen.cs" type="Script" id=5]
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 1920, 1080 )
+extents = Vector2( 1010, 590 )
 
 [node name="GameplayScreen" type="Node2D"]
 script = ExtResource( 5 )
 GameplayUIPath = NodePath("GameplayUI")
 
+[node name="BackgroundParallexBaseNoClouds" type="Sprite" parent="."]
+position = Vector2( 960, 540 )
+z_index = -2
+texture = ExtResource( 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="BackgroundParallexKites" type="Sprite" parent="BackgroundParallexBaseNoClouds"]
+modulate = Color( 1, 1, 1, 0.709804 )
+position = Vector2( -514, 25 )
+texture = ExtResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
+
 [node name="DespawnArea" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -21,31 +39,25 @@ __meta__ = {
 }
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
+visible = false
 position = Vector2( 960, 540 )
 shape = SubResource( 1 )
 __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="Background" type="Sprite" parent="."]
-modulate = Color( 1, 1, 1, 0.0784314 )
-position = Vector2( 960, 540 )
-scale = Vector2( 15, 15 )
-texture = ExtResource( 1 )
+[node name="MinMovementBound" type="Node2D" parent="."]
+visible = false
 __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]
-position = Vector2( 401, 525 )
-FireSpeed = 15
-MinMovementBoundPath = NodePath("../MinMovementBound")
-MaxMovementBoundPath = NodePath("../MaxMovementBound")
-
-[node name="MinMovementBound" type="Node2D" parent="."]
-
 [node name="MaxMovementBound" type="Node2D" parent="."]
+visible = false
 position = Vector2( 1400, 1080 )
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
@@ -54,6 +66,12 @@ __meta__ = {
 }
 
 [node name="EnemyManager" parent="." instance=ExtResource( 6 )]
+
+[node name="PlayerCharacter" parent="." instance=ExtResource( 2 )]
+position = Vector2( 401, 525 )
+FireSpeed = 15
+MinMovementBoundPath = NodePath("../MinMovementBound")
+MaxMovementBoundPath = NodePath("../MaxMovementBound")
 
 [node name="GameplayUI" parent="." instance=ExtResource( 3 )]
 layer = 0
