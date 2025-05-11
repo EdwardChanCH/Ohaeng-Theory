@@ -115,6 +115,7 @@ public class EnemyManager : Node2D
         }
         
         CurrentlySelectedWave = 1 + (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]);
+        CancelWave(); // Misuse
         LoadWave(GenerateWaveEncoding(CurrentlySelectedWave));
 
         //LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
@@ -241,6 +242,7 @@ public class EnemyManager : Node2D
         UpdateTimer = 0;
         KillAllEnemy();
         ProjectileManager.ClearBullets();
+        ProjectileManager.Singleton.CallDeferred("ClearBullets");
     }
 
     // Remember to CancelWave() first 

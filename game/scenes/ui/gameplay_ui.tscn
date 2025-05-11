@@ -13,6 +13,7 @@ font_data = ExtResource( 2 )
 script = ExtResource( 3 )
 ScoreLabelPath = NodePath("HBoxContainer/ScoreNumber")
 WaveLabelPath = NodePath("WaveNumber")
+HighestWaveLabelPath = NodePath("HighestWaveNumber")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 margin_left = 56.0
@@ -47,11 +48,23 @@ valign = 1
 
 [node name="WaveNumber" type="Label" parent="."]
 anchor_left = 0.5
-anchor_top = 0.01
+anchor_top = 0.06
 anchor_right = 0.5
-anchor_bottom = 0.035
+anchor_bottom = 0.07
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "Wave ???"
+align = 1
+valign = 1
+
+[node name="HighestWaveNumber" type="Label" parent="."]
+modulate = Color( 1, 1, 1, 0.392157 )
+anchor_left = 0.5
+anchor_top = 0.01
+anchor_right = 0.5
+anchor_bottom = 0.01
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "Best: ???"
 align = 1
 valign = 1
