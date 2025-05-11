@@ -310,6 +310,13 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHitboxBodyEntered(Node body)
     {
+        // Ignore bullets if physics is turned off
+        if (!IsPhysicsProcessing())
+        {
+            return;
+        }
+
+
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
             float floatDamage = (float)harmful.GetDamage();

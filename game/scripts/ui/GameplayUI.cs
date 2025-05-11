@@ -7,17 +7,29 @@ public class GameplayUI : Node
     public NodePath ScoreLabelPath = new NodePath();
     private static Label _scoreLabel;
 
+    [Export]
+    public NodePath WaveLabelPath = new NodePath();
+    private static Label _waveLabel;
+
     public override void _EnterTree()
     {
         _scoreLabel = GetNode<Label>(ScoreLabelPath);
-    }
+        _waveLabel = GetNode<Label>(WaveLabelPath);
 
-    public override void _Ready()
-    {
+        if (_scoreLabel == null || _waveLabel == null)
+        {
+            GD.PrintErr("Error: GameplayUI is mmissing export variables.");
+            return;
+        }
     }
 
     public void UpdateScoreLabel(int score)
     {
-        _scoreLabel.Text = score.ToString();
+        _scoreLabel.Text = $"{score}";
+    }
+
+    public void _OnEnemyManagerWaveNumberChanged(int waveNumber)
+    {
+        _waveLabel.Text = $"Wave {waveNumber}";
     }
 }
