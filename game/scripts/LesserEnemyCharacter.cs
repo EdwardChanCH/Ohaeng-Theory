@@ -83,15 +83,19 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         {
             _fireTimer = 0;
 
-            var bulletRef = MakeBulletCopy(_dominantElement);
-            var playerDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
-            playerDirection.x = Mathf.Clamp(playerDirection.x, -0.1f, -1f);
+            Vector2 targetDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.GlobalPosition);
 
+            if (targetDirection.x < 0)
+            {
+                // Cannot only fire to the left
 
-            bulletRef.MovementNode.Direction = playerDirection;
-            ProjectileManager.EmitBulletLine(bulletRef, GetTree().Root, GlobalPosition);
-            bulletRef.QueueFree();
-
+                var bulletRef = MakeBulletCopy(_dominantElement);
+                bulletRef.MovementNode.Direction = targetDirection;
+                GD.Print($"{targetDirection}");
+                ProjectileManager.EmitBulletLine(bulletRef, GetTree().Root, GlobalPosition);
+                bulletRef.QueueFree();
+            }
+            
             //(Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
         }
     }
@@ -136,6 +140,8 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     public void _OnHealthDepleted()
     {
+        Globals.AddScore(Globals.LesserEnemyKillReward);
+        
         Kill();
     }
 
@@ -158,7 +164,6 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         EmitSignal("Killed", this);
         QueueFree();
-        GameplayScreen.Score += 100;
     }
 
     public void SwitchSprite(Globals.Element element)

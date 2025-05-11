@@ -8,7 +8,11 @@ using System.Linq;
 public class EnemyManager : Node2D
 {
     [Signal]
-    public delegate void WaveComplete();
+    public delegate void WaveBegin(); // The wave begins, after the wave buffer
+    [Signal]
+    public delegate void WaveCancel(); // The wave is cancelled manually, wave is not completed
+    [Signal]
+    public delegate void WaveComplete(); // The wave is completed, all enemies died
 
     [Signal]
     public delegate void WaveNumberChanged(int waveNumber);
@@ -19,6 +23,7 @@ public class EnemyManager : Node2D
     public static PackedScene LesserEnemyCharacterScene = null;
 
     public bool WaveInProgress = false; // If the wave is still going on // TODO
+    public bool WaveBegan = false; // If the wave began // TODO
     public int WavesCompleted { get; set; } = 0; // Number of waves successfully completed
     public float WaveTimer { get; set; } = 0.0f; // Time spent in the current wave
     public float WaveBuffer { get; set; } = 0.1f; // Delay at the start and end of each wave
@@ -59,6 +64,7 @@ public class EnemyManager : Node2D
     private float _heightSpawnArea = 0;
     private Vector2 _hideVector = Vector2.Zero;
     private Vector2 _spawnLocation = Vector2.Zero;
+    private const float _spriteScaleFactor = 0.8f; // Reduce the size when split, inverse for merge
 
     public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
@@ -115,12 +121,12 @@ public class EnemyManager : Node2D
         }
         
         CurrentlySelectedWave = 1 + (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]);
-        CancelWave(); // Misuse
+        ClearWave(); // Misuse
         LoadWave(GenerateWaveEncoding(CurrentlySelectedWave));
 
         //LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
         //StartWave();
-        //CancelWave();
+        //ClearWave();
     }
 
     public override void _Input(InputEvent @event)
@@ -158,8 +164,9 @@ public class EnemyManager : Node2D
         {
             if (@event.IsActionPressed("Start_Wave"))
             {
-                CancelWave();
+                ClearWave();
                 LoadWave(CurrentlySelectedWave);
+                EmitSignal("WaveCancel");
                 
                 //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
             }
@@ -184,17 +191,22 @@ public class EnemyManager : Node2D
             // Do nothing, to prevent any Godot _Ready() sync issues
             return; // Early exit
         }
+        else if (!WaveBegan)
+        {
+            EmitSignal("WaveBegin");
+            WaveBegan = true;
+        }
 
-        if (EnemyList.Count == 0 && LesserEnemyList.Count == 0 && WaveInProgress)
+        if (WaveBegan && EnemyList.Count == 0 && LesserEnemyList.Count == 0)
         {
             // - - - Wave actually completes - - -
             WaveInProgress = false;
             Globals.ChangeGameData("HighestCompletedWave", GD.Var2Str(Math.Max(CurrentlySelectedWave, (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]))));
             EmitSignal("WaveComplete");
 
-            GD.Print($"Wave {WavesCompleted} completed!");
+            //GD.Print($"Wave {WavesCompleted} completed!");
 
-            CancelWave(); // TODO Misuse
+            ClearWave(); // TODO Misuse
 
             CurrentlySelectedWave += 1;
             LoadWave(CurrentlySelectedWave);
@@ -235,9 +247,10 @@ public class EnemyManager : Node2D
     }
 
     // Cancel the current wave and removes all enemies
-    public void CancelWave()
+    public void ClearWave()
     {
         WaveInProgress = false;
+        WaveBegan = false;
         WaveTimer = 0;
         UpdateTimer = 0;
         KillAllEnemy();
@@ -245,7 +258,7 @@ public class EnemyManager : Node2D
         ProjectileManager.Singleton.CallDeferred("ClearBullets");
     }
 
-    // Remember to CancelWave() first 
+    // Remember to ClearWave() first 
     public void LoadWave(string encoding)
     {
         CurrentWaveEncoding = encoding;
@@ -308,8 +321,8 @@ public class EnemyManager : Node2D
         Globals.Element nextSmallElement;
         
         int difficulty = Math.Max(1, waveNumebr + 2);
-        int scale = (int)(Math.Log(waveNumebr) / Math.Log(2)) + 1; // = floor(log2(x-1)) + 1
-        int numEnemies = Math.Max(1, scale);
+        int staircase = (int)(Math.Log(waveNumebr) / Math.Log(2)) + 1; // = floor(log2(x-1)) + 1
+        int numEnemies = Math.Max(1, staircase);
         int numElements;
         int maxElements;
         if (numEnemies < 3)
@@ -504,8 +517,6 @@ public class EnemyManager : Node2D
         }
 
         // Update mother
-        Vector2 newScale = mother.Scale * 0.8f; // Reduce the size
-
         if (Globals.SumElements(motherElements) <= 0)
         {
             // Mother despawn (this should never happen here?)
@@ -529,7 +540,7 @@ public class EnemyManager : Node2D
             mother.SetElementalCount(motherElements);
             mother.HealthComponent.MaxHealth = Math.Min(halfHealth, MaxHealthOfEnemy(motherElements));
             mother.HealthComponent.SetHealth(Math.Min(halfHealth, MaxHealthOfEnemy(motherElements)));
-            mother.Scale = newScale; // Reduce the size
+            mother.SetScaleRelative(_spriteScaleFactor); // Reduce the size
 
             motherAsEnemy = true;
         }
@@ -563,7 +574,7 @@ public class EnemyManager : Node2D
             daughter.HealthComponent.MaxHealth = Math.Min(halfHealth, MaxHealthOfEnemy(daughterElements));
             daughter.HealthComponent.SetHealth(Math.Min(halfHealth, MaxHealthOfEnemy(daughterElements)));
             daughter.GlobalPosition = mother.GlobalPosition;
-            daughter.Scale = newScale; // Reduce the sprite size
+            daughter.SetScaleRelative(_spriteScaleFactor); // Reduce the sprite size
             
             daughterAsEnemy = true;
         }
@@ -682,9 +693,8 @@ public class EnemyManager : Node2D
         larger.HealthComponent.MaxHealth = combinedHealth;
         larger.HealthComponent.SetHealth(combinedHealth);
 
-        // Restore the sprite size (1 / 0.8f)
-        Vector2 newScale = larger.Scale * 1.25f;
-        larger.Scale = newScale;
+        // Restore the sprite size
+        larger.SetScaleRelative(1 / _spriteScaleFactor);
 
         // Remove the smaller one
         smaller.Kill();

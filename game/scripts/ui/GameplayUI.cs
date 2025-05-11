@@ -15,6 +15,13 @@ public class GameplayUI : Node
     public NodePath HighestWaveLabelPath = new NodePath();
     private static Label _highestWaveLabel;
 
+    public override void _Ready()
+    {
+        base._Ready();
+
+        Globals.Singleton.Connect("ScoreChanged", this, nameof(UpdateScoreLabel));
+    }
+
     public override void _EnterTree()
     {
         _scoreLabel = GetNode<Label>(ScoreLabelPath);
@@ -28,21 +35,22 @@ public class GameplayUI : Node
         }
     }
 
-    public void UpdateScoreLabel(int score)
+    public void UpdateScoreLabel()
     {
-        _scoreLabel.Text = $"{score}";
-        
-        string highestWave = Globals.GameData["HighestCompletedWave"];
-        if (highestWave == "-1")
-        {
-            highestWave = "n/a";
-        }
+        _scoreLabel.Text = $"{Globals.Score}";
 
-        _highestWaveLabel.Text = $"Best: {highestWave}";
+        GD.Print("Score label updated");
     }
 
     public void _OnEnemyManagerWaveNumberChanged(int waveNumber)
     {
         _waveLabel.Text = $"Wave {waveNumber}";
+
+        string highestWave = Globals.GameData["HighestCompletedWave"];
+        if (highestWave == "-1")
+        {
+            highestWave = "n/a";
+        }
+        _highestWaveLabel.Text = $"Best: {highestWave}";
     }
 }
