@@ -33,6 +33,8 @@ public class EndGameUI : Node
     public override void _ExitTree()
     {
         GetTree().Paused = false;
+        _highScoreLabel = null;
+        _CurrentScoreLabel = null;
     }
 
     public void _OnRestartButtonPressed()
