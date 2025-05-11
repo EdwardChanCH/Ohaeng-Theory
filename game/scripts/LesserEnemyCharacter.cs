@@ -70,7 +70,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
             bullet.Damage = 1;
             bullet.Friendly = false;
             bullet.MovementNode.Direction = Vector2.Left;
-            bullet.MovementNode.Speed = 500; // TODO tune speed
+            bullet.MovementNode.Speed = 400; // TODO tune speed
         }
 
         _fireTimer = _fireDelay / 2.0f;
@@ -91,7 +91,6 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
                 var bulletRef = MakeBulletCopy(_dominantElement);
                 bulletRef.MovementNode.Direction = targetDirection;
-                GD.Print($"{targetDirection}");
                 ProjectileManager.EmitBulletLine(bulletRef, GetTree().Root, GlobalPosition);
                 bulletRef.QueueFree();
             }
