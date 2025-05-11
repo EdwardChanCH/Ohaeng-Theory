@@ -69,7 +69,7 @@ public class EnemyCharacter : KinematicBody2D
     [Export]
     public bool UseSmoothedMovemment { get; set; } = true;
 
-    public bool IsTargeting { get; private set; } = true;
+    public bool IsTargeting { get; private set; } = false; // Must be initialized to false
     private Vector2 _moveDirection = Vector2.Zero; // Always normalized
     private Vector2 _targetLocation = Vector2.Zero; // Global coordinate
     public Vector2 TargetLocation
@@ -393,7 +393,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SetElementCount(Globals.Element element, int newCount)
     {
-        if (element == Globals.Element.None || element < 0)
+        if (element == Globals.Element.None || newCount < 0)
         {
             GD.PrintErr($"Error: Cannot set {element} element to {newCount} count.");
             return;
@@ -433,6 +433,13 @@ public class EnemyCharacter : KinematicBody2D
         }
 
         DominantElement = Globals.DominantElement(ElementalCount);
+
+        if (DominantElement == Globals.Element.None)
+        {
+            GD.PrintErr($"Error: No remaining elemments in SetElementalCount().");
+            return;
+        }
+
         SwitchSprite(DominantElement);
     }
 
