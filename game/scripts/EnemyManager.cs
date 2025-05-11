@@ -13,15 +13,19 @@ public class EnemyManager : Node2D
     public delegate void WaveCancel(); // The wave is cancelled manually, wave is not completed
     [Signal]
     public delegate void WaveComplete(); // The wave is completed, all enemies died
-
     [Signal]
     public delegate void WaveNumberChanged(int waveNumber);
+    [Signal]
+    public delegate void WaveProgressChanged(int currentHealth, int maxHealth);
+    private bool _waveProgressChanged;
 
     public const string EnemyCharacterPath = "res://scenes/enemy_character.tscn";
     public const string LesserEnemyCharacterPath = "res://scenes/lesser_enemy_character.tscn";
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
+    public int WaveCurrentHealth { get; private set; } = -1;
+    public int WaveMaxHealth { get; private set; } = -1;
     public bool WaveInProgress = false; // If the wave is still going on // TODO
     public bool WaveBegan = false; // If the wave began // TODO
     public int WavesCompleted { get; set; } = 0; // Number of waves successfully completed
@@ -114,15 +118,16 @@ public class EnemyManager : Node2D
         _hideVector = Vector2.Right * _widthSpawnArea * 0.5f;
         _spawnLocation = _centerSpawnArea + _hideVector;
 
-        // TODO test only
-        for (int i = 0; i < 20; i++)
+/*         for (int i = 0; i < 20; i++)
         {
             GD.Print($"Wave {i} : {GenerateWaveEncoding(i)}");
-        }
+        } */
         
         CurrentlySelectedWave = 1 + (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]);
         ClearWave(); // Misuse
         LoadWave(GenerateWaveEncoding(CurrentlySelectedWave));
+
+        QueueWaveProgress();
 
         //LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
         //StartWave();
@@ -235,6 +240,39 @@ public class EnemyManager : Node2D
 
     // - - - Wave Loop - - -
 
+    public void QueueWaveProgress()
+    {
+        _waveProgressChanged = true;
+        CallDeferred("EmitWaveProgress");
+    }
+
+    // DO NOT call directly
+    public void EmitWaveProgress()
+    {
+        // Prevent multiple calls
+        if (!_waveProgressChanged)
+        {
+            return;
+        }
+
+        _waveProgressChanged = false;
+
+        WaveCurrentHealth = 0;
+
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            WaveCurrentHealth += enemy.HealthComponent.MaxHealth;
+        }
+        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
+        {
+            WaveCurrentHealth += lesser.HealthComponent.MaxHealth;
+        }
+
+        EmitSignal("WaveProgressChanged", WaveCurrentHealth, WaveMaxHealth);
+
+        //GD.Print($"Progress = {WaveCurrentHealth} / {WaveMaxHealth}."); // TODO
+    }
+
     // Free all enemy and lesser enemy
     public void Clear()
     {
@@ -242,6 +280,8 @@ public class EnemyManager : Node2D
         EnemyList = null;
         LesserEnemyList = null;
         MergeList = null;
+        WaveMaxHealth = -1;
+        WaveCurrentHealth = -1;
 
         // TODO free the other export properties here
     }
@@ -265,6 +305,30 @@ public class EnemyManager : Node2D
         DecodeAllSpawnEnemy(encoding, this);
         DisableAllEnemy(true);
         RepositionEnemies(true); // Preview mode
+
+        WaveMaxHealth = 0;
+
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            WaveMaxHealth += enemy.HealthComponent.MaxHealth;
+        }
+        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
+        {
+            WaveMaxHealth += lesser.HealthComponent.MaxHealth;
+        }
+
+        WaveCurrentHealth = WaveMaxHealth;
+
+        if (WaveMaxHealth <= 0)
+        {
+            WaveMaxHealth = -1;
+        }
+        if (WaveCurrentHealth <= 0)
+        {
+            WaveCurrentHealth = -1;
+        }
+
+        QueueWaveProgress();
     }
 
     public void LoadWave(int waveNumebr)
@@ -584,7 +648,12 @@ public class EnemyManager : Node2D
         {
             mother.TargetLocation = mother.GlobalPosition + Vector2.Up * 200;
             daughter.TargetLocation = mother.GlobalPosition + Vector2.Down * 200;
+
+            mother.PauseShooting(1.0f);
+            mother.PauseShooting(1.0f);
         }
+
+        QueueWaveProgress();
 
         AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/22_Slash_04.wav");
     }
@@ -705,10 +774,12 @@ public class EnemyManager : Node2D
             larger.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
         }
 
+        QueueWaveProgress();
+
         AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/77_flesh_02.wav");
     }
 
-    public static int RankOfEnemy(EnemyCharacter enemy)
+/*     public static int RankOfEnemy(EnemyCharacter enemy)
     {
         int total = enemy.SumElementalCount();
 
@@ -720,7 +791,7 @@ public class EnemyManager : Node2D
 
         int rank = (int)Math.Floor((Math.Log(total) / Math.Log(2)) + 1); // 1->1, 2->2, 3->2, 4->3, etc.
         return rank;
-    }
+    } */
 
     // Calculate enemy health
     public int MaxHealthOfEnemy(Dictionary<Globals.Element, int> elementCounts)
@@ -849,6 +920,8 @@ public class EnemyManager : Node2D
         EnemyList.Remove(source);
 
         MergeList.Remove(source); // Beware of this
+
+        QueueWaveProgress();
     }
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
@@ -866,6 +939,8 @@ public class EnemyManager : Node2D
         }
 
         LesserEnemyList.Remove(source);
+
+        QueueWaveProgress();
     }
 
     public void _OnEnemySplitNeeded(EnemyCharacter source)
