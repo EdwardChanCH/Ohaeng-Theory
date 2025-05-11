@@ -10,6 +10,9 @@ public class EnemyManager : Node2D
     [Signal]
     public delegate void WaveComplete();
 
+    [Signal]
+    public delegate void WaveNumberChanged(int waveNumber);
+
     public const string EnemyCharacterPath = "res://scenes/enemy_character.tscn";
     public const string LesserEnemyCharacterPath = "res://scenes/lesser_enemy_character.tscn";
     public static PackedScene EnemyCharacterScene = null;
@@ -22,6 +25,17 @@ public class EnemyManager : Node2D
     public string CurrentWaveEncoding { get; set; } = ""; // Current wave enemies in string encoding
     public float UpdateDelay { get; set; } = 1; // How many seconds to wait before game updates
     public float UpdateTimer { get; set; } = 0; // How many seconds has passed since the last game update
+
+    private int _currentlySelectedWave;
+    public int CurrentlySelectedWave
+    {
+        get { return _currentlySelectedWave; }
+        set
+        {
+            _currentlySelectedWave = value < 0 ? 0 : value;
+            EmitSignal("WaveNumberChanged", CurrentlySelectedWave);
+        }
+    }
 
     [Export]
     public int LesserEnemyBaseHealth { get; set; } = 50; // always at rank = 1
@@ -99,10 +113,56 @@ public class EnemyManager : Node2D
         {
             GD.Print($"Wave {i} : {GenerateWaveEncoding(i)}");
         }
+        
+        CurrentlySelectedWave = 1 + (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]);
+        LoadWave(GenerateWaveEncoding(CurrentlySelectedWave));
+
         //LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
-        LoadWave(GenerateWaveEncoding(3));
-        StartWave();
+        //StartWave();
         //CancelWave();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (!WaveInProgress)
+        {
+            if (@event.IsActionPressed("Previous_Wave"))
+            {
+                CurrentlySelectedWave -= 1;
+
+                KillAllEnemy();
+                LoadWave(CurrentlySelectedWave);
+
+                //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
+            }
+
+            if (@event.IsActionPressed("Next_Wave"))
+            {
+                CurrentlySelectedWave += 1;
+
+                KillAllEnemy();
+                LoadWave(CurrentlySelectedWave);
+
+                //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
+            }
+
+            if (@event.IsActionPressed("Start_Wave"))
+            {
+                StartWave();
+                
+                //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
+            }
+        }
+        else
+        {
+            if (@event.IsActionPressed("Start_Wave"))
+            {
+                CancelWave();
+                LoadWave(CurrentlySelectedWave);
+                
+                //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
+            }
+        }
     }
 
     // - - - Wave Loop - - -
@@ -128,11 +188,15 @@ public class EnemyManager : Node2D
         {
             // - - - Wave actually completes - - -
             WaveInProgress = false;
-            WavesCompleted += 1;
+            Globals.ChangeGameData("HighestCompletedWave", GD.Var2Str(Math.Max(CurrentlySelectedWave, (int)GD.Str2Var(Globals.GameData["HighestCompletedWave"]))));
             EmitSignal("WaveComplete");
 
-            ProjectileManager.ClearBullets();
             GD.Print($"Wave {WavesCompleted} completed!");
+
+            CancelWave(); // TODO Misuse
+
+            CurrentlySelectedWave += 1;
+            LoadWave(CurrentlySelectedWave);
 
             return; // Early exit
 
@@ -176,6 +240,7 @@ public class EnemyManager : Node2D
         WaveTimer = 0;
         UpdateTimer = 0;
         KillAllEnemy();
+        ProjectileManager.ClearBullets();
     }
 
     // Remember to CancelWave() first 
@@ -185,6 +250,11 @@ public class EnemyManager : Node2D
         DecodeAllSpawnEnemy(encoding, this);
         DisableAllEnemy(true);
         RepositionEnemies(true); // Preview mode
+    }
+
+    public void LoadWave(int waveNumebr)
+    {
+        LoadWave(GenerateWaveEncoding(waveNumebr));
     }
 
     // Used after LoadWave()
@@ -225,19 +295,18 @@ public class EnemyManager : Node2D
         MergeList.Clear();
     }
 
-    // Deterministic, infinitely procedural
+    // Deterministic, infinitely procedural (0 to +inf)
     // Returns a wave encoding for loading
-    public string GenerateWaveEncoding(int wavesCompleted)
+    public string GenerateWaveEncoding(int waveNumebr)
     {
         string encoding = "";
 
         Dictionary<Globals.Element, int> elementCounts;
-        Globals.Element nextBigElement = (Globals.Element)(1 + wavesCompleted % 5);
+        Globals.Element nextBigElement = (Globals.Element)(1 + waveNumebr % 5);
         Globals.Element nextSmallElement;
         
-        int difficulty = Math.Max(1, wavesCompleted + 2);
-        int maxEnemies = AutoMergeLimit * 2;
-        int scale = (int)(Math.Log(wavesCompleted) / Math.Log(2)) + 1; // = floor(log2(x-1)) + 1
+        int difficulty = Math.Max(1, waveNumebr + 2);
+        int scale = (int)(Math.Log(waveNumebr) / Math.Log(2)) + 1; // = floor(log2(x-1)) + 1
         int numEnemies = Math.Max(1, scale);
         int numElements;
         int maxElements;
@@ -247,7 +316,7 @@ public class EnemyManager : Node2D
         }
         else
         {
-            maxElements = wavesCompleted * 2;
+            maxElements = waveNumebr * 2;
         }
 
         // Generate enemies from smallest to largest
