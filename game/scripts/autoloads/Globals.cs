@@ -147,13 +147,14 @@ public class Globals : Node
     {
         if (elementCounts.ContainsKey(Element.None))
         {
-            return Element.None; // Undefined
+            elementCounts.Remove(Element.None);
         }
 
         int highestCount = elementCounts.Values.Max();
 
         if (highestCount == 0)
         {
+            GD.PrintErr($"Error: Highest element count is 0. Sum is {SumElements(elementCounts)}.");
             return Element.None; // Undefined
         }
 
@@ -163,7 +164,7 @@ public class Globals : Node
         {
             if (elementCounts[key] == highestCount)
             {
-                if (key > dominant)
+                if ((int)key > (int)dominant)
                 {
                     dominant = key; // The more important element
                 }

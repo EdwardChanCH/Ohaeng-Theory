@@ -8,23 +8,23 @@ using System.Linq;
 public class EnemyManager : Node2D
 {
     [Signal]
-    public delegate void WaveStarted();
+    public delegate void WaveComplete();
 
     public const string EnemyCharacterPath = "res://scenes/enemy_character.tscn";
     public const string LesserEnemyCharacterPath = "res://scenes/lesser_enemy_character.tscn";
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
-    public bool WaveInProgress = true; // If the wave is still going on // TODO
-    public int WaveNumber { get; set; } = 0; // Number of waves successfully completed
+    public bool WaveInProgress = false; // If the wave is still going on // TODO
+    public int WavesCompleted { get; set; } = 0; // Number of waves successfully completed
     public float WaveTimer { get; set; } = 0.0f; // Time spent in the current wave
-    public float WaveCooldown { get; set; } = 0.1f; // Delay at the start and end of each wave
+    public float WaveBuffer { get; set; } = 0.1f; // Delay at the start and end of each wave
     public string CurrentWaveEncoding { get; set; } = ""; // Current wave enemies in string encoding
     public float UpdateDelay { get; set; } = 1; // How many seconds to wait before game updates
     public float UpdateTimer { get; set; } = 0; // How many seconds has passed since the last game update
 
     [Export]
-    public int LesserEnemyBaseHealth { get; set; } = 100; // always at rank = 1
+    public int LesserEnemyBaseHealth { get; set; } = 50; // always at rank = 1
 
     // The zone the enemy/ lesser enemy can spawn in
     [Export]
@@ -32,6 +32,9 @@ public class EnemyManager : Node2D
 
     [Export]
     public NodePath MaxSpawnNodePath { get; set; }
+
+    [Export]
+    public int AutoMergeLimit { get; set; } = 2; // Maximum enemies before auto-merge is triggered
 
     private Node2D _minSpawnNode = null;
     private Node2D _maxSpawnNode = null;
@@ -46,9 +49,6 @@ public class EnemyManager : Node2D
     public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
     public List<EnemyCharacter> MergeList = new List<EnemyCharacter>(); // Enemy waiting for another Enemy to merge with
-
-    [Export]
-    public int AutoMergeLimit { get; set; } = 3; // Maximum enemies before auto-merge is triggered
 
     public override void _EnterTree()
     {
@@ -70,10 +70,7 @@ public class EnemyManager : Node2D
         base._ExitTree();
 
         // Free objects, prevent memory leak
-        EnemyList.Clear();
-        EnemyList = null;
-        LesserEnemyList.Clear();
-        LesserEnemyList = null;
+        Clear();
     }
 
     public override void _Ready()
@@ -94,28 +91,13 @@ public class EnemyManager : Node2D
         _centerSpawnArea = (_minSpawnArea + _maxSpawnArea) / 2;
         _widthSpawnArea = _maxSpawnArea.x - _minSpawnArea.x;
         _heightSpawnArea = _maxSpawnArea.y - _minSpawnArea.y;
-        _hideVector = Vector2.Right * _widthSpawnArea;
+        _hideVector = Vector2.Right * _widthSpawnArea * 0.5f;
         _spawnLocation = _centerSpawnArea + _hideVector;
 
         // TODO test only
-/*         EnemyCharacter e1 = SpawnEnemy(this);
-        e1.GlobalPosition = new Vector2(200, 500);
-        e1.HealthComponent.MaxHealth = RankOfEnemy(e1) * EnemyBaseHealth;
-        e1.HealthComponent.SetHealth(RankOfEnemy(e1) * EnemyBaseHealth);
-        e1.TargetLocation = new Vector2(100, 100); */
-
-        EnemyCharacter e2 = SpawnEnemy(this);
-        e2.SetElementalCount(Globals.DecodeAllElement($"{(1 << 4) - 1},0,0,0,0")); // 
-        e2.GlobalPosition = new Vector2(1500, 500);
-        e2.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(e2.ElementalCount);
-        e2.HealthComponent.SetHealth(CalculateEnemyMaxHealth(e2.ElementalCount));
-        e2.TargetLocation = new Vector2(1600, 600);
-
-        /* LesserEnemyCharacter f = SpawnLesserEnemy(this);
-        f.SetElement(Globals.Element.Water);
-        f.GlobalPosition = new Vector2(1600, 600);
-        f.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
-        f.HealthComponent.SetHealth(LesserEnemyBaseHealth); */
+        LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
+        StartWave();
+        //CancelWave();
     }
 
     // - - - Wave Loop - - -
@@ -124,32 +106,48 @@ public class EnemyManager : Node2D
     {
         base._PhysicsProcess(delta);
 
+        //GD.Print($"{EnemyList.Count} {LesserEnemyList.Count}");
+
         if (WaveInProgress)
         {
             WaveTimer += delta;
-            if (WaveTimer > WaveCooldown)
-            {
-                EmitSignal("WaveStarted");
+        }
 
-                // - - - Wave actually starts - - -
-                
-                // - - - Wave actually starts - - -
-            }
+        if (WaveTimer <= WaveBuffer)
+        {
+            // Do nothing, to prevent any Godot _Ready() sync issues
+            return; // Early exit
+        }
 
-            UpdateTimer += delta;
-            if (UpdateTimer > UpdateDelay)
-            {
-                UpdateTimer -= UpdateDelay;
+        if (EnemyList.Count == 0 && LesserEnemyList.Count == 0 && WaveInProgress)
+        {
+            // - - - Wave actually completes - - -
+            WaveInProgress = false;
+            WavesCompleted += 1;
+            EmitSignal("WaveComplete");
 
-                // - - - Update game states - - -
-                
-                // TODO Auto-Merge
+            ProjectileManager.ClearBullets();
+            GD.Print($"Wave {WavesCompleted} completed!");
 
-                // Reposition All Enemies
-                RepositionEnemies(); // Expensive call, but who cares at this point
+            return; // Early exit
 
-                // - - - Update game states - - -
-            }
+            // - - - Wave actually completes - - -
+        }
+
+        UpdateTimer += delta;
+        if (UpdateTimer > UpdateDelay)
+        {
+            UpdateTimer -= UpdateDelay;
+
+            // - - - Update game states - - -
+            
+            // Auto-Merge All Enemies
+            AutoMergeEnemies();
+
+            // Reposition All Enemies
+            RepositionEnemies();
+
+            // - - - Update game states - - -
         }
     }
 
@@ -158,41 +156,85 @@ public class EnemyManager : Node2D
     // Free all enemy and lesser enemy
     public void Clear()
     {
-        foreach (EnemyCharacter enemy in EnemyList)
-        {
-            enemy?.Kill();
-        }
+        KillAllEnemy();
         EnemyList = null;
-
-        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
-        {
-            lesser?.Kill();
-        }
         LesserEnemyList = null;
-
-        MergeList.Clear();
         MergeList = null;
+
+        // TODO free the other export properties here
     }
 
-    public void LoadWave()
+    // Cancel the current wave and removes all enemies
+    public void CancelWave()
     {
-        GD.Print("Wave loading."); // TODO
+        WaveInProgress = false;
+        WaveTimer = 0;
+        UpdateTimer = 0;
+        KillAllEnemy();
     }
 
+    // Remember to CancelWave() first 
+    public void LoadWave(string encoding)
+    {
+        CurrentWaveEncoding = encoding;
+        DecodeAllSpawnEnemy(encoding, this);
+        DisableAllEnemy(true);
+        RepositionEnemies(true); // Preview mode
+    }
+
+    // Used after LoadWave()
     public void StartWave()
     {
-        GD.Print("Wave started."); // TODO
-
         WaveInProgress = true;
         WaveTimer = 0;
         UpdateTimer = 0;
+        DisableAllEnemy(false);
     }
 
-    public void StopWave()
+    public void KillAllEnemy()
     {
-        GD.Print("Wave ended."); // TODO
+        while (EnemyList.Count > 0)
+        {
+            if (EnemyList[0] == null)
+            {
+                GD.PrintErr("Error: Cannot kill null enemy in list.");
+                break;
+            }
 
-        WaveInProgress = false;
+            EnemyList[0].Kill(); // Calls Remove()
+        }   
+        EnemyList.Clear();
+
+        while (LesserEnemyList.Count > 0)
+        {
+            if (LesserEnemyList[0] == null)
+            {
+                GD.PrintErr("Error: Cannot kill null lesser enemy in list.");
+                break;
+            }
+
+            LesserEnemyList[0].Kill(); // Calls Remove()
+        }   
+        LesserEnemyList.Clear();
+
+        MergeList.Clear();
+    }
+
+    // Use CallDeferred()
+    // Disable/ Enable all enemy and lesser enemy movement
+    public void DisableAllEnemy(bool disable)
+    {
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            enemy.SetProcess(!disable);
+            enemy.SetPhysicsProcess(!disable);
+        }
+
+        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
+        {
+            lesser.SetProcess(!disable);
+            lesser.SetPhysicsProcess(!disable);
+        }
     }
 
     // Encode all enemy on screen as a string
@@ -241,32 +283,12 @@ public class EnemyManager : Node2D
         // - - - Initialize each enemy - - -
         foreach (EnemyCharacter enemy in enemySpawned)
         {
-
-            enemy.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(enemy.ElementalCount);
-            enemy.HealthComponent.SetHealth(CalculateEnemyMaxHealth(enemy.ElementalCount));
-            enemy.Position = _spawnLocation;
+            enemy.HealthComponent.MaxHealth = MaxHealthOfEnemy(enemy.ElementalCount);
+            enemy.HealthComponent.SetHealth(MaxHealthOfEnemy(enemy.ElementalCount));
+            enemy.GlobalPosition = _spawnLocation;
         }
-
-        // Need to call reposition to spread out and unhide
-        RepositionEnemies();
 
         return enemySpawned;
-    }
-
-    // Disable all enemy and lesser enemy movement
-    public void DisableAllEnemy(bool disable)
-    {
-        foreach (EnemyCharacter enemy in EnemyList)
-        {
-            enemy.SetProcess(!disable);
-            enemy.SetPhysicsProcess(!disable);
-        }
-
-        foreach (LesserEnemyCharacter lesser in LesserEnemyList)
-        {
-            lesser.SetProcess(!disable);
-            lesser.SetPhysicsProcess(!disable);
-        }
     }
 
     public EnemyCharacter SpawnEnemy(Node2D parentNode)
@@ -278,6 +300,7 @@ public class EnemyManager : Node2D
         instance.Connect("Killed", this, nameof(_OnEnemyKilled));
         instance.Connect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         instance.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
+        instance.Connect("ReachedTarget", this, nameof(_OnEnemyReachedTarget));
 
         EnemyList.Add(instance);
         
@@ -297,12 +320,8 @@ public class EnemyManager : Node2D
         return instance;
     }
 
-    public void QueueSplitEnemy(EnemyCharacter source)
-    {
-        CallDeferred("SplitEnemy", source);
-    }
-
-    private void SplitEnemy(EnemyCharacter mother)
+    // Use CallDeferred()
+    public void SplitEnemy(EnemyCharacter mother)
     {
         if (mother == null)
         {
@@ -355,19 +374,18 @@ public class EnemyManager : Node2D
 
         // Update mother
         Vector2 newScale = mother.Scale * 0.8f; // Reduce the size
-        mother.SetElementalCount(motherElements);
 
-        if (mother.SumElementalCount() <= 0)
+        if (Globals.SumElements(motherElements) <= 0)
         {
             // Mother despawn (this should never happen here?)
             mother.Kill();
             motherAsEnemy = false;
         }
-        else if (mother.SumElementalCount() == 1)
+        else if (Globals.SumElements(motherElements) == 1)
         {
             // Mother downgrades to lesser enemy
             lesser = SpawnLesserEnemy(this);
-            lesser.SetElement(Globals.DominantElement(daughterElements));
+            lesser.SetElement(Globals.DominantElement(motherElements));
             lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
             lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
             lesser.GlobalPosition = mother.GlobalPosition;
@@ -377,8 +395,9 @@ public class EnemyManager : Node2D
         }
         else // > 1
         {
-            mother.HealthComponent.MaxHealth = Math.Min(halfHealth, CalculateEnemyMaxHealth(motherElements));
-            mother.HealthComponent.SetHealth(Math.Min(halfHealth, CalculateEnemyMaxHealth(motherElements)));
+            mother.SetElementalCount(motherElements);
+            mother.HealthComponent.MaxHealth = Math.Min(halfHealth, MaxHealthOfEnemy(motherElements));
+            mother.HealthComponent.SetHealth(Math.Min(halfHealth, MaxHealthOfEnemy(motherElements)));
             mother.Scale = newScale; // Reduce the size
 
             motherAsEnemy = true;
@@ -410,10 +429,10 @@ public class EnemyManager : Node2D
         {
             daughter = SpawnEnemy(this);
             daughter.SetElementalCount(daughterElements);
-            daughter.HealthComponent.MaxHealth = Math.Min(halfHealth, CalculateEnemyMaxHealth(daughterElements));
-            daughter.HealthComponent.SetHealth(Math.Min(halfHealth, CalculateEnemyMaxHealth(daughterElements)));
+            daughter.HealthComponent.MaxHealth = Math.Min(halfHealth, MaxHealthOfEnemy(daughterElements));
+            daughter.HealthComponent.SetHealth(Math.Min(halfHealth, MaxHealthOfEnemy(daughterElements)));
             daughter.GlobalPosition = mother.GlobalPosition;
-            daughter.Scale = newScale; // Reduce the size
+            daughter.Scale = newScale; // Reduce the sprite size
             
             daughterAsEnemy = true;
         }
@@ -428,66 +447,81 @@ public class EnemyManager : Node2D
         AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/22_Slash_04.wav");
     }
 
-    public void QueueMergeEnemy(EnemyCharacter source)
+    public void InitMergeEnemy(EnemyCharacter source)
     {
-        CallDeferred("MergeEnemy", source);
-    }
-
-    private void MergeEnemy(EnemyCharacter source)
-    {
-        if (source == null)
+        if (source == null || !IsInstanceValid(source))
         {
-            GD.PrintErr("Error: Failed to merge enemy: Null.");
+            GD.Print("Warning: Cannot init merge null enemy.");
             return;
         }
 
-        // Prevent multiple calls
-        if (source.IsConnected("ReachedTarget", this, nameof(QueueMergeEnemy)))
+        // Add to merge waiting list
+        if (MergeList.Contains(source))
         {
-            source.Disconnect("ReachedTarget", this, nameof(QueueMergeEnemy));
+            return; // Ignore repeated calls
         }
-        else
-        {
-            GD.Print("Warning: Multiple calls detected.");
-            return;
-        }
+        MergeList.Add(source);
 
-        int sourceIndex = MergeList.IndexOf(source);
-        if (sourceIndex < 0)
+        if (MergeList.Count >= 2 && MergeList.Count % 2 == 0)
         {
-            GD.PrintErr("Error: MergeList does not contain this enemy.");
-            return;
-        }
+            // Even number of enemies waiting to merge
+            EnemyCharacter partner = MergeList[MergeList.Count - 2]; // The enemy before source
 
-        // Find partner (could be killed already)
-        EnemyCharacter partner = null;
-        int index = 0;
-
-        while (index < MergeList.Count)
-        {
-            if (MergeList[index] == null)
+            if (partner == null || !IsInstanceValid(partner))
             {
-                GD.PrintErr($"Error: MergeList[{index}] is null.");
+                GD.Print("Warning: Cannot init merge null partner.");
                 return;
             }
 
-            if (index == sourceIndex)
+            Vector2 midpoint = (partner.GlobalPosition + source.GlobalPosition) / 2;
+
+            partner.TargetLocation = midpoint;
+            source.TargetLocation = midpoint;
+        }
+    }
+
+    // Use CallDeferred()
+    public void MergeEnemy(EnemyCharacter source)
+    {
+        if (source == null)
+        {
+            GD.PrintErr("Error: Failed to merge null enemy.");
+            return;
+        }
+
+        if (!MergeList.Contains(source))
+        {
+            GD.Print("Warning: Enemy no longer in the merge list.");
+            return;
+        }
+        MergeList.Remove(source);
+
+        // Find partner (could be killed already)
+        EnemyCharacter partner = null;
+
+        for (int i = 0; i < MergeList.Count; i++)
+        {
+            if (MergeList[i] == null)
             {
-                continue;
+                GD.PrintErr($"Error: MergeList[{i}] is null.");
+                return;
             }
 
-            if (MergeList[index].TargetLocation == source.TargetLocation)
+            if (MergeList[i].TargetLocation == source.TargetLocation)
             {
-                partner = MergeList[index];
+                partner = MergeList[i];
                 break; // Early exit
             }
+
+            //index += 1; // Dear god... I forgot this
         }
 
         if (partner == null)
         {
-            GD.Print("Warning: Merge target no longer exist.");
+            GD.Print("Warning: Merge partner not found or no longer exists.");
             return;
         }
+        MergeList.Remove(partner);
         
         // Decide the larger/ smaller enemy
         EnemyCharacter larger;
@@ -517,9 +551,9 @@ public class EnemyManager : Node2D
         larger.HealthComponent.MaxHealth = combinedHealth;
         larger.HealthComponent.SetHealth(combinedHealth);
 
-        // Remove both from list
-        MergeList.Remove(larger);
-        MergeList.Remove(smaller);
+        // Restore the sprite size (1 / 0.8f)
+        Vector2 newScale = larger.Scale * 1.25f;
+        larger.Scale = newScale;
 
         // Remove the smaller one
         smaller.Kill();
@@ -547,9 +581,16 @@ public class EnemyManager : Node2D
         return rank;
     }
 
-    public void RepositionEnemies()
+    // Calculate enemy health
+    public int MaxHealthOfEnemy(Dictionary<Globals.Element, int> elementCounts)
+    {
+        return Globals.SumElements(elementCounts) * LesserEnemyBaseHealth;
+    }
+
+    public void RepositionEnemies(bool previewMode=false)
     {
         // Sorted list in ascending y position (top to bottom)
+        // Expensive
         List<EnemyCharacter> tempList = new List<EnemyCharacter>();
         EnemyCharacter tempEnemy;
 
@@ -566,12 +607,7 @@ public class EnemyManager : Node2D
             // Insertion sort
             for (int i = tempList.Count - 1; i > 0; i--)
             {
-                if (tempList[i-1].GlobalPosition.y <= tempList[i].GlobalPosition.y)
-                {
-                    // Sorted
-                    break;
-                }
-                else
+                if (tempList[i-1].GlobalPosition.y > tempList[i].GlobalPosition.y)
                 {
                     // Swap
                     tempEnemy = tempList[i-1];
@@ -584,30 +620,72 @@ public class EnemyManager : Node2D
         // Move all the enemy
         Vector2 xOffset = Vector2.Right * (_widthSpawnArea / 3); // 2 columns
         Vector2 yOffset = Vector2.Down * (_heightSpawnArea / (tempList.Count() + 1)); // N rows
+        Vector2 target;
         for (int i = 0; i < tempList.Count(); i++)
         {
             if (i % 2 == 0)
             {
                 // 1st column for odd
-                tempList[i].TargetLocation = _minSpawnArea + xOffset + (i + 1) * yOffset;
+                 target = _minSpawnArea + xOffset + (i + 1) * yOffset;
             }
             else
             {
                 // 2nd column for even
-                tempList[i].TargetLocation = _minSpawnArea + 2 * xOffset + (i + 1) * yOffset;
+                target = _minSpawnArea + 2 * xOffset + (i + 1) * yOffset;
+            }
+
+            tempList[i].TargetLocation = target;
+
+            if (previewMode)
+            {
+                tempList[i].GlobalPosition = target;
             }
         }
     }
 
-    // Calculate enemy health
-    public int CalculateEnemyMaxHealth(Dictionary<Globals.Element, int> elementCounts)
+    // Check if there is too many enemies on screen, and merge the excessive big ones together.
+    // Hopefully this will save the game performance
+    public void AutoMergeEnemies()
     {
-        return Globals.SumElements(elementCounts) * LesserEnemyBaseHealth;
+        // Check if too many enemies
+        if (EnemyList.Count <= AutoMergeLimit)
+        {
+            // Do nothing
+            return;
+        }
+
+        // Sorted list in ascending element counts (smallest to largest)
+        // Expensive
+        List<EnemyCharacter> tempList = new List<EnemyCharacter>();
+        EnemyCharacter tempEnemy;
+
+        foreach (EnemyCharacter enemy in EnemyList)
+        {
+            tempList.Add(enemy);
+            
+            // Insertion sort
+            for (int i = tempList.Count - 1; i > 0; i--)
+            {
+                if (Globals.SumElements(tempList[i-1].ElementalCount) < Globals.SumElements(tempList[i].ElementalCount))
+                {
+                    // Swap
+                    tempEnemy = tempList[i-1];
+                    tempList[i-1] = tempList[i];
+                    tempList[i] = tempEnemy;
+                }
+            }
+        }
+
+        // Merge enemies
+        for (int i = tempList.Count - 1; i >= AutoMergeLimit; i--)
+        {
+            CallDeferred("InitMergeEnemy", tempList[i]);
+        }
     }
 
     // - - - Signal Receivers - - -
 
-        public void _OnEnemyKilled(EnemyCharacter source)
+    public void _OnEnemyKilled(EnemyCharacter source)
     {
         if (source == null)
         {
@@ -623,7 +701,7 @@ public class EnemyManager : Node2D
 
         EnemyList.Remove(source);
 
-        MergeList.Remove(source);
+        MergeList.Remove(source); // Beware of this
     }
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)
@@ -645,46 +723,49 @@ public class EnemyManager : Node2D
 
     public void _OnEnemySplitNeeded(EnemyCharacter source)
     {
+        if (source == null)
+        {
+            GD.PrintErr("Error: Enemy to be split is null.");
+            return;
+        }
+
         // Prevent multiple calls from Area2D bug
         if (source.IsConnected("SplitNeeded", this, nameof(_OnEnemySplitNeeded)))
         {
             source.Disconnect("SplitNeeded", this, nameof(_OnEnemySplitNeeded));
         }
 
-        QueueSplitEnemy(source);
+        CallDeferred("SplitEnemy", source);
     }
 
     public void _OnEnemyMergeNeeded(EnemyCharacter source)
     {
+        if (source == null)
+        {
+            GD.PrintErr("Error: Enemy to be merged is null.");
+            return;
+        }
+
         // Prevent multiple calls from Area2D bug
         if (source.IsConnected("MergeNeeded", this, nameof(_OnEnemyMergeNeeded)))
         {
             source.Disconnect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
         }
 
-        // Add to merge waiting list
-        if (MergeList.Contains(source))
+        CallDeferred("InitMergeEnemy", source);
+    }
+
+    public void _OnEnemyReachedTarget(EnemyCharacter source)
+    {
+        if (source == null)
         {
-            return; // Ignore repeated calls
+            GD.PrintErr("Error: Enemy reached target but is null.");
+            return;
         }
 
-        MergeList.Add(source);
-
-        if (MergeList.Count > 0 && MergeList.Count % 2 == 0)
+        if (MergeList.Contains(source))
         {
-            // Even number of enemies waiting to merge
-            EnemyCharacter partner = MergeList[MergeList.Count - 2]; // The enemy before source
-
-            Vector2 midpoint = (partner.GlobalPosition + source.GlobalPosition) / 2;
-
-            partner.TargetLocation = midpoint;
-            source.TargetLocation = midpoint;
-
-            // Only one of them needs to call MergeEnemy()
-            if (!source.IsConnected("ReachedTarget", this, nameof(QueueMergeEnemy)))
-            {
-                source.Connect("ReachedTarget", this, nameof(QueueMergeEnemy));
-            }
+            CallDeferred("MergeEnemy", source);
         }
     }
 }

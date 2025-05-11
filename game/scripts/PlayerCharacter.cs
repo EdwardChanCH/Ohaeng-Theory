@@ -377,7 +377,7 @@ public class PlayerCharacter : KinematicBody2D
     // Called when health value got change
     public void _OnHealthUpdate(int newHealth)
     {
-        GD.Print("Take damage");
+        //GD.Print("Take damage");
         _healthBar.Value = (float)newHealth / (float)PlayerHealthComponent.MaxHealth;
     }
 
