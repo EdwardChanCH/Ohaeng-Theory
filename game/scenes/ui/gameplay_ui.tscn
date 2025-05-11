@@ -1,25 +1,43 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=1]
 [ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://scripts/ui/GameplayUI.cs" type="Script" id=3]
 [ext_resource path="res://assets/textures/Potions_02.png" type="Texture" id=4]
+[ext_resource path="res://assets/textures/white.png" type="Texture" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 56
 font_data = ExtResource( 2 )
+
+[sub_resource type="StyleBoxTexture" id=2]
+texture = ExtResource( 5 )
+region_rect = Rect2( 0, 0, 100, 100 )
+modulate_color = Color( 0.0313726, 1, 0, 0.698039 )
+
+[sub_resource type="StyleBoxTexture" id=3]
+texture = ExtResource( 5 )
+region_rect = Rect2( 0, 0, 100, 100 )
+modulate_color = Color( 0.172549, 0.172549, 0.172549, 0.219608 )
+
+[sub_resource type="StyleBoxTexture" id=4]
+texture = ExtResource( 5 )
+region_rect = Rect2( 0, 0, 100, 100 )
+modulate_color = Color( 1, 0, 0, 1 )
 
 [node name="GameplayUI" type="CanvasLayer"]
 script = ExtResource( 3 )
 ScoreLabelPath = NodePath("HBoxContainer/ScoreNumber")
 WaveLabelPath = NodePath("WaveNumber")
 HighestWaveLabelPath = NodePath("HighestWaveNumber")
+PlayerHealthBarPath = NodePath("PlayerHealthBar")
+EnemyProgressBarPath = NodePath("EnemyProgressBar")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-margin_left = 56.0
+margin_left = 156.0
 margin_top = 35.0
-margin_right = 231.0
-margin_bottom = 98.0
+margin_right = 466.0
+margin_bottom = 135.0
 
 [node name="TextureRect" type="TextureRect" parent="HBoxContainer"]
 margin_right = 100.0
@@ -68,3 +86,23 @@ custom_fonts/font = SubResource( 1 )
 text = "Best: ???"
 align = 1
 valign = 1
+
+[node name="PlayerHealthBar" type="ProgressBar" parent="."]
+margin_left = 24.0
+margin_right = 1104.0
+margin_bottom = 23.0
+rect_rotation = 89.9999
+custom_styles/fg = SubResource( 2 )
+custom_styles/bg = SubResource( 3 )
+max_value = 1.0
+value = 1.0
+
+[node name="EnemyProgressBar" type="ProgressBar" parent="."]
+margin_left = 1920.0
+margin_right = 3000.0
+margin_bottom = 23.0
+rect_rotation = 89.9999
+custom_styles/fg = SubResource( 4 )
+custom_styles/bg = SubResource( 3 )
+max_value = 1.0
+value = 1.0

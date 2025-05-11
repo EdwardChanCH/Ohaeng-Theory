@@ -26,6 +26,7 @@ extents = Vector2( 1258, 200 )
 script = ExtResource( 5 )
 GameplayUIPath = NodePath("GameplayUI")
 EnemyManagerPath = NodePath("EnemyManager")
+PlayerPath = NodePath("PlayerCharacter")
 
 [node name="BackgroundParallexBaseNoClouds" type="Sprite" parent="."]
 position = Vector2( 960, 540 )
