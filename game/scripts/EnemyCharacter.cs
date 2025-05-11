@@ -41,14 +41,18 @@ public class EnemyCharacter : KinematicBody2D
     private DamagePopup _damagePopup;
 
     [Export]
+    public NodePath UIElementNode { get; private set; } = new NodePath();
+    private Node2D _uiElement;
+
+
+    [Export]
     public Texture[] CharacterSpriteTexture { get; set; } = new Texture[0];
 
     [Export]
     public Globals.Element DominantElement = Globals.Element.Water; // None would have out-of-bound error in switch sprite
 
     [Export]
-    public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
-
+    public Dictionary<Globals.Element, int> ElementalCountDictionary { get; private set; } = new Dictionary<Globals.Element, int>();
 
     [Export]
     public float AttackBetweenDelay = 2.5f;
@@ -119,6 +123,8 @@ public class EnemyCharacter : KinematicBody2D
         }
         // - - - Initialize Enemy Bullet Templates - - -
         _attackBetweenTimer = AttackBetweenDelay;
+
+        Scale = Vector2.One;
     }
 
     public override void _ExitTree()
@@ -128,12 +134,20 @@ public class EnemyCharacter : KinematicBody2D
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
+            bullet.Clear();
             bullet.QueueFree();
         }
 
         // Free projectile queue
         foreach (Queue<Bullet> item in _projectileQueue)
         {
+            while(item.Count > 0)
+            {
+                var projectileRef = item.Dequeue();
+                projectileRef.Clear();
+                projectileRef.QueueFree();
+                projectileRef = null;
+            }
             item.Clear();
         }
         _projectileQueue = null;
@@ -146,14 +160,14 @@ public class EnemyCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-
+        _uiElement = GetNode<Node2D>(UIElementNode);
 
         //_OnHealthUpdate(HealthComponent.CurrentHealth);
 
         // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
         {
-            ElementalCount[element] = 0;
+            ElementalCountDictionary[element] = 0;
             EmitSignal("UpdateElement", element, 0);
         }
 
@@ -195,8 +209,8 @@ public class EnemyCharacter : KinematicBody2D
 
                             case Globals.Element.Wood:
 
-                                // 45.0f
-                                // 90.0f 
+                                //45.0f
+                                 //90.0f
                                 ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 15, 180.0f);
                                 break;
 
@@ -211,9 +225,11 @@ public class EnemyCharacter : KinematicBody2D
 
                             case Globals.Element.Metal:
                                 ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 1 + _attackCounter, 80);
-                                //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
                                 break;
                         }
+
+                        projectile.Clear();
                         projectile.QueueFree();
                     }
                     
@@ -359,19 +375,14 @@ public class EnemyCharacter : KinematicBody2D
         EmitSignal("Killed", this);
         QueueFree();
         GameplayScreen.Score += 1000;
-        
-        // Moved to _ExitTree()
-        //foreach (var item in _projectileQueue)
-        //{
-        //    item.Clear();
-        //}
+       
     }
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (ElementalCount.ContainsKey(element))
+        if (ElementalCountDictionary.ContainsKey(element))
         {
-            SetElementCount(element, ElementalCount[element] + count);
+            SetElementCount(element, ElementalCountDictionary[element] + count);
         }
         else // oldCount = 0
         {
@@ -381,9 +392,9 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (ElementalCount.ContainsKey(element))
+        if (ElementalCountDictionary.ContainsKey(element))
         {
-            SetElementCount(element, ElementalCount[element] - count);
+            SetElementCount(element, ElementalCountDictionary[element] - count);
         }
         else // oldCount = 0
         {
@@ -404,10 +415,10 @@ public class EnemyCharacter : KinematicBody2D
             newCount = 0;
         }
 
-        ElementalCount[element] = newCount;
-        EmitSignal("UpdateElement", element, ElementalCount[element]);
+        ElementalCountDictionary[element] = newCount;
+        EmitSignal("UpdateElement", element, ElementalCountDictionary[element]);
 
-        DominantElement = Globals.DominantElement(ElementalCount);
+        DominantElement = Globals.DominantElement(ElementalCountDictionary);
 
         if (DominantElement == Globals.Element.None)
         {
@@ -428,17 +439,17 @@ public class EnemyCharacter : KinematicBody2D
 
         foreach (Globals.Element key in values.Keys)
         {
-            ElementalCount[key] = values[key];
-            EmitSignal("UpdateElement", key, ElementalCount[key]);
+            ElementalCountDictionary[key] = values[key];
+            EmitSignal("UpdateElement", key, ElementalCountDictionary[key]);
         }
 
-        DominantElement = Globals.DominantElement(ElementalCount);
+        DominantElement = Globals.DominantElement(ElementalCountDictionary);
         SwitchSprite(DominantElement);
     }
 
     public int SumElementalCount()
     {
-        return Globals.SumElements(ElementalCount);
+        return Globals.SumElements(ElementalCountDictionary);
     }
 
     public void SwitchSprite(Globals.Element element)
@@ -551,5 +562,11 @@ public class EnemyCharacter : KinematicBody2D
 
         _projectileQueue[queue].Enqueue(projectile);
         //GD.Print("Added");
+    }
+
+    public void SetScale(float scale)
+    {
+        Scale = new Vector2(scale, scale);
+        _uiElement.GlobalScale = Vector2.One;
     }
 }

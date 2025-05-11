@@ -31,9 +31,10 @@ modulate_color = Color( 0.172549, 0.172549, 0.172549, 0.219608 )
 collision_layer = 8
 script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
-HealthBarPath = NodePath("HealthBar")
-HealthTextPath = NodePath("HealthBar/HealthRemaining")
-DamagePopupPath = NodePath("DamagePopup")
+HealthBarPath = NodePath("UIElement/HealthBar")
+HealthTextPath = NodePath("UIElement/HealthBar/HealthRemaining")
+DamagePopupPath = NodePath("UIElement/DamagePopup")
+UIElementNode = NodePath("UIElement")
 CharacterSpriteTexture = [ ExtResource( 9 ), ExtResource( 8 ), ExtResource( 1 ), ExtResource( 10 ), ExtResource( 7 ) ]
 CharacterSpirtePath = NodePath("Sprite")
 
@@ -57,13 +58,16 @@ collision_mask = 6
 visible = false
 shape = SubResource( 6 )
 
-[node name="DamagePopup" parent="." instance=ExtResource( 5 )]
+[node name="UIElement" type="Node2D" parent="."]
+
+[node name="DamagePopup" parent="UIElement" instance=ExtResource( 5 )]
 margin_left = -102.0
 margin_top = -89.0
 margin_right = -84.0
 margin_bottom = -75.0
+rect_pivot_offset = Vector2( 9, 7 )
 
-[node name="HealthBar" type="ProgressBar" parent="."]
+[node name="HealthBar" type="ProgressBar" parent="UIElement"]
 show_behind_parent = true
 anchor_left = 0.5
 anchor_top = 1.0
@@ -73,25 +77,29 @@ margin_left = -55.0
 margin_top = 111.0
 margin_right = 55.0
 margin_bottom = 125.0
+rect_pivot_offset = Vector2( 55, 7 )
 custom_styles/fg = SubResource( 3 )
 custom_styles/bg = SubResource( 4 )
 max_value = 1.0
 value = 1.0
 percent_visible = false
 
-[node name="HealthRemaining" type="Label" parent="HealthBar"]
+[node name="HealthRemaining" type="Label" parent="UIElement/HealthBar"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+rect_min_size = Vector2( 110, 14 )
 text = "??? / ???"
 align = 1
 
-[node name="ElementalCount" parent="." instance=ExtResource( 6 )]
+[node name="ElementalCount" parent="UIElement" instance=ExtResource( 6 )]
 margin_left = 116.0
 margin_top = -42.0
-margin_right = 128.0
+margin_right = 166.0
 margin_bottom = 44.0
+rect_min_size = Vector2( 50, 86 )
+rect_pivot_offset = Vector2( 25, 43 )
 
-[connection signal="UpdateElement" from="." to="ElementalCount" method="_UpdateElement"]
+[connection signal="UpdateElement" from="." to="UIElement/ElementalCount" method="_UpdateElement"]
 [connection signal="HealthDepleted" from="HealthComponent" to="." method="_OnHealthDepleted"]
 [connection signal="HealthUpdate" from="HealthComponent" to="." method="_OnHealthUpdate"]
 [connection signal="body_entered" from="Hitbox" to="." method="_OnHitboxBodyEntered"]
