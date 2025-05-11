@@ -39,7 +39,7 @@ scale = Vector2( 0.6, 0.6 )
 texture = ExtResource( 5 )
 
 [node name="McSpriteArtKiteKite" type="Sprite" parent="PlayerSprite"]
-position = Vector2( 1.66667, 13.3333 )
+position = Vector2( -3.33333, 25 )
 scale = Vector2( 0.802, 0.802 )
 z_index = -1
 z_as_relative = false

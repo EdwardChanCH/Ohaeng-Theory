@@ -67,4 +67,7 @@ https://docs.godotengine.org/en/3.6/tutorials/scripting/c_sharp/c_sharp_basics.h
 > 
 > YouTube Link: https://www.youtube.com/watch?v=sJQ98uKT-2E
 
+> "RPG Essentials Free SFX Pack"
+> https://leohpaz.itch.io/rpg-essentials-sfx-free
+
 **Thank you for playing our game!**  
