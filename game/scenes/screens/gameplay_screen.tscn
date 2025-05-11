@@ -90,32 +90,48 @@ MaxMovementBoundPath = NodePath("../MaxMovementBound")
 layer = 0
 
 [node name="FailSafeLeft" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 30
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="LeftBox" type="CollisionShape2D" parent="FailSafeLeft"]
 position = Vector2( -500, 540 )
 shape = SubResource( 2 )
 
 [node name="FailSafeRight" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 30
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="RightBox" type="CollisionShape2D" parent="FailSafeRight"]
 position = Vector2( 2420, 540 )
 shape = SubResource( 3 )
 
 [node name="FailSafeTop" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 30
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FailSafeTop"]
 position = Vector2( 960, -1420 )
 shape = SubResource( 4 )
 
 [node name="FailSafeBottom" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 30
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FailSafeBottom"]
 position = Vector2( 960, 2500 )

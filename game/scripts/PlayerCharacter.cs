@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using static Globals;
 
 // Note: NOT a singleton
 public class PlayerCharacter : KinematicBody2D
@@ -390,7 +389,7 @@ public class PlayerCharacter : KinematicBody2D
     public void _OnWaveComplete()
     {
         PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
-        GameplayScreen.Score += 2000;
+        Globals.SetScore(Globals.Score + 2000);
     }
 
     // Called when any setting got change
@@ -436,27 +435,27 @@ public class PlayerCharacter : KinematicBody2D
 
             switch (_currentElement)
             {
-                case Element.None:
+                case Globals.Element.None:
                     AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
                     break;
 
-                case Element.Water:
+                case Globals.Element.Water:
                     AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav");
                     break;
 
-                case Element.Wood:
+                case Globals.Element.Wood:
                     AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav");
                     break;
 
-                case Element.Fire:
+                case Globals.Element.Fire:
                     AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav");
                     break;
 
-                case Element.Earth:
+                case Globals.Element.Earth:
                     AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav");
                     break;
 
-                case Element.Metal:
+                case Globals.Element.Metal:
                     AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav");
                     break;
             }
