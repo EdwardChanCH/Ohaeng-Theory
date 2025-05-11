@@ -114,10 +114,10 @@ public class EnemyManager : Node2D
         // TODO Auto Merge
 
         // TODO test code
-/*         foreach (EnemyCharacter enemy in EnemyList)
+        foreach (EnemyCharacter enemy in EnemyList)
         {
             _OnEnemyMergeNeeded(enemy);
-        } */
+        }
     }
 
     // Free all enemy and lesser enemy
@@ -274,6 +274,7 @@ public class EnemyManager : Node2D
 
         bool motherAsEnemy; // If mother is still Enemy after split
         bool daughterAsEnemy; // If daughter is still Enemy after split
+        int halfHealth = mother.HealthComponent.CurrentHealth / 2;
         LesserEnemyCharacter lesser;
         EnemyCharacter daughter;
 
@@ -332,8 +333,8 @@ public class EnemyManager : Node2D
         }
         else // > 1
         {
-            mother.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(motherElements);
-            mother.HealthComponent.SetHealth(CalculateEnemyMaxHealth(motherElements));
+            mother.HealthComponent.MaxHealth = Math.Min(halfHealth, CalculateEnemyMaxHealth(motherElements));
+            mother.HealthComponent.SetHealth(Math.Min(halfHealth, CalculateEnemyMaxHealth(motherElements)));
             mother.Scale = newScale; // Reduce the size
 
             motherAsEnemy = true;
@@ -365,8 +366,8 @@ public class EnemyManager : Node2D
         {
             daughter = SpawnEnemy(this);
             daughter.SetElementalCount(daughterElements);
-            daughter.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(daughterElements);
-            daughter.HealthComponent.SetHealth(CalculateEnemyMaxHealth(daughterElements));
+            daughter.HealthComponent.MaxHealth = Math.Min(halfHealth, CalculateEnemyMaxHealth(daughterElements));
+            daughter.HealthComponent.SetHealth(Math.Min(halfHealth, CalculateEnemyMaxHealth(daughterElements)));
             daughter.GlobalPosition = mother.GlobalPosition;
             daughter.Scale = newScale; // Reduce the size
             
@@ -468,8 +469,9 @@ public class EnemyManager : Node2D
         }
 
         // Update health
-        larger.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(larger.ElementalCount);
-        larger.HealthComponent.SetHealth(CalculateEnemyMaxHealth(larger.ElementalCount));
+        int combinedHealth = larger.HealthComponent.CurrentHealth + smaller.HealthComponent.CurrentHealth;
+        larger.HealthComponent.MaxHealth = combinedHealth;
+        larger.HealthComponent.SetHealth(combinedHealth);
 
         // Remove both from list
         MergeList.Remove(larger);
