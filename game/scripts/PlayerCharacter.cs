@@ -389,7 +389,7 @@ public class PlayerCharacter : KinematicBody2D
     public void _OnWaveComplete()
     {
         PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
-        Globals.SetScore(Globals.Score + 2000);
+        Globals.AddScore(Globals.WaveCompleteReward);
     }
 
     // Called when any setting got change
