@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://themes/silver_font/Silver.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=2]
 [ext_resource path="res://themes/button_theme.tres" type="Theme" id=3]
 [ext_resource path="res://assets/textures/InnerCircle.png" type="Texture" id=4]
@@ -17,10 +17,10 @@ script = ExtResource( 5 )
 [node name="Label" type="Label" parent="."]
 anchor_left = 0.5
 anchor_right = 0.5
-margin_left = -263.0
-margin_top = 82.0
-margin_right = 271.0
-margin_bottom = 241.0
+margin_left = -368.0
+margin_top = 102.0
+margin_right = 368.0
+margin_bottom = 261.0
 custom_fonts/font = SubResource( 1 )
 text = "Gogyo Theory"
 align = 1
@@ -65,20 +65,20 @@ grow_vertical = 2
 
 [node name="PlayButton" type="Button" parent="VBoxContainer"]
 margin_right = 286.0
-margin_bottom = 107.0
+margin_bottom = 81.0
 theme = ExtResource( 3 )
 text = "Play"
 
 [node name="Control" type="Control" parent="VBoxContainer"]
-margin_top = 111.0
+margin_top = 85.0
 margin_right = 286.0
-margin_bottom = 161.0
+margin_bottom = 135.0
 rect_min_size = Vector2( 0, 50 )
 
 [node name="SettingButton" type="Button" parent="VBoxContainer"]
-margin_top = 165.0
+margin_top = 139.0
 margin_right = 286.0
-margin_bottom = 272.0
+margin_bottom = 220.0
 theme = ExtResource( 3 )
 text = "Setting"
 

@@ -97,6 +97,16 @@ public class Bullet : KinematicBody2D, IHarmful
         CollisionShape2DNode = GetNode<CollisionShape2D>(CollisionShape2DNodePath);
         MovementNode.Reset();
     }
+    public void Clear()
+    {
+        SpriteNode.QueueFree();
+        CollisionShape2DNode.QueueFree();
+
+        SpriteNode = null;
+        CollisionShape2DNode = null;
+        MovementNode = null;
+    }
+
 
     // Copy data from another source bullet
     // Note: Export nodes are not copied, parent is not copied

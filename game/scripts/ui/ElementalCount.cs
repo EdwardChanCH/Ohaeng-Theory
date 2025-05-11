@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public class ElementalCount : Node
+public class ElementalCount : Control
 {
     [Export]
     public Godot.Collections.Array<NodePath> ElementalCountLabelPaths = new Godot.Collections.Array<NodePath>();
