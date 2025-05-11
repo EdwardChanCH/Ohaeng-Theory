@@ -1,18 +1,18 @@
 [gd_scene load_steps=15 format=2]
 
-[ext_resource path="res://assets/textures/enemies/discount_metal.png" type="Texture" id=1]
+[ext_resource path="res://assets/textures/enemies/enemy_fire.png" type="Texture" id=1]
 [ext_resource path="res://scripts/EnemyCharacter.cs" type="Script" id=2]
 [ext_resource path="res://scripts/HealthComponent.cs" type="Script" id=3]
 [ext_resource path="res://assets/textures/white.png" type="Texture" id=4]
 [ext_resource path="res://scenes/damage_popup.tscn" type="PackedScene" id=5]
 [ext_resource path="res://scenes/elemental_count.tscn" type="PackedScene" id=6]
-[ext_resource path="res://assets/textures/enemies/discount_fire.png" type="Texture" id=7]
-[ext_resource path="res://assets/textures/enemies/discount_water.png" type="Texture" id=8]
-[ext_resource path="res://assets/textures/enemies/discount_wood.png" type="Texture" id=9]
-[ext_resource path="res://assets/textures/enemies/discount_earth.png" type="Texture" id=10]
+[ext_resource path="res://assets/textures/enemies/enemy_metal.png" type="Texture" id=7]
+[ext_resource path="res://assets/textures/enemies/enemy_grass.png" type="Texture" id=8]
+[ext_resource path="res://assets/textures/enemies/enemy_water.png" type="Texture" id=9]
+[ext_resource path="res://assets/textures/enemies/enemy_earth.png" type="Texture" id=10]
 
 [sub_resource type="CircleShape2D" id=5]
-radius = 100.0
+radius = 115.004
 
 [sub_resource type="CircleShape2D" id=6]
 radius = 100.0
@@ -34,7 +34,7 @@ HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
 DamagePopupPath = NodePath("DamagePopup")
-CharacterSpriteTexture = [ ExtResource( 8 ), ExtResource( 9 ), ExtResource( 7 ), ExtResource( 10 ), ExtResource( 1 ) ]
+CharacterSpriteTexture = [ ExtResource( 9 ), ExtResource( 8 ), ExtResource( 1 ), ExtResource( 10 ), ExtResource( 7 ) ]
 CharacterSpirtePath = NodePath("Sprite")
 
 [node name="HealthComponent" type="Node" parent="."]
@@ -42,16 +42,19 @@ script = ExtResource( 3 )
 MaxHealth = 250
 
 [node name="Sprite" type="Sprite" parent="."]
-texture = ExtResource( 1 )
+scale = Vector2( 0.78, 0.78 )
+texture = ExtResource( 10 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource( 5 )
 
 [node name="Hitbox" type="Area2D" parent="."]
+visible = false
 collision_layer = 0
 collision_mask = 6
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+visible = false
 shape = SubResource( 6 )
 
 [node name="DamagePopup" parent="." instance=ExtResource( 5 )]
