@@ -5,35 +5,46 @@ public class GameplayUI : Node
 {
     [Export]
     public NodePath ScoreLabelPath = new NodePath();
-    private static Label _scoreLabel;
+    private Label _scoreLabel;
 
     [Export]
     public NodePath WaveLabelPath = new NodePath();
-    private static Label _waveLabel;
+    private Label _waveLabel;
 
     [Export]
     public NodePath HighestWaveLabelPath = new NodePath();
-    private static Label _highestWaveLabel;
+    private Label _highestWaveLabel;
 
-    public override void _Ready()
-    {
-        base._Ready();
+    [Export]
+    public NodePath PlayerHealthBarPath = new NodePath();
+    private ProgressBar _playerHealthBar;
 
-        Globals.Singleton.Connect("ScoreChanged", this, nameof(UpdateScoreLabel));
-    }
+    [Export]
+    public NodePath EnemyProgressBarPath = new NodePath();
+    private ProgressBar _enemyProgressBar;
+
 
     public override void _EnterTree()
     {
         _scoreLabel = GetNode<Label>(ScoreLabelPath);
         _waveLabel = GetNode<Label>(WaveLabelPath);
         _highestWaveLabel = GetNode<Label>(HighestWaveLabelPath);
-
-        if (_scoreLabel == null || _waveLabel == null || _highestWaveLabel == null)
-        {
-            GD.PrintErr("Error: GameplayUI is missing export variables.");
-            return;
-        }
+        _playerHealthBar = GetNode<ProgressBar>(PlayerHealthBarPath);
+        _enemyProgressBar = GetNode<ProgressBar>(EnemyProgressBarPath);
     }
+
+    public override void _Ready()
+    {
+        base._Ready();
+
+        Globals.Singleton.Connect("ScoreChanged", this, nameof(UpdateScoreLabel));
+
+        GameplayScreen.PlayerRef.Connect("HealthUpdate", this, "_OnHealthUpdate");
+        GameplayScreen.EnemyManager.Connect("WaveProgressChanged", this, "_WaveProgressChanged");
+
+
+    }
+
 
     public void UpdateScoreLabel()
     {
@@ -52,5 +63,15 @@ public class GameplayUI : Node
             highestWave = "n/a";
         }
         _highestWaveLabel.Text = $"Best: {highestWave}";
+    }
+
+    public void _OnHealthUpdate(int newHealth)
+    {
+        _playerHealthBar.Value = (float)newHealth / (float)GameplayScreen.PlayerRef.PlayerHealthComponent.MaxHealth;
+    }
+
+    public void _WaveProgressChanged(int currentHealth, int maxHealth)
+    {
+        _enemyProgressBar.Value = (float)currentHealth / (float)maxHealth;
     }
 }

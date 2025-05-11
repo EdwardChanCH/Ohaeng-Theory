@@ -33,18 +33,14 @@ radius = 6.0
 collision_layer = 2
 script = ExtResource( 2 )
 HealthComponentPath = NodePath("HealthComponent")
-HealthBarPath = NodePath("ProgressBar")
+HealthBarPath = NodePath("HealthBar")
 PlayerSpritePath = NodePath("PlayerSprite")
 KiteSpritePath = NodePath("PlayerSprite/McSpriteArtKiteKite")
 ElementPath = NodePath("ElementCircle")
+HealthTextPath = NodePath("HealthBar/HealthRemaining")
 ShootOffset = Vector2( 80, 0 )
 
 [node name="ElementCircle" parent="." instance=ExtResource( 6 )]
-
-[node name="KiteRope" type="Sprite" parent="."]
-rotation = 1.48353
-texture = SubResource( 5 )
-offset = Vector2( 1024, 0 )
 
 [node name="PlayerSprite" type="Sprite" parent="."]
 position = Vector2( 0, -1 )
@@ -58,17 +54,32 @@ z_index = -1
 z_as_relative = false
 texture = ExtResource( 7 )
 
-[node name="ProgressBar" type="ProgressBar" parent="."]
+[node name="KiteRope" type="Sprite" parent="PlayerSprite/McSpriteArtKiteKite"]
+position = Vector2( 4.15627, -29.0939 )
+rotation = 1.48353
+scale = Vector2( 2.07814, 2.07814 )
+texture = SubResource( 5 )
+offset = Vector2( 1024, 0 )
+
+[node name="HealthBar" type="ProgressBar" parent="."]
 show_behind_parent = true
-margin_left = -50.0
-margin_top = 110.0
-margin_right = 50.0
-margin_bottom = 120.0
+margin_left = -80.0
+margin_top = 112.0
+margin_right = 80.0
+margin_bottom = 136.0
 custom_styles/fg = SubResource( 2 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0
 value = 1.0
 percent_visible = false
+
+[node name="HealthRemaining" type="Label" parent="HealthBar"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+rect_min_size = Vector2( 110, 14 )
+text = "??? / ???"
+align = 1
+valign = 1
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource( 4 )
