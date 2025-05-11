@@ -18,7 +18,7 @@ public class EnemyManager : Node2D
     public bool WaveInProgress = false; // If the wave is still going on // TODO
     public int WavesCompleted { get; set; } = 0; // Number of waves successfully completed
     public float WaveTimer { get; set; } = 0.0f; // Time spent in the current wave
-    public float WaveCooldown { get; set; } = 0.1f; // Delay at the start and end of each wave
+    public float WaveBuffer { get; set; } = 0.1f; // Delay at the start and end of each wave
     public string CurrentWaveEncoding { get; set; } = ""; // Current wave enemies in string encoding
     public float UpdateDelay { get; set; } = 1; // How many seconds to wait before game updates
     public float UpdateTimer { get; set; } = 0; // How many seconds has passed since the last game update
@@ -97,7 +97,7 @@ public class EnemyManager : Node2D
         // TODO test only
         LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
         StartWave();
-        CancelWave();
+        //CancelWave();
     }
 
     // - - - Wave Loop - - -
@@ -106,39 +106,48 @@ public class EnemyManager : Node2D
     {
         base._PhysicsProcess(delta);
 
+        //GD.Print($"{EnemyList.Count} {LesserEnemyList.Count}");
+
         if (WaveInProgress)
         {
             WaveTimer += delta;
         }
 
-        if (WaveTimer > WaveCooldown) // To prevent any Godot _Ready() errors
+        if (WaveTimer <= WaveBuffer)
         {
-            if (EnemyList.Count == 0 && LesserEnemyList.Count == 0)
-            {
-                // - - - Wave actually completes - - -
+            // Do nothing, to prevent any Godot _Ready() sync issues
+            return; // Early exit
+        }
 
-                WaveInProgress = false;
-                WavesCompleted += 1;
-                EmitSignal("WaveComplete");
+        if (EnemyList.Count == 0 && LesserEnemyList.Count == 0 && WaveInProgress)
+        {
+            // - - - Wave actually completes - - -
+            WaveInProgress = false;
+            WavesCompleted += 1;
+            EmitSignal("WaveComplete");
 
-                // - - - Wave actually completes - - -
-            }
+            ProjectileManager.ClearBullets();
+            GD.Print($"Wave {WavesCompleted} completed!");
 
-            UpdateTimer += delta;
-            if (UpdateTimer > UpdateDelay)
-            {
-                UpdateTimer -= UpdateDelay;
+            return; // Early exit
 
-                // - - - Update game states - - -
-                
-                // Auto-Merge All Enemies
-                AutoMergeEnemies();
+            // - - - Wave actually completes - - -
+        }
 
-                // Reposition All Enemies
-                RepositionEnemies();
+        UpdateTimer += delta;
+        if (UpdateTimer > UpdateDelay)
+        {
+            UpdateTimer -= UpdateDelay;
 
-                // - - - Update game states - - -
-            }
+            // - - - Update game states - - -
+            
+            // Auto-Merge All Enemies
+            AutoMergeEnemies();
+
+            // Reposition All Enemies
+            RepositionEnemies();
+
+            // - - - Update game states - - -
         }
     }
 
@@ -438,12 +447,11 @@ public class EnemyManager : Node2D
         AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_Battle_SFX/22_Slash_04.wav");
     }
 
-    // Use CallDeferred()
     public void InitMergeEnemy(EnemyCharacter source)
     {
-        if (source == null)
+        if (source == null || !IsInstanceValid(source))
         {
-            GD.PrintErr("Error: Failed to init merge enemy: Null.");
+            GD.Print("Warning: Cannot init merge null enemy.");
             return;
         }
 
@@ -458,6 +466,12 @@ public class EnemyManager : Node2D
         {
             // Even number of enemies waiting to merge
             EnemyCharacter partner = MergeList[MergeList.Count - 2]; // The enemy before source
+
+            if (partner == null || !IsInstanceValid(partner))
+            {
+                GD.Print("Warning: Cannot init merge null partner.");
+                return;
+            }
 
             Vector2 midpoint = (partner.GlobalPosition + source.GlobalPosition) / 2;
 
@@ -688,8 +702,6 @@ public class EnemyManager : Node2D
         EnemyList.Remove(source);
 
         MergeList.Remove(source); // Beware of this
-
-        GD.Print("Enemy Killed");
     }
 
     public void _OnLesserEnemyKilled(LesserEnemyCharacter source)

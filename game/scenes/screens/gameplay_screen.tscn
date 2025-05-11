@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://assets/textures/icon.png" type="Texture" id=1]
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
@@ -7,7 +7,19 @@
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 1920, 1080 )
+extents = Vector2( 980, 560 )
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 200, 2160 )
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 200, 2160 )
+
+[sub_resource type="RectangleShape2D" id=4]
+extents = Vector2( 1258, 200 )
+
+[sub_resource type="RectangleShape2D" id=5]
+extents = Vector2( 1258, 200 )
 
 [node name="GameplayScreen" type="Node2D"]
 script = ExtResource( 5 )
@@ -58,5 +70,41 @@ __meta__ = {
 [node name="GameplayUI" parent="." instance=ExtResource( 3 )]
 layer = 0
 
+[node name="FailSafeLeft" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 30
+
+[node name="LeftBox" type="CollisionShape2D" parent="FailSafeLeft"]
+position = Vector2( -500, 540 )
+shape = SubResource( 2 )
+
+[node name="FailSafeRight" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 30
+
+[node name="RightBox" type="CollisionShape2D" parent="FailSafeRight"]
+position = Vector2( 2420, 540 )
+shape = SubResource( 3 )
+
+[node name="FailSafeTop" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 30
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FailSafeTop"]
+position = Vector2( 960, -1420 )
+shape = SubResource( 4 )
+
+[node name="FailSafeBottom" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 30
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FailSafeBottom"]
+position = Vector2( 960, 2500 )
+shape = SubResource( 5 )
+
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]
+[connection signal="body_exited" from="FailSafeLeft" to="." method="_OnFailSafeBodyExited"]
+[connection signal="body_exited" from="FailSafeRight" to="." method="_OnFailSafeBodyExited"]
+[connection signal="body_exited" from="FailSafeTop" to="." method="_OnFailSafeBodyExited"]
+[connection signal="body_exited" from="FailSafeBottom" to="." method="_OnFailSafeBodyExited"]
