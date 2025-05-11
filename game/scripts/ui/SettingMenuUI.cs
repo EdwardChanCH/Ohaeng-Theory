@@ -115,6 +115,9 @@ public class SettingMenuUI : Node
 
     private void _UpdateToggle(bool pressed, string data)
     {
-        Globals.ChangeGameData(data, Globals.Bool2String(pressed));
+        GD.Print("Update toggle");
+
+        if(Globals.String2Bool(Globals.GameData[data]) != pressed)
+            Globals.ChangeGameData(data, Globals.Bool2String(pressed));
     }
 }
