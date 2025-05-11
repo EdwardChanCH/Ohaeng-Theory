@@ -387,6 +387,12 @@ public class PlayerCharacter : KinematicBody2D
         EmitSignal("PlayerDeath");
     }
     
+    public void _OnWaveComplete()
+    {
+        PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
+        GameplayScreen.Score += 2000;
+    }
+
     // Called when any setting got change
     private void UpdateSetting(string key, string value)
     {
@@ -459,5 +465,4 @@ public class PlayerCharacter : KinematicBody2D
             _firingAudioTimer = 0;
         }
     }
-
 }

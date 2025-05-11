@@ -7,6 +7,10 @@ public class GameplayScreen : Node2D
     public NodePath GameplayUIPath = new NodePath();
     private static GameplayUI _gameplayUI;
 
+    [Export]
+    public NodePath EnemyManagerPath = new NodePath();
+    private static EnemyManager _enemyManager;
+    //public NodePath
 
     public static Node2D PlayerRef;
 
@@ -26,12 +30,17 @@ public class GameplayScreen : Node2D
     public override void _EnterTree()
     {
         _gameplayUI = GetNode<GameplayUI>(GameplayUIPath);
+        _enemyManager = GetNode<EnemyManager>(EnemyManagerPath);
         AudioManager.PlayBMG("res://assets/sfx/bgm/unwritten_return_fast.wav", 0.25f);
     }
+
+
+
 
     public override void _Ready()
     {
         Score = 0;
+        _enemyManager.Connect("WaveComplete", PlayerRef, "_OnWaveComplete");
     }
 
     public override void _ExitTree()

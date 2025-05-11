@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=2]
 [ext_resource path="res://themes/button_theme.tres" type="Theme" id=3]
 [ext_resource path="res://assets/textures/InnerCircle.png" type="Texture" id=4]
 [ext_resource path="res://scripts/ui/MainMenuUI.cs" type="Script" id=5]
+[ext_resource path="res://assets/textures/background_parallex_base_no_clouds.png" type="Texture" id=6]
 
 [sub_resource type="DynamicFont" id=1]
 size = 143
@@ -25,6 +26,11 @@ custom_fonts/font = SubResource( 1 )
 text = "Gogyo Theory"
 align = 1
 valign = 1
+
+[node name="TextureRect3" type="TextureRect" parent="."]
+margin_right = 1920.0
+margin_bottom = 1080.0
+texture = ExtResource( 6 )
 
 [node name="TextureRect2" type="TextureRect" parent="."]
 modulate = Color( 1, 1, 1, 0.419608 )

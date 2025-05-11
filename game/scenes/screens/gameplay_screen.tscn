@@ -25,6 +25,7 @@ extents = Vector2( 1258, 200 )
 [node name="GameplayScreen" type="Node2D"]
 script = ExtResource( 5 )
 GameplayUIPath = NodePath("GameplayUI")
+EnemyManagerPath = NodePath("EnemyManager")
 
 [node name="BackgroundParallexBaseNoClouds" type="Sprite" parent="."]
 position = Vector2( 960, 540 )
