@@ -1,6 +1,6 @@
 using Godot;
 using System;
-
+using System.Collections.Generic;
 public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 {
     [Signal]
@@ -38,6 +38,11 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     private Globals.Element _dominantElement = Globals.Element.Water;
 
+    private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
+
+    private float _fireDelay = 1.5f;
+    private float _fireTimer;
+
     public override void _Ready()
     {
         HealthComponent = GetNode<HealthComponent>(HealthComponentPath);
@@ -46,18 +51,46 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
         MovementComponent = GetNode<IMovement>(MovementComponentPath);
+        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        MovementComponent.Direction = Vector2.Left;
 
-        if (HealthComponent == null || _healthBar == null 
-            || MovementComponent == null || _healthText == null 
-            || _damagePopup == null || CharacterSprite == null)
+
+        Bullet template;
+        foreach (Globals.Element element in Globals.AllElements)
         {
-            GD.PrintErr("Error: Enemy Controller Contains Invalid Path");
-            return;
+            template = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+            template.Element = element;
+            _bulletTemplates[$"Enemy_{element}_Bullet"] = template;
         }
 
-        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        foreach (Bullet bullet in _bulletTemplates.Values)
+        {
+            // Warning: DO NOT attach template nodes to a parent
+            bullet.Position = Vector2.Zero;
+            bullet.Damage = 1;
+            bullet.Friendly = false;
+            bullet.MovementNode.Direction = Vector2.Left;
+            bullet.MovementNode.Speed = 500; // TODO tune speed
+        }
 
-        MovementComponent.Direction = Vector2.Left;
+        _fireTimer = _fireDelay / 2.0f;
+    }
+
+    public override void _Process(float delta)
+    {
+        _fireTimer += delta;
+        if (_fireTimer >= _fireDelay)
+        {
+            _fireTimer = 0;
+
+            var bulletRef = MakeBulletCopy(_dominantElement);
+            var playerDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+            bulletRef.MovementNode.Direction = playerDirection;
+            ProjectileManager.EmitBulletLine(bulletRef, GetTree().Root, GlobalPosition);
+            bulletRef.QueueFree();
+
+            //(Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+        }
     }
 
     public override void _PhysicsProcess(float delta)
@@ -122,6 +155,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     {
         EmitSignal("Killed", this);
         QueueFree();
+        GameplayScreen.Score += 100;
     }
 
     public void SwitchSprite(Globals.Element element)
@@ -145,5 +179,12 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
         _dominantElement = value;
         SwitchSprite(value);
+    }
+
+    public Bullet MakeBulletCopy(Globals.Element element)
+    {
+        var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+        Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);
+        return bulletCopy;
     }
 }
