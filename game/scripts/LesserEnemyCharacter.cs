@@ -85,6 +85,9 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
             var bulletRef = MakeBulletCopy(_dominantElement);
             var playerDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+            playerDirection.x = Mathf.Clamp(playerDirection.x, -0.1f, -1f);
+
+
             bulletRef.MovementNode.Direction = playerDirection;
             ProjectileManager.EmitBulletLine(bulletRef, GetTree().Root, GlobalPosition);
             bulletRef.QueueFree();

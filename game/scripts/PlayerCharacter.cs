@@ -390,6 +390,7 @@ public class PlayerCharacter : KinematicBody2D
     // Called when any setting got change
     private void UpdateSetting(string key, string value)
     {
+        GD.Print(key);
         if(key == "ToggleSlow")
         {
             _ShouldSlowMovement = false;

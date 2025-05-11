@@ -55,13 +55,16 @@ public class EnemyCharacter : KinematicBody2D
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
 
     [Export]
-    public float AttackBetweenDelay = 2.5f;
+    public float AttackBetweenDelay = 5.0f;
     private float _attackBetweenTimer;
 
     private float _fireDelay = 0.25f;
     private float _fireTimer;
     private bool _isAttacking = false;
     private int _attackCounter = 0;
+
+    private float _attackPauseTimer = 0;
+    private bool _isAttackPause = false;
 
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
@@ -182,105 +185,10 @@ public class EnemyCharacter : KinematicBody2D
 
     public override void _Process(float delta)
     {
+        _attackPauseTimer -= delta;
 
-        // Shotting projectile from the queue
-        if (_isAttacking)
-        {
-            _fireTimer += delta;
-            if (_fireTimer >= _fireDelay)
-            {
-                _fireTimer = 0;
-                bool areAllQueueEmpty = true;
-                foreach (var queue in _projectileQueue)
-                {
-                    //GD.Print("Metal");
-                    if(queue.Count >= 1)
-                    {
-                        areAllQueueEmpty = false;
-                        var projectile = queue.Dequeue();
-                        //GD.Print(projectile.MovementNode.Direction);
-                        //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
-
-                        switch (DominantElement)
-                        {
-                            case Globals.Element.Water:
-                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
-                                break;
-
-                            case Globals.Element.Wood:
-
-                                //45.0f
-                                 //90.0f
-                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 15, 180.0f);
-                                break;
-
-                            case Globals.Element.Fire:
-                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
-                                break;
-
-                            case Globals.Element.Earth:
-                                //ProjectileManager.EmitBulletRing
-                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 5, 1.0f);
-                                break;
-
-                            case Globals.Element.Metal:
-                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 1 + _attackCounter, 80);
-                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
-                                break;
-                        }
-
-                        projectile.Clear();
-                        projectile.QueueFree();
-                    }
-                    
-                }
-
-                _attackCounter++;
-                if (areAllQueueEmpty)
-                {
-                    _isAttacking = false;
-                    _attackBetweenTimer = 0;
-                    _attackCounter = 0;
-                }
-            }
-        }
-        else
-        {
-            _attackBetweenTimer += delta;
-        }
-            // Add projectile to the queue
-        if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
-        {
-            _isAttacking = true;
-
-            //add a switch statment when got every pattern
-
-            switch (DominantElement)
-            {
-                case Globals.Element.Water:
-                    _fireDelay = 0.05f;
-                    WavePattern(50, 4, 5);
-                    break;
-                case Globals.Element.Wood:
-                    _fireDelay = 0.1f;
-                    SpherePattern(24, 15, 8, 100);
-                    break;
-                case Globals.Element.Fire:
-                    _fireDelay = 0.005f;
-                    SpinnyPattern(180, 4.3f);
-                    break;
-                case Globals.Element.Earth:
-                    _fireDelay = 0.1f;
-                    WallPattern(15, 15f, 50);
-                    break;
-                case Globals.Element.Metal:
-                    _fireDelay = 0.1f;
-                    WallPattern(10, -10f, 250);
-                    break;
-            }
-
-
-        }
+        _isAttackPause = _attackPauseTimer > 0.0f;
+        AttackLoop(delta);
     }
 
     public override void _PhysicsProcess(float delta)
@@ -361,6 +269,113 @@ public class EnemyCharacter : KinematicBody2D
         }
     }
 
+    public void AttackLoop(float delta)
+    {
+        if (_isAttackPause)
+        {
+            return;
+        }
+
+        // Shotting projectile from the queue
+        if (_isAttacking)
+        {
+            _fireTimer += delta;
+            if (_fireTimer >= _fireDelay)
+            {
+                _fireTimer = 0;
+                bool areAllQueueEmpty = true;
+                foreach (var queue in _projectileQueue)
+                {
+                    //GD.Print("Metal");
+                    if (queue.Count >= 1)
+                    {
+                        areAllQueueEmpty = false;
+                        var projectile = queue.Dequeue();
+                        //GD.Print(projectile.MovementNode.Direction);
+                        //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+
+                        switch (DominantElement)
+                        {
+                            case Globals.Element.Water:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+
+                            case Globals.Element.Wood:
+
+                                //45.0f
+                                //90.0f
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 15, 180.0f);
+                                break;
+
+                            case Globals.Element.Fire:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+
+                            case Globals.Element.Earth:
+                                //ProjectileManager.EmitBulletRing
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 5, 1.0f);
+                                break;
+
+                            case Globals.Element.Metal:
+                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 1 + _attackCounter, 40);
+                                //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+                        }
+
+                        projectile.Clear();
+                        projectile.QueueFree();
+                    }
+
+                }
+
+                _attackCounter++;
+                if (areAllQueueEmpty)
+                {
+                    _isAttacking = false;
+                    _attackBetweenTimer = 0;
+                    _attackCounter = 0;
+                }
+            }
+        }
+        else
+        {
+            _attackBetweenTimer += delta;
+        }
+        // Add projectile to the queue
+        if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
+        {
+            _isAttacking = true;
+
+            //add a switch statment when got every pattern
+
+            switch (DominantElement)
+            {
+                case Globals.Element.Water:
+                    _fireDelay = 0.05f;
+                    WavePattern(50, 4, 5);
+                    break;
+                case Globals.Element.Wood:
+                    _fireDelay = 0.1f;
+                    SpherePattern(24, 15, 8, 100);
+                    break;
+                case Globals.Element.Fire:
+                    _fireDelay = 0.005f;
+                    SpinnyPattern(180, 4.3f);
+                    break;
+                case Globals.Element.Earth:
+                    _fireDelay = 0.1f;
+                    WallPattern(15, 15f, 150);
+                    break;
+                case Globals.Element.Metal:
+                    _fireDelay = 0.1f;
+                    WallPattern(10, -10f, 350);
+                    break;
+            }
+
+
+        }
+    }
+
     public void _OnHealthUpdate(int newHealth)
     {
         _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
@@ -374,6 +389,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHealthDepleted()
     {
+        GameplayScreen.Score += 1000;
         Kill();
     }
 
@@ -381,8 +397,6 @@ public class EnemyCharacter : KinematicBody2D
     {
         EmitSignal("Killed", this);
         QueueFree();
-        GameplayScreen.Score += 1000;
-       
     }
 
     public void AddToElement(Globals.Element element, int count)
@@ -523,7 +537,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SpherePattern(int waves, float speedChangePerWave, float angle = 1, float startingSpeed = 150)
     {
-        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        var startingDirection = Vector2.Left;
         for (int i = 0; i < waves; i++)
         {
             var bulletCopy = MakeBulletCopy(DominantElement);
@@ -537,7 +551,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void WallPattern(int waves, float speedChangePerWave, float startingSpeed = 100)
     {
-        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        var startingDirection = Vector2.Left;
         for (int i = 0; i < waves; i++)
         {
             var bulletCopy = MakeBulletCopy(DominantElement);
@@ -582,5 +596,10 @@ public class EnemyCharacter : KinematicBody2D
     {
         Scale = new Vector2(scale, scale);
         _uiElement.GlobalScale = Vector2.One;
+    }
+
+    public void PauseShooting(float delay)
+    {
+        _attackPauseTimer = delay;
     }
 }
