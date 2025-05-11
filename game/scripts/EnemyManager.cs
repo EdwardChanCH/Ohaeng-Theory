@@ -7,17 +7,21 @@ using System.Linq;
 // Note: NOT a singleton
 public class EnemyManager : Node2D
 {
+    [Signal]
+    public delegate void WaveStarted();
+
     public const string EnemyCharacterPath = "res://scenes/enemy_character.tscn";
     public const string LesserEnemyCharacterPath = "res://scenes/lesser_enemy_character.tscn";
     public static PackedScene EnemyCharacterScene = null;
     public static PackedScene LesserEnemyCharacterScene = null;
 
-    public bool WaveInProgress = false; // If the wave is still going on
+    public bool WaveInProgress = true; // If the wave is still going on // TODO
     public int WaveNumber { get; set; } = 0; // Number of waves successfully completed
-    public float TimeElapsed { get; set; } = 0.0f; // Time spent in the current wave
-    private float _waveCooldownTimer { get; set; } = 0.0f; // Delay at the start and end of each wave
-    public float WaveCooldown { get; set; } = 1.0f; // Delay at the start and end of each wave
+    public float WaveTimer { get; set; } = 0.0f; // Time spent in the current wave
+    public float WaveCooldown { get; set; } = 0.1f; // Delay at the start and end of each wave
     public string CurrentWaveEncoding { get; set; } = ""; // Current wave enemies in string encoding
+    public float UpdateDelay { get; set; } = 1; // How many seconds to wait before game updates
+    public float UpdateTimer { get; set; } = 0; // How many seconds has passed since the last game update
 
     [Export]
     public int LesserEnemyBaseHealth { get; set; } = 100; // always at rank = 1
@@ -25,12 +29,19 @@ public class EnemyManager : Node2D
     // The zone the enemy/ lesser enemy can spawn in
     [Export]
     public NodePath MinSpawnNodePath { get; set; }
+
     [Export]
     public NodePath MaxSpawnNodePath { get; set; }
+
     private Node2D _minSpawnNode = null;
     private Node2D _maxSpawnNode = null;
     private Vector2 _minSpawnArea = Vector2.Zero;
     private Vector2 _maxSpawnArea = Vector2.Zero;
+    private Vector2 _centerSpawnArea = Vector2.Zero;
+    private float _widthSpawnArea = 0;
+    private float _heightSpawnArea = 0;
+    private Vector2 _hideVector = Vector2.Zero;
+    private Vector2 _spawnLocation = Vector2.Zero;
 
     public List<EnemyCharacter> EnemyList = new List<EnemyCharacter>();
     public List<LesserEnemyCharacter> LesserEnemyList = new List<LesserEnemyCharacter>();
@@ -80,6 +91,11 @@ public class EnemyManager : Node2D
 
         _minSpawnArea = _minSpawnNode.GlobalPosition;
         _maxSpawnArea = _maxSpawnNode.GlobalPosition;
+        _centerSpawnArea = (_minSpawnArea + _maxSpawnArea) / 2;
+        _widthSpawnArea = _maxSpawnArea.x - _minSpawnArea.x;
+        _heightSpawnArea = _maxSpawnArea.y - _minSpawnArea.y;
+        _hideVector = Vector2.Right * _widthSpawnArea;
+        _spawnLocation = _centerSpawnArea + _hideVector;
 
         // TODO test only
 /*         EnemyCharacter e1 = SpawnEnemy(this);
@@ -102,23 +118,42 @@ public class EnemyManager : Node2D
         f.HealthComponent.SetHealth(LesserEnemyBaseHealth); */
     }
 
+    // - - - Wave Loop - - -
+
     public override void _PhysicsProcess(float delta)
     {
         base._PhysicsProcess(delta);
 
-/*         if (WaveInProgress)
+        if (WaveInProgress)
         {
-            TimeElapsed += delta;
-        } */
+            WaveTimer += delta;
+            if (WaveTimer > WaveCooldown)
+            {
+                EmitSignal("WaveStarted");
 
-        // TODO Auto Merge
+                // - - - Wave actually starts - - -
+                
+                // - - - Wave actually starts - - -
+            }
 
-        // TODO test code
-        foreach (EnemyCharacter enemy in EnemyList)
-        {
-            _OnEnemyMergeNeeded(enemy);
+            UpdateTimer += delta;
+            if (UpdateTimer > UpdateDelay)
+            {
+                UpdateTimer -= UpdateDelay;
+
+                // - - - Update game states - - -
+                
+                // TODO Auto-Merge
+
+                // Reposition All Enemies
+                RepositionEnemies(); // Expensive call, but who cares at this point
+
+                // - - - Update game states - - -
+            }
         }
     }
+
+    // - - - Wave Loop - - -
 
     // Free all enemy and lesser enemy
     public void Clear()
@@ -141,17 +176,23 @@ public class EnemyManager : Node2D
 
     public void LoadWave()
     {
-        GD.Print("Wave loading.");
+        GD.Print("Wave loading."); // TODO
     }
 
     public void StartWave()
     {
-        GD.Print("Wave started.");
+        GD.Print("Wave started."); // TODO
+
+        WaveInProgress = true;
+        WaveTimer = 0;
+        UpdateTimer = 0;
     }
 
     public void StopWave()
     {
-        GD.Print("Wave ended.");
+        GD.Print("Wave ended."); // TODO
+
+        WaveInProgress = false;
     }
 
     // Encode all enemy on screen as a string
@@ -200,11 +241,14 @@ public class EnemyManager : Node2D
         // - - - Initialize each enemy - - -
         foreach (EnemyCharacter enemy in enemySpawned)
         {
+
             enemy.HealthComponent.MaxHealth = CalculateEnemyMaxHealth(enemy.ElementalCount);
             enemy.HealthComponent.SetHealth(CalculateEnemyMaxHealth(enemy.ElementalCount));
-            //enemy.GlobalPosition = enemy.GlobalPosition; // TODO
-            //enemy.Scale = ; // Reduce the size // TODO
+            enemy.Position = _spawnLocation;
         }
+
+        // Need to call reposition to spread out and unhide
+        RepositionEnemies();
 
         return enemySpawned;
     }
@@ -356,8 +400,8 @@ public class EnemyManager : Node2D
             lesser.SetElement(newElement);
             lesser.HealthComponent.MaxHealth = LesserEnemyBaseHealth;
             lesser.HealthComponent.SetHealth(LesserEnemyBaseHealth);
-            // angle = (360 / 5) * n, radius = 100
-            lesser.GlobalPosition = mother.GlobalPosition + 150 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)newElement - 1) / 5.0f);
+            // angle = (360 / 5) * 1.5n, radius = 100
+            lesser.GlobalPosition = mother.GlobalPosition + 100 * Vector2.Up.Rotated(2 * Mathf.Pi * ((int)newElement - 1 + 0.5f) / 5.0f);
 
             daughter = null;
             daughterAsEnemy = false;
@@ -538,7 +582,21 @@ public class EnemyManager : Node2D
         }
 
         // Move all the enemy
-        // TODO
+        Vector2 xOffset = Vector2.Right * (_widthSpawnArea / 3); // 2 columns
+        Vector2 yOffset = Vector2.Down * (_heightSpawnArea / (tempList.Count() + 1)); // N rows
+        for (int i = 0; i < tempList.Count(); i++)
+        {
+            if (i % 2 == 0)
+            {
+                // 1st column for odd
+                tempList[i].TargetLocation = _minSpawnArea + xOffset + (i + 1) * yOffset;
+            }
+            else
+            {
+                // 2nd column for even
+                tempList[i].TargetLocation = _minSpawnArea + 2 * xOffset + (i + 1) * yOffset;
+            }
+        }
     }
 
     // Calculate enemy health
