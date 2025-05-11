@@ -80,4 +80,12 @@ public class GameplayScreen : Node2D
         }
     }
 
+    public void _OnFailSafeBodyExited(Node body)
+    {
+        if (body is IHarmful harmful)
+        {
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+        }
+    }
+
 }

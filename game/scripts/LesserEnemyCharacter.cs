@@ -36,7 +36,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
     [Export]
     public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
 
-    private Globals.Element _dominantElement = Globals.Element.None;
+    private Globals.Element _dominantElement = Globals.Element.Water;
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 

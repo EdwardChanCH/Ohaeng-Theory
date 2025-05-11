@@ -13,6 +13,8 @@ public class ProjectileManager : Node
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
 
+    private static List<Node> _spawnedBullets = new List<Node>();
+
     //private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
 
     public static readonly Dictionary<Globals.Element, string> BulletScenePath = new Dictionary<Globals.Element, string>()
@@ -38,18 +40,19 @@ public class ProjectileManager : Node
     }
 
     // Free all bullets
-    public static void Clear()
+    public static void ClearBullets()
     {
+        foreach (Node node in _spawnedBullets)
+        {
+            if (node is Bullet bullet)
+            {
+                bullet.Kill();
+            }
+        }
+        _spawnedBullets.Clear();
+
         foreach (Stack<Node> stack in _objectPools.Values)
         {
-            foreach (Node node in stack)
-            {
-                if (node is Bullet bullet)
-                {
-                    bullet.Kill();
-                }
-            }
-
             stack.Clear();
         }
     }
@@ -107,6 +110,8 @@ public class ProjectileManager : Node
 
             // Make a new projectile
             projectile = _cachedScenes[scenePath].Instance();
+
+            _spawnedBullets.Add(projectile);
         }
 
         // Attatch to parent
