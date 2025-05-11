@@ -58,7 +58,8 @@ public class Globals : Node
     {
         GameData.Add("UseMouseDirectedInput", "true");
         GameData.Add("ToggleAttack", "true");
-        GameData.Add("ToggleSlow", "true");
+        GameData.Add("ToggleSlow", "flse");
+        GameData.Add("HighestCompletedWave", "-1");
     }
 
     public static void ChangeGameData(string key, string value)
