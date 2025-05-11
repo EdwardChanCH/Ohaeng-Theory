@@ -165,12 +165,6 @@ public class PlayerCharacter : KinematicBody2D
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
         _elementCircle = GetNode<ElementCircle>(ElementPath);
 
-        if (PlayerHealthComponent == null || _healthBar == null || _playerSprite == null || _elementCircle == null)
-        {
-            GD.PrintErr("Error: PlayerCharacter has missing export properties.");
-            return;
-        }
-
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
 
@@ -328,7 +322,6 @@ public class PlayerCharacter : KinematicBody2D
         }
 
 
-
         // Calculate player velocity
         if (UseMouseDirectedInput)
         {
@@ -360,7 +353,6 @@ public class PlayerCharacter : KinematicBody2D
             // Keyboard control
             Velocity = MoveDirection * moveSpeed;
         }
-
 
         MoveAndSlide(Velocity); // Should be the last line in _PhysicsProcess()
     }
