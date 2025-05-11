@@ -22,6 +22,10 @@ public class PlayerCharacter : KinematicBody2D
     private Sprite _playerSprite;
 
     [Export]
+    public NodePath KiteSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteSprite;
+
+    [Export]
     public NodePath ElementPath { get; private set; } = new NodePath();
     private ElementCircle _elementCircle;
 
@@ -164,6 +168,7 @@ public class PlayerCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
         _elementCircle = GetNode<ElementCircle>(ElementPath);
+        _KiteSprite = GetNode<Sprite>(KiteSpritePath);
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
@@ -301,6 +306,7 @@ public class PlayerCharacter : KinematicBody2D
 
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteSprite.GlobalRotationDegrees, SpriteTilt * -MoveDirection.x, delta * SpriteTiltSpeed);
 
         _elementCircleTimer -= delta;
         _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
