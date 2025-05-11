@@ -38,6 +38,11 @@ public class GameplayUI : Node
         base._Ready();
 
         Globals.Singleton.Connect("ScoreChanged", this, nameof(UpdateScoreLabel));
+
+        GameplayScreen.PlayerRef.Connect("HealthUpdate", this, "_OnHealthUpdate");
+        GameplayScreen.EnemyManager.Connect("WaveProgressChanged", this, "_WaveProgressChanged");
+
+
     }
 
 
@@ -58,5 +63,15 @@ public class GameplayUI : Node
             highestWave = "n/a";
         }
         _highestWaveLabel.Text = $"Best: {highestWave}";
+    }
+
+    public void _OnHealthUpdate(int newHealth)
+    {
+        _playerHealthBar.Value = (float)newHealth / (float)GameplayScreen.PlayerRef.PlayerHealthComponent.MaxHealth;
+    }
+
+    public void _WaveProgressChanged(int currentHealth, int maxHealth)
+    {
+        _enemyProgressBar.Value = (float)currentHealth / (float)maxHealth;
     }
 }

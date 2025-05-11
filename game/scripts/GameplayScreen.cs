@@ -11,7 +11,9 @@ public class GameplayScreen : Node2D
     public NodePath EnemyManagerPath = new NodePath();
     public static EnemyManager EnemyManager;
 
-    public static Node2D PlayerRef;
+    [Export]
+    public NodePath PlayerPath = new NodePath();
+    public static PlayerCharacter PlayerRef;
 
 
 
@@ -19,6 +21,9 @@ public class GameplayScreen : Node2D
     {
         _gameplayUI = GetNode<GameplayUI>(GameplayUIPath);
         EnemyManager = GetNode<EnemyManager>(EnemyManagerPath);
+        PlayerRef = GetNode<PlayerCharacter>(PlayerPath);
+
+        EnemyManager.Connect("WaveComplete", PlayerRef, "_OnWaveComplete");
         AudioManager.PlayBMG("res://assets/sfx/bgm/unwritten_return_fast.wav", 0.25f);
     }
 
@@ -47,23 +52,6 @@ public class GameplayScreen : Node2D
     {
         ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
     }
-
-/*     public void SaveScore()
-    {
-        Globals.TempData["CurrentScore"] = Globals.Score.ToString();
-
-        if (!Globals.TempData.ContainsKey("HighScore"))
-        {
-            Globals.TempData.Add("HighScore", Score.ToString());
-        }
-        else
-        {
-            if (Globals.TempData["HighScore"].ToInt() < Score)
-            {
-                Globals.TempData["HighScore"] = Score.ToString();
-            }
-        }
-    } */
 
     public void _OnDespawnAreaBodyExited(Node body)
     {

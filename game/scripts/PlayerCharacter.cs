@@ -13,7 +13,7 @@ public class PlayerCharacter : KinematicBody2D
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent PlayerHealthComponent;
+    public HealthComponent PlayerHealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -117,7 +117,7 @@ public class PlayerCharacter : KinematicBody2D
     public override void _EnterTree()
     {
         base._EnterTree();
-        GameplayScreen.PlayerRef = this;
+        //GameplayScreen.PlayerRef = this;
         Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
@@ -157,8 +157,8 @@ public class PlayerCharacter : KinematicBody2D
     public override void _ExitTree()
     {
         base._ExitTree();
-        if(GameplayScreen.PlayerRef == this)
-            GameplayScreen.PlayerRef = null;
+        //if(GameplayScreen.PlayerRef == this)
+        //    GameplayScreen.PlayerRef = null;
 
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
@@ -175,6 +175,7 @@ public class PlayerCharacter : KinematicBody2D
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
         _elementCircle = GetNode<ElementCircle>(ElementPath);
         _KiteSprite = GetNode<Sprite>(KiteSpritePath);
+        _healthText = GetNode<Label>(HealthTextPath);
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);

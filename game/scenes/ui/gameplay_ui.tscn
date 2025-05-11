@@ -30,6 +30,8 @@ script = ExtResource( 3 )
 ScoreLabelPath = NodePath("HBoxContainer/ScoreNumber")
 WaveLabelPath = NodePath("WaveNumber")
 HighestWaveLabelPath = NodePath("HighestWaveNumber")
+PlayerHealthBarPath = NodePath("PlayerHealthBar")
+EnemyProgressBarPath = NodePath("EnemyProgressBar")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 margin_left = 156.0
@@ -93,7 +95,7 @@ rect_rotation = 89.9999
 custom_styles/fg = SubResource( 2 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0
-value = 0.5
+value = 1.0
 
 [node name="EnemyProgressBar" type="ProgressBar" parent="."]
 margin_left = 1920.0
@@ -103,4 +105,4 @@ rect_rotation = 89.9999
 custom_styles/fg = SubResource( 4 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0
-value = 0.5
+value = 1.0
