@@ -10,17 +10,6 @@ public class GameplayScreen : Node2D
 
     public static Node2D PlayerRef;
 
-    private static int _score;
-    public static int Score 
-    {
-        get { return _score; } 
-        set 
-        {
-            _score = value;
-            _gameplayUI.UpdateScoreLabel(_score);
-        } 
-    }
-
 
 
     public override void _EnterTree()
@@ -31,7 +20,7 @@ public class GameplayScreen : Node2D
 
     public override void _Ready()
     {
-        Score = 0;
+        _gameplayUI.UpdateScoreLabel();
     }
 
     public override void _ExitTree()
@@ -40,12 +29,12 @@ public class GameplayScreen : Node2D
         {
             _gameplayUI = null;
         }
-        SaveScore();
+        //SaveScore();
     }
 
     public void _OnPlayerDeath()
     {
-        SaveScore();
+        //SaveScore();
         //ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
         CallDeferred("OpenLoseScreen");
     }
@@ -55,9 +44,9 @@ public class GameplayScreen : Node2D
         ScreenManager.AddPopupToScreen(ScreenManager.LoseScreenPath);
     }
 
-    public void SaveScore()
+/*     public void SaveScore()
     {
-        Globals.TempData["CurrentScore"] = Score.ToString();
+        Globals.TempData["CurrentScore"] = Globals.Score.ToString();
 
         if (!Globals.TempData.ContainsKey("HighScore"))
         {
@@ -70,7 +59,7 @@ public class GameplayScreen : Node2D
                 Globals.TempData["HighScore"] = Score.ToString();
             }
         }
-    }
+    } */
 
     public void _OnDespawnAreaBodyExited(Node body)
     {

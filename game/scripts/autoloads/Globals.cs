@@ -10,6 +10,8 @@ public class Globals : Node
 {
     [Signal]
     public delegate void GameDataChanged(string key, string value);
+    [Signal]
+    public delegate void ScoreChanged();
 
     public static Globals Singleton { get; private set; }
 
@@ -17,7 +19,7 @@ public class Globals : Node
     public static Dictionary<string, string> GameData { get; private set; } = new Dictionary<string, string>();
 
     // Temporary Data (for passing data between screens)
-    public static Dictionary<string, string> TempData { get; set; } = new Dictionary<string, string>();
+    //public static Dictionary<string, string> TempData { get; set; } = new Dictionary<string, string>();
 
     // Element (ranked by importance)
     public enum Element
@@ -39,12 +41,21 @@ public class Globals : Node
         Element.Metal
     };
 
-    // Collision Layers
+    // - - - Collision Layers - - -
     public const int GroundLayerBit = 0; // Layer 1
     public const int PlayerLayerBit = 1; // Layer 2
     public const int PlayerProjectileLayerBit = 2; // Layer 3
     public const int EnemyLayerBit = 3; // Layer 4
     public const int EnemyProjectileLayerBit = 4; // Layer 5
+
+    // - - - Score Values - - -
+    public const int LesserEnemyHitReward = 1;
+    public const int LesserEnemyKillReward = 10;
+    public const int EnemyHitReward = 1;
+    public const int EnemyKillReward = 100;
+    public const int EnemyCritKillReward = 100;
+    public static Int64 Score { get; private set; } = 0;
+    public static Int64 HighestScore { get; private set; } = 0;
 
     public override void _EnterTree()
     {
@@ -60,6 +71,23 @@ public class Globals : Node
         GameData.Add("ToggleAttack", "true");
         GameData.Add("ToggleSlow", "flse");
         GameData.Add("HighestCompletedWave", "-1");
+    }
+
+    public static void AddScore(Int64 addValue)
+    {
+        SetScore(Score + addValue);
+    }
+
+    public static void SetScore(Int64 newValue)
+    {
+        if (newValue > HighestScore)
+        {
+            HighestScore = newValue;
+        }
+
+        Score = newValue;
+
+        Singleton.EmitSignal("ScoreChanged");
     }
 
     public static void ChangeGameData(string key, string value)

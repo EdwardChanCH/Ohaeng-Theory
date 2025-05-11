@@ -243,28 +243,37 @@ public class EnemyCharacter : KinematicBody2D
 
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            float floatDamage = (float)harmful.GetDamage();
-            float damageModifier = 1;
-
-            // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
+            float damageModifier;
+            int scoreModifier;
+            
             if (harmful.GetElement() == DominantElement || Globals.CounterToElement(harmful.GetElement()) == DominantElement)
             {
+                // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
                 damageModifier = 0.5f;
+                scoreModifier = 1;
             }
-
-            // Do 200% damage if the element of the bullet count the _dominantElement
-            if (harmful.GetElement() == Globals.CounterByElement(DominantElement))
+            else if (harmful.GetElement() == Globals.CounterByElement(DominantElement))
             {
+                // Do 200% damage if the element of the bullet count the _dominantElement
                 damageModifier = 2f;
+                scoreModifier = 5; // 5x score
+            }
+            else
+            {
+                // Do 100% damage
+                damageModifier = 1f;
+                scoreModifier = 1;
             }
 
-            floatDamage *= damageModifier;
-            var damage = Mathf.CeilToInt(floatDamage);
+            float floatDamage = harmful.GetDamage() * damageModifier;
+            int damage = Mathf.CeilToInt(floatDamage);
 
-            GameplayScreen.Score += damage;
+            float floatScore = Globals.EnemyHitReward * scoreModifier;
+            Globals.AddScore(Mathf.CeilToInt(floatScore));
 
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
+
             harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
         }
     }
@@ -389,7 +398,7 @@ public class EnemyCharacter : KinematicBody2D
 
     public void _OnHealthDepleted()
     {
-        GameplayScreen.Score += 1000;
+        Globals.AddScore(Globals.EnemyKillReward);
         Kill();
     }
 
@@ -595,6 +604,12 @@ public class EnemyCharacter : KinematicBody2D
     public void SetScale(float scale)
     {
         Scale = new Vector2(scale, scale);
+        _uiElement.GlobalScale = Vector2.One;
+    }
+
+    public void SetScaleRelative(float scaleFactor)
+    {
+        Scale = Scale * scaleFactor;
         _uiElement.GlobalScale = Vector2.One;
     }
 
