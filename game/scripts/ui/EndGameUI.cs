@@ -16,12 +16,8 @@ public class EndGameUI : Node
         _highScoreLabel = GetNode<Label>(HighScoreLabelPath);
         _CurrentScoreLabel = GetNode<Label>(CurrentScoreLabelPath);
 
-
-        if (Globals.TempData.ContainsKey("HighScore"))
-        {
-            _highScoreLabel.Text = Globals.TempData["HighScore"];
-        }
-        _CurrentScoreLabel.Text = Globals.TempData["CurrentScore"];
+        _highScoreLabel.Text = $"{Globals.HighestScore}";
+        _CurrentScoreLabel.Text = $"{Globals.Score}";
     }
 
     public override void _Ready()
