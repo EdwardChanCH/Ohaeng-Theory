@@ -52,7 +52,7 @@ public class EnemyCharacter : KinematicBody2D
     public Globals.Element DominantElement = Globals.Element.Water; // None would have out-of-bound error in switch sprite
 
     [Export]
-    public Dictionary<Globals.Element, int> ElementalCountDictionary { get; private set; } = new Dictionary<Globals.Element, int>();
+    public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
 
     [Export]
     public float AttackBetweenDelay = 2.5f;
@@ -167,7 +167,7 @@ public class EnemyCharacter : KinematicBody2D
         // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
         {
-            ElementalCountDictionary[element] = 0;
+            ElementalCount[element] = 0;
             EmitSignal("UpdateElement", element, 0);
         }
 
@@ -380,9 +380,9 @@ public class EnemyCharacter : KinematicBody2D
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (ElementalCountDictionary.ContainsKey(element))
+        if (ElementalCount.ContainsKey(element))
         {
-            SetElementCount(element, ElementalCountDictionary[element] + count);
+            SetElementCount(element, ElementalCount[element] + count);
         }
         else // oldCount = 0
         {
@@ -392,9 +392,9 @@ public class EnemyCharacter : KinematicBody2D
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (ElementalCountDictionary.ContainsKey(element))
+        if (ElementalCount.ContainsKey(element))
         {
-            SetElementCount(element, ElementalCountDictionary[element] - count);
+            SetElementCount(element, ElementalCount[element] - count);
         }
         else // oldCount = 0
         {
@@ -415,10 +415,10 @@ public class EnemyCharacter : KinematicBody2D
             newCount = 0;
         }
 
-        ElementalCountDictionary[element] = newCount;
-        EmitSignal("UpdateElement", element, ElementalCountDictionary[element]);
+        ElementalCount[element] = newCount;
+        EmitSignal("UpdateElement", element, ElementalCount[element]);
 
-        DominantElement = Globals.DominantElement(ElementalCountDictionary);
+        DominantElement = Globals.DominantElement(ElementalCount);
 
         if (DominantElement == Globals.Element.None)
         {
@@ -439,17 +439,17 @@ public class EnemyCharacter : KinematicBody2D
 
         foreach (Globals.Element key in values.Keys)
         {
-            ElementalCountDictionary[key] = values[key];
-            EmitSignal("UpdateElement", key, ElementalCountDictionary[key]);
+            ElementalCount[key] = values[key];
+            EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
-        DominantElement = Globals.DominantElement(ElementalCountDictionary);
+        DominantElement = Globals.DominantElement(ElementalCount);
         SwitchSprite(DominantElement);
     }
 
     public int SumElementalCount()
     {
-        return Globals.SumElements(ElementalCountDictionary);
+        return Globals.SumElements(ElementalCount);
     }
 
     public void SwitchSprite(Globals.Element element)
