@@ -34,7 +34,7 @@ public class EnemyManager : Node2D
     public NodePath MaxSpawnNodePath { get; set; }
 
     [Export]
-    public int AutoMergeLimit { get; set; } = 2; // Maximum enemies before auto-merge is triggered
+    public int AutoMergeLimit { get; set; } = 3; // Maximum enemies before auto-merge is triggered
 
     private Node2D _minSpawnNode = null;
     private Node2D _maxSpawnNode = null;
@@ -95,7 +95,12 @@ public class EnemyManager : Node2D
         _spawnLocation = _centerSpawnArea + _hideVector;
 
         // TODO test only
-        LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
+        for (int i = 0; i < 20; i++)
+        {
+            GD.Print($"Wave {i} : {GenerateWaveEncoding(i)}");
+        }
+        //LoadWave($"{(1<<4)-1},0,0,0,0/0,{(1<<4)-1},0,0,0/0,0,{(1<<4)-1},0,0/0,0,0,{(1<<4)-1},0/0,0,0,0,{(1<<4)-1}");
+        LoadWave(GenerateWaveEncoding(3));
         StartWave();
         //CancelWave();
     }
@@ -218,6 +223,61 @@ public class EnemyManager : Node2D
         LesserEnemyList.Clear();
 
         MergeList.Clear();
+    }
+
+    // Deterministic, infinitely procedural
+    // Returns a wave encoding for loading
+    public string GenerateWaveEncoding(int wavesCompleted)
+    {
+        string encoding = "";
+
+        Dictionary<Globals.Element, int> elementCounts;
+        Globals.Element nextBigElement = (Globals.Element)(1 + wavesCompleted % 5);
+        Globals.Element nextSmallElement;
+        
+        int difficulty = Math.Max(1, wavesCompleted + 2);
+        int maxEnemies = AutoMergeLimit * 2;
+        int scale = (int)(Math.Log(wavesCompleted) / Math.Log(2)) + 1; // = floor(log2(x-1)) + 1
+        int numEnemies = Math.Max(1, scale);
+        int numElements;
+        int maxElements;
+        if (numEnemies < 3)
+        {
+            maxElements = (1 << difficulty) - 1; // 2^n-1 for odd split at every split
+        }
+        else
+        {
+            maxElements = wavesCompleted * 2;
+        }
+
+        // Generate enemies from smallest to largest
+        for (int i = 0; i < numEnemies; i++)
+        {
+            elementCounts = Globals.CopyElements(null);
+            nextSmallElement = nextBigElement;
+            numElements = maxElements / (i+1);
+            //GD.Print($"i={i} bigE={nextBigElement} maxE={maxElements} numE={numElements}");
+
+            // Decide how many elements to add
+            for (int j = 0; j < numEnemies; j++)
+            {
+                elementCounts[nextSmallElement] += numElements;
+                //GD.Print($"j={j} smaE={nextSmallElement} numE={numElements}");
+
+                numElements = numElements / 2;
+                nextSmallElement = Globals.NextElement(nextSmallElement);
+            }
+
+            if (i > 0)
+            {
+                encoding += "/";
+            }
+            encoding += Globals.EncodeAllElement(elementCounts);
+
+            nextBigElement = Globals.CounterToElement(nextBigElement); // For more merge variaty
+        }
+
+        return encoding;
     }
 
     // Use CallDeferred()
@@ -680,6 +740,12 @@ public class EnemyManager : Node2D
         for (int i = tempList.Count - 1; i >= AutoMergeLimit; i--)
         {
             CallDeferred("InitMergeEnemy", tempList[i]);
+        }
+
+        if (AutoMergeLimit > 1 && AutoMergeLimit % 2 == 1)
+        {
+            // If odd, find a merge partner
+            CallDeferred("InitMergeEnemy", tempList[AutoMergeLimit - 1]);
         }
     }
 
