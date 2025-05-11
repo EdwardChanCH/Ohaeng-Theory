@@ -54,6 +54,7 @@ public class Globals : Node
     public const int EnemyHitReward = 1;
     public const int EnemyKillReward = 100;
     public const int EnemyCritKillReward = 100;
+    public const int WaveCompleteReward = 1000;
     public static Int64 Score { get; private set; } = 0;
     public static Int64 HighestScore { get; private set; } = 0;
 
