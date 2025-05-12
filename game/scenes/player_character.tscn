@@ -42,6 +42,7 @@ PlayerSpritePath = NodePath("PlayerSprite")
 KiteSpritePath = NodePath("PlayerSprite/McSpriteArtKiteKite")
 ElementPath = NodePath("ElementCircle")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
+ProjectileClearZonePath = NodePath("ProjectileDeletionZone")
 ShootOffset = Vector2( 80, 0 )
 
 [node name="ElementCircle" parent="." instance=ExtResource( 6 )]
