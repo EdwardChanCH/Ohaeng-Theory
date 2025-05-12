@@ -63,7 +63,7 @@ public class EnemyCharacter : KinematicBody2D
     private bool _isAttacking = false;
     private int _attackCounter = 0;
 
-    private float _attackPauseTimer = 0;
+    private float _attackPauseTimer = 0; // TODO
     private bool _isAttackPause = false;
 
 
@@ -186,6 +186,12 @@ public class EnemyCharacter : KinematicBody2D
     public override void _Process(float delta)
     {
         _attackPauseTimer -= delta;
+
+        // TODO clean this
+        if (_attackPauseTimer < -1.0f)
+        {
+            _attackPauseTimer = -1.0f;
+        }
 
         _isAttackPause = _attackPauseTimer > 0.0f;
         AttackLoop(delta);
