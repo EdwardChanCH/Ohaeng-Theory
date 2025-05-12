@@ -28,6 +28,10 @@ public class PlayerCharacter : KinematicBody2D
     private Sprite _KiteSprite;
 
     [Export]
+    public NodePath KiteRopeSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteRopeSprite;
+
+    [Export]
     public NodePath ElementPath { get; private set; } = new NodePath();
     private ElementCircle _elementCircle;
 
@@ -181,6 +185,7 @@ public class PlayerCharacter : KinematicBody2D
         _KiteSprite = GetNode<Sprite>(KiteSpritePath);
         _healthText = GetNode<Label>(HealthTextPath);
         _projectileClearZone = GetNode<Area2D>(ProjectileClearZonePath);
+        _KiteRopeSprite = GetNode< Sprite >(KiteRopeSpritePath);
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
@@ -313,6 +318,7 @@ public class PlayerCharacter : KinematicBody2D
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
         _KiteSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteSprite.GlobalRotationDegrees, SpriteTilt * -MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteRopeSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteRopeSprite.GlobalRotationDegrees, 85.0f + (SpriteTilt / 3) * -MoveDirection.x, delta * (SpriteTiltSpeed / 2));
 
         _elementCircleTimer -= delta;
         _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
