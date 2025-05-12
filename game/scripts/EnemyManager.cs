@@ -167,14 +167,14 @@ public class EnemyManager : Node2D
         }
         else
         {
-            if (@event.IsActionPressed("Start_Wave"))
+/*             if (@event.IsActionPressed("Start_Wave"))
             {
                 ClearWave();
                 LoadWave(CurrentlySelectedWave);
                 EmitSignal("WaveCancel");
                 
                 //AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
-            }
+            } */
         }
     }
 
@@ -753,22 +753,28 @@ public class EnemyManager : Node2D
             }
         }
 
+        // Spawn a new enemy (because the original code has a weird bug in AMD CPUs)
+        EnemyCharacter newEnemy = SpawnEnemy(this);
+        newEnemy.SetElementalCount(larger.ElementalCount); // TODO see if this works
+        newEnemy.GlobalPosition = larger.GlobalPosition;
+
         // Update health
         int combinedHealth = larger.HealthComponent.CurrentHealth + smaller.HealthComponent.CurrentHealth;
-        larger.HealthComponent.MaxHealth = combinedHealth;
-        larger.HealthComponent.SetHealth(combinedHealth);
+        newEnemy.HealthComponent.MaxHealth = combinedHealth;
+        newEnemy.HealthComponent.SetHealth(combinedHealth);
 
         // Restore the sprite size
-        larger.SetScaleRelative(1 / _spriteScaleFactor);
+        newEnemy.SetScaleRelative(1 / _spriteScaleFactor);
 
         // Remove the smaller one
         smaller.Kill();
+        larger.Kill();
 
-        // Reconnect the signal
+/*         // Reconnect the signal
         if (!larger.IsConnected("MergeNeeded", this, nameof(_OnEnemyMergeNeeded)))
         {
             larger.Connect("MergeNeeded", this, nameof(_OnEnemyMergeNeeded));
-        }
+        } */
 
         QueueWaveProgress();
 
