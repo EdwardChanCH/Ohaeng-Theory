@@ -118,5 +118,3 @@ shape = SubResource( 6 )
 [connection signal="HealthDepleted" from="HealthComponent" to="." method="_OnHealthDepleted"]
 [connection signal="HealthUpdate" from="HealthComponent" to="." method="_OnHealthUpdate"]
 [connection signal="body_entered" from="Hitbox" to="." method="_OnHitboxBodyEntered"]
-[connection signal="body_entered" from="ProjectileDeletionZone" to="." method="_OnBodyEnterZone"]
-[connection signal="body_exited" from="ProjectileDeletionZone" to="." method="_OnBodyExitZone"]

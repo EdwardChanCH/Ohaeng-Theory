@@ -23,8 +23,15 @@ public class GameplayScreen : Node2D
         EnemyManager = GetNode<EnemyManager>(EnemyManagerPath);
         PlayerRef = GetNode<PlayerCharacter>(PlayerPath);
 
-        EnemyManager.Connect("WaveComplete", PlayerRef, "_OnWaveComplete");
+        EnemyManager.Connect("WaveComplete", PlayerRef, "_OnWaveComplete"); 
+        EnemyManager.Connect("WaveBegin", this, "_OnWaveBegin");
         AudioManager.PlayBMG("res://assets/sfx/bgm/unwritten_return_fast.wav", 0.25f);
+    }
+
+
+    public void _OnWaveBegin()
+    {
+        Globals.SetScore(0);
     }
 
     public override void _Ready()
