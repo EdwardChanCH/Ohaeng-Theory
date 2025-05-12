@@ -116,6 +116,9 @@ shape = SubResource( 5 )
 [node name="ParallaxBG" parent="." instance=ExtResource( 1 )]
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
+[connection signal="WaveBegin" from="EnemyManager" to="." method="_OnWaveBegin"]
+[connection signal="WaveCancel" from="EnemyManager" to="." method="_OnWaveCancel"]
+[connection signal="WaveComplete" from="EnemyManager" to="." method="_OnWaveComplete"]
 [connection signal="WaveNumberChanged" from="EnemyManager" to="GameplayUI" method="_OnEnemyManagerWaveNumberChanged"]
 [connection signal="PlayerDeath" from="PlayerCharacter" to="." method="_OnPlayerDeath"]
 [connection signal="body_exited" from="FailSafeLeft" to="." method="_OnFailSafeBodyExited"]

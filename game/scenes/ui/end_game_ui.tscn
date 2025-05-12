@@ -17,6 +17,7 @@ font_data = ExtResource( 4 )
 
 [node name="EndGameUI" type="CanvasLayer"]
 pause_mode = 2
+layer = 10
 script = ExtResource( 3 )
 HighScoreLabelPath = NodePath("HBoxTop/VBox2/HighScore")
 CurrentScoreLabelPath = NodePath("HBoxTop/VBox2/CurrentScore")
