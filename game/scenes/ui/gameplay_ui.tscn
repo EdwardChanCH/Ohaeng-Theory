@@ -88,9 +88,10 @@ align = 1
 valign = 1
 
 [node name="PlayerHealthBar" type="ProgressBar" parent="."]
-margin_left = 24.0
-margin_right = 1104.0
-margin_bottom = 23.0
+margin_left = 32.0
+margin_top = 8.0
+margin_right = 1096.0
+margin_bottom = 31.0
 rect_rotation = 89.9999
 custom_styles/fg = SubResource( 2 )
 custom_styles/bg = SubResource( 3 )
@@ -98,9 +99,10 @@ max_value = 1.0
 value = 1.0
 
 [node name="EnemyProgressBar" type="ProgressBar" parent="."]
-margin_left = 1920.0
-margin_right = 3000.0
-margin_bottom = 23.0
+margin_left = 1912.0
+margin_top = 8.0
+margin_right = 2976.0
+margin_bottom = 31.0
 rect_rotation = 89.9999
 custom_styles/fg = SubResource( 4 )
 custom_styles/bg = SubResource( 3 )

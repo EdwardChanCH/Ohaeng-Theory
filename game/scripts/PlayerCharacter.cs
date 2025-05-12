@@ -111,6 +111,8 @@ public class PlayerCharacter : KinematicBody2D
     private float _elementCircleHideDelay = 1.0f;
     private float _elementCircleTimer = 0;
 
+    private System.Collections.Generic.List<IHarmful> _nearByHarmful = new System.Collections.Generic.List<IHarmful>();
+
     [Export]
     public Vector2 ShootOffset = Vector2.Zero;
 
@@ -194,12 +196,6 @@ public class PlayerCharacter : KinematicBody2D
         _elementCircle.SetElement(_currentElement);
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
-
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav", 0.2f);
     }
 
     public override void _Input(InputEvent @event)
@@ -377,8 +373,21 @@ public class PlayerCharacter : KinematicBody2D
         {
             PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
             AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/61_Hit_03.wav");
-            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+            //harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+
+            CallDeferred("ClearBullets");
+
         }
+    }
+
+    public void ClearBullets()
+    {
+        foreach(var harmful in _nearByHarmful)
+        {
+            if(harmful != null)
+                harmful.Kill();
+        }
+        _nearByHarmful.Clear();
     }
 
     // Called when health value got change
@@ -399,6 +408,26 @@ public class PlayerCharacter : KinematicBody2D
     {
         PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
         Globals.AddScore(Globals.WaveCompleteReward);
+    }
+
+
+    public void _OnBodyEnterZone(Node body)
+    {
+        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
+        {
+
+            GD.Print("Enter");
+            _nearByHarmful.Add(harmful);
+
+        }
+    }
+
+    public void _OnBodyExitZone(Node body)
+    {
+        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
+        {
+            _nearByHarmful.Remove(harmful);
+        }
     }
 
     // Called when any setting got change
