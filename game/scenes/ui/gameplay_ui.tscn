@@ -66,20 +66,22 @@ text = "???"
 valign = 1
 
 [node name="PlayerHealthBar" type="ProgressBar" parent="."]
-margin_left = 24.0
-margin_right = 1104.0
-margin_bottom = 23.0
-rect_rotation = 89.9999
+margin_left = 8.0
+margin_top = 1072.0
+margin_right = 1072.0
+margin_bottom = 1095.0
+rect_rotation = 270.093
 custom_styles/fg = SubResource( 2 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0
 value = 1.0
 
 [node name="EnemyProgressBar" type="ProgressBar" parent="."]
-margin_left = 1920.0
-margin_right = 3000.0
-margin_bottom = 23.0
-rect_rotation = 89.9999
+margin_left = 1888.0
+margin_top = 1072.0
+margin_right = 2952.0
+margin_bottom = 1095.0
+rect_rotation = -89.9016
 custom_styles/fg = SubResource( 4 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0

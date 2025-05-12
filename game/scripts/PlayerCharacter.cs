@@ -28,12 +28,20 @@ public class PlayerCharacter : KinematicBody2D
     private Sprite _KiteSprite;
 
     [Export]
+    public NodePath KiteRopeSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteRopeSprite;
+
+    [Export]
     public NodePath ElementPath { get; private set; } = new NodePath();
     private ElementCircle _elementCircle;
 
     [Export]
     public NodePath HealthTextPath { get; private set; } = new NodePath();
     private Label _healthText;
+
+    [Export]
+    public NodePath ProjectileClearZonePath { get; private set; } = new NodePath();
+    private Area2D _projectileClearZone;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; } = true;
@@ -176,6 +184,8 @@ public class PlayerCharacter : KinematicBody2D
         _elementCircle = GetNode<ElementCircle>(ElementPath);
         _KiteSprite = GetNode<Sprite>(KiteSpritePath);
         _healthText = GetNode<Label>(HealthTextPath);
+        _projectileClearZone = GetNode<Area2D>(ProjectileClearZonePath);
+        _KiteRopeSprite = GetNode< Sprite >(KiteRopeSpritePath);
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
@@ -194,12 +204,6 @@ public class PlayerCharacter : KinematicBody2D
         _elementCircle.SetElement(_currentElement);
 
         AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
-
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav", 0.2f);
-        //AudioManager.SetSFXChannelVolume("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav", 0.2f);
     }
 
     public override void _Input(InputEvent @event)
@@ -314,6 +318,7 @@ public class PlayerCharacter : KinematicBody2D
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
         _KiteSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteSprite.GlobalRotationDegrees, SpriteTilt * -MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteRopeSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteRopeSprite.GlobalRotationDegrees, 85.0f + (SpriteTilt / 3) * -MoveDirection.x, delta * (SpriteTiltSpeed / 2));
 
         _elementCircleTimer -= delta;
         _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
@@ -377,8 +382,23 @@ public class PlayerCharacter : KinematicBody2D
         {
             PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
             AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/61_Hit_03.wav");
-            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+            //harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+
+            CallDeferred("ClearBullets");
         }
+    }
+
+    public void ClearBullets()
+    {
+        foreach(PhysicsBody2D projectile in _projectileClearZone.GetOverlappingBodies())
+        {
+            GD.Print(projectile);
+            if (projectile is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
+            {
+                harmful.Kill();
+            }
+        }
+
     }
 
     // Called when health value got change
