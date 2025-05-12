@@ -694,15 +694,10 @@ public class EnemyManager : Node2D
     // Use CallDeferred()
     public void MergeEnemy(EnemyCharacter source)
     {
-        if (source == null)
+        if (source == null || !IsInstanceValid(source))
         {
             GD.PrintErr("Error: Failed to merge null enemy.");
-            return;
-        }
-
-        if (!MergeList.Contains(source))
-        {
-            GD.Print("Warning: Enemy no longer in the merge list.");
+            MergeList.Remove(source);
             return;
         }
         MergeList.Remove(source);
@@ -727,9 +722,10 @@ public class EnemyManager : Node2D
             //index += 1; // Dear god... I forgot this
         }
 
-        if (partner == null)
+        if (partner == null || !IsInstanceValid(partner))
         {
             GD.Print("Warning: Merge partner not found or no longer exists.");
+            MergeList.Remove(partner);
             return;
         }
         MergeList.Remove(partner);
