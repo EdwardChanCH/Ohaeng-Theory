@@ -1,9 +1,8 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=11 format=2]
 
-[ext_resource path="res://assets/textures/background_parallex_base_no_clouds.png" type="Texture" id=1]
+[ext_resource path="res://scenes/parallax_bg.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/player_character.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/ui/gameplay_ui.tscn" type="PackedScene" id=3]
-[ext_resource path="res://assets/textures/background_parallex_kites.png" type="Texture" id=4]
 [ext_resource path="res://scripts/GameplayScreen.cs" type="Script" id=5]
 [ext_resource path="res://scenes/enemy_manager.tscn" type="PackedScene" id=6]
 
@@ -28,24 +27,7 @@ GameplayUIPath = NodePath("GameplayUI")
 EnemyManagerPath = NodePath("EnemyManager")
 PlayerPath = NodePath("PlayerCharacter")
 
-[node name="BackgroundParallexBaseNoClouds" type="Sprite" parent="."]
-position = Vector2( 960, 540 )
-z_index = -2
-texture = ExtResource( 1 )
-__meta__ = {
-"_edit_lock_": true
-}
-
-[node name="BackgroundParallexKites" type="Sprite" parent="BackgroundParallexBaseNoClouds"]
-modulate = Color( 1, 1, 1, 0.709804 )
-position = Vector2( -514, 25 )
-texture = ExtResource( 4 )
-__meta__ = {
-"_edit_lock_": true
-}
-
 [node name="DespawnArea" type="Area2D" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -53,7 +35,6 @@ __meta__ = {
 }
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DespawnArea"]
-visible = false
 position = Vector2( 960, 540 )
 shape = SubResource( 1 )
 __meta__ = {
@@ -61,13 +42,11 @@ __meta__ = {
 }
 
 [node name="MinMovementBound" type="Node2D" parent="."]
-visible = false
 __meta__ = {
 "_edit_lock_": true
 }
 
 [node name="MaxMovementBound" type="Node2D" parent="."]
-visible = false
 position = Vector2( 1400, 1080 )
 __meta__ = {
 "_edit_lock_": true
@@ -91,7 +70,6 @@ MaxMovementBoundPath = NodePath("../MaxMovementBound")
 layer = 0
 
 [node name="FailSafeLeft" type="Area2D" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -103,7 +81,6 @@ position = Vector2( -500, 540 )
 shape = SubResource( 2 )
 
 [node name="FailSafeRight" type="Area2D" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -115,7 +92,6 @@ position = Vector2( 2420, 540 )
 shape = SubResource( 3 )
 
 [node name="FailSafeTop" type="Area2D" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -127,7 +103,6 @@ position = Vector2( 960, -1420 )
 shape = SubResource( 4 )
 
 [node name="FailSafeBottom" type="Area2D" parent="."]
-visible = false
 collision_layer = 0
 collision_mask = 30
 __meta__ = {
@@ -137,6 +112,8 @@ __meta__ = {
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FailSafeBottom"]
 position = Vector2( 960, 2500 )
 shape = SubResource( 5 )
+
+[node name="ParallaxBG" parent="." instance=ExtResource( 1 )]
 
 [connection signal="body_exited" from="DespawnArea" to="." method="_OnDespawnAreaBodyExited"]
 [connection signal="WaveNumberChanged" from="EnemyManager" to="GameplayUI" method="_OnEnemyManagerWaveNumberChanged"]

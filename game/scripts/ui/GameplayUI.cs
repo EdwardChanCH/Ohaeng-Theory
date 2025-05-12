@@ -4,6 +4,10 @@ using System;
 public class GameplayUI : Node
 {
     [Export]
+    public NodePath HintLabelPath = new NodePath();
+    private Label _hintLabel;
+
+    [Export]
     public NodePath ScoreLabelPath = new NodePath();
     private Label _scoreLabel;
 
@@ -26,6 +30,7 @@ public class GameplayUI : Node
 
     public override void _EnterTree()
     {
+        _hintLabel = GetNode<Label>(HintLabelPath);
         _scoreLabel = GetNode<Label>(ScoreLabelPath);
         _waveLabel = GetNode<Label>(WaveLabelPath);
         _highestWaveLabel = GetNode<Label>(HighestWaveLabelPath);
@@ -55,14 +60,14 @@ public class GameplayUI : Node
 
     public void _OnEnemyManagerWaveNumberChanged(int waveNumber)
     {
-        _waveLabel.Text = $"Wave {waveNumber}";
+        _waveLabel.Text = $"{waveNumber}";
 
         string highestWave = Globals.GameData["HighestCompletedWave"];
         if (highestWave == "-1")
         {
             highestWave = "n/a";
         }
-        _highestWaveLabel.Text = $"Best: {highestWave}";
+        _highestWaveLabel.Text = $"{highestWave}";
     }
 
     public void _OnHealthUpdate(int newHealth)
@@ -73,5 +78,10 @@ public class GameplayUI : Node
     public void _WaveProgressChanged(int currentHealth, int maxHealth)
     {
         _enemyProgressBar.Value = (float)currentHealth / (float)maxHealth;
+    }
+
+    public void ToggleHintVisible(bool visible)
+    {
+        _hintLabel.Visible = visible;
     }
 }

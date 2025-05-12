@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=1]
-[ext_resource path="res://assets/textures/white.png" type="Texture" id=2]
+[ext_resource path="res://assets/textures/baclground_layer_1.png" type="Texture" id=2]
 [ext_resource path="res://scripts/ui/EndGameUI.cs" type="Script" id=3]
 [ext_resource path="res://themes/gasalt/Gasalt-Regular.ttf" type="DynamicFontData" id=4]
 [ext_resource path="res://themes/button_theme.tres" type="Theme" id=5]
+[ext_resource path="res://assets/textures/lose_screen_overlay.png" type="Texture" id=6]
 
 [sub_resource type="DynamicFont" id=1]
 size = 114
@@ -17,11 +18,11 @@ font_data = ExtResource( 4 )
 [node name="EndGameUI" type="CanvasLayer"]
 pause_mode = 2
 script = ExtResource( 3 )
-HighScoreLabelPath = NodePath("HighScoreContainer/HighScore")
-CurrentScoreLabelPath = NodePath("CurrentScoreContainer/CurrentScore")
+HighScoreLabelPath = NodePath("HBoxTop/VBox2/HighScore")
+CurrentScoreLabelPath = NodePath("HBoxTop/VBox2/CurrentScore")
 
 [node name="Background" type="TextureRect" parent="."]
-modulate = Color( 0.129412, 0.129412, 0.129412, 1 )
+self_modulate = Color( 0.392157, 0.392157, 0.392157, 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource( 2 )
@@ -41,90 +42,101 @@ text = "Gameover"
 align = 1
 valign = 1
 
-[node name="HighScoreContainer" type="HBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -168.0
-margin_top = -284.0
-margin_right = 168.0
-margin_bottom = -216.0
-grow_horizontal = 0
-alignment = 1
+[node name="HBoxTop" type="HBoxContainer" parent="."]
+anchor_left = 0.39
+anchor_top = 0.3
+anchor_right = 0.39
+anchor_bottom = 0.3
+margin_right = 409.0
+margin_bottom = 152.0
 
-[node name="Label" type="Label" parent="HighScoreContainer"]
-margin_top = 3.0
-margin_right = 257.0
-margin_bottom = 65.0
-theme = ExtResource( 1 )
-custom_fonts/font = SubResource( 2 )
-text = "High Score: "
-
-[node name="HighScore" type="Label" parent="HighScoreContainer"]
-margin_left = 261.0
-margin_top = 3.0
-margin_right = 336.0
-margin_bottom = 65.0
-theme = ExtResource( 1 )
-custom_fonts/font = SubResource( 2 )
-text = "???"
-
-[node name="CurrentScoreContainer" type="HBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -208.0
-margin_top = -216.0
-margin_right = 201.0
-margin_bottom = -148.0
-grow_horizontal = 0
-alignment = 1
-
-[node name="Label" type="Label" parent="CurrentScoreContainer"]
-margin_top = 3.0
+[node name="Vbox1" type="VBoxContainer" parent="HBoxTop"]
 margin_right = 330.0
-margin_bottom = 65.0
+margin_bottom = 152.0
+grow_horizontal = 0
+alignment = 1
+
+[node name="CurrentScoreText" type="Label" parent="HBoxTop/Vbox1"]
+margin_right = 330.0
+margin_bottom = 62.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "Current Score: "
 
-[node name="CurrentScore" type="Label" parent="CurrentScoreContainer"]
+[node name="Control1" type="Control" parent="HBoxTop/Vbox1"]
+margin_top = 66.0
+margin_right = 330.0
+margin_bottom = 86.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="HighScoreText" type="Label" parent="HBoxTop/Vbox1"]
+margin_top = 90.0
+margin_right = 330.0
+margin_bottom = 152.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 2 )
+text = "Highest Score: "
+
+[node name="VBox2" type="VBoxContainer" parent="HBoxTop"]
 margin_left = 334.0
-margin_top = 3.0
 margin_right = 409.0
-margin_bottom = 65.0
+margin_bottom = 152.0
+grow_horizontal = 0
+alignment = 1
+
+[node name="CurrentScore" type="Label" parent="HBoxTop/VBox2"]
+margin_right = 75.0
+margin_bottom = 62.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 2 )
 text = "???"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Control1" type="Control" parent="HBoxTop/VBox2"]
+margin_top = 66.0
+margin_right = 75.0
+margin_bottom = 86.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="HighScore" type="Label" parent="HBoxTop/VBox2"]
+margin_top = 90.0
+margin_right = 75.0
+margin_bottom = 152.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 2 )
+text = "???"
+
+[node name="VBoxBottom" type="VBoxContainer" parent="."]
 margin_left = 760.0
 margin_top = 688.0
-margin_right = 1161.0
+margin_right = 1186.0
 margin_bottom = 908.0
 
-[node name="RestartButton" type="Button" parent="VBoxContainer"]
-margin_right = 401.0
-margin_bottom = 81.0
+[node name="RestartButton" type="Button" parent="VBoxBottom"]
+margin_right = 426.0
+margin_bottom = 75.0
 rect_min_size = Vector2( 120, 50 )
 theme = ExtResource( 5 )
 text = "Restart"
 
-[node name="Control" type="Control" parent="VBoxContainer"]
-margin_top = 85.0
-margin_right = 401.0
-margin_bottom = 135.0
-rect_min_size = Vector2( 100, 50 )
+[node name="Control1" type="Control" parent="VBoxBottom"]
+margin_top = 79.0
+margin_right = 426.0
+margin_bottom = 119.0
+rect_min_size = Vector2( 0, 40 )
 
-[node name="MainMenuButton" type="Button" parent="VBoxContainer"]
-margin_top = 139.0
-margin_right = 401.0
-margin_bottom = 220.0
+[node name="MainMenuButton" type="Button" parent="VBoxBottom"]
+margin_top = 123.0
+margin_right = 426.0
+margin_bottom = 198.0
 rect_min_size = Vector2( 120, 50 )
 theme = ExtResource( 5 )
-text = "Main Menu"
+text = "     Main Menu"
 
-[connection signal="pressed" from="VBoxContainer/RestartButton" to="." method="_OnRestartButtonPressed"]
-[connection signal="pressed" from="VBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
+[node name="SadImage" type="TextureRect" parent="."]
+margin_top = 430.0
+margin_right = 750.0
+margin_bottom = 1070.0
+texture = ExtResource( 6 )
+
+[connection signal="pressed" from="VBoxBottom/RestartButton" to="." method="_OnRestartButtonPressed"]
+[connection signal="pressed" from="VBoxBottom/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]

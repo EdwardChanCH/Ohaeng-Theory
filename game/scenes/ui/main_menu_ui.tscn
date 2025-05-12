@@ -1,11 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=1]
-[ext_resource path="res://assets/textures/players/discount_reimu_2.png" type="Texture" id=2]
 [ext_resource path="res://themes/button_theme.tres" type="Theme" id=3]
-[ext_resource path="res://assets/textures/InnerCircle.png" type="Texture" id=4]
 [ext_resource path="res://scripts/ui/MainMenuUI.cs" type="Script" id=5]
-[ext_resource path="res://assets/textures/background_parallex_base_no_clouds.png" type="Texture" id=6]
 
 [sub_resource type="DynamicFont" id=1]
 size = 143
@@ -15,78 +12,52 @@ font_data = ExtResource( 1 )
 pause_mode = 2
 script = ExtResource( 5 )
 
-[node name="TextureRect3" type="TextureRect" parent="."]
-margin_right = 1920.0
-margin_bottom = 1080.0
-texture = ExtResource( 6 )
+[node name="GameManualLink" type="LinkButton" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 1500.0
+margin_top = 1000.0
+theme = ExtResource( 3 )
+text = "Game Manual"
+uri = "https://docs.google.com/document/d/1PAuBFjET1WepqGIbUgpVj5Kay4G5USBJtCVM2sPDxTQ/edit?usp=sharing"
 
-[node name="Label" type="Label" parent="."]
-anchor_left = 0.5
-anchor_right = 0.5
-margin_left = -368.0
-margin_top = 102.0
-margin_right = 368.0
-margin_bottom = 261.0
+[node name="GameTitle" type="Label" parent="."]
+margin_left = 997.0
+margin_top = 123.0
+margin_right = 1793.0
+margin_bottom = 267.0
+theme = ExtResource( 3 )
 custom_fonts/font = SubResource( 1 )
-text = "Gogyo Theory"
+text = "Ohaeng Theory"
 align = 1
 valign = 1
 
-[node name="TextureRect2" type="TextureRect" parent="."]
-modulate = Color( 1, 1, 1, 0.419608 )
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-margin_left = -805.0
-margin_top = -249.0
-margin_right = -87.0
-margin_bottom = 469.0
-texture = ExtResource( 4 )
-expand = true
+[node name="VBox" type="VBoxContainer" parent="."]
+margin_left = 1200.0
+margin_top = 390.0
+margin_right = 1600.0
+margin_bottom = 758.0
 
-[node name="TextureRect" type="TextureRect" parent="."]
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-margin_left = -805.0
-margin_top = -249.0
-margin_right = -87.0
-margin_bottom = 469.0
-texture = ExtResource( 2 )
-expand = true
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -143.0
-margin_top = -174.0
-margin_right = 143.0
-margin_bottom = 100.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="PlayButton" type="Button" parent="VBoxContainer"]
-margin_right = 286.0
-margin_bottom = 81.0
+[node name="PlayButton" type="Button" parent="VBox"]
+margin_right = 400.0
+margin_bottom = 120.0
+rect_min_size = Vector2( 400, 120 )
 theme = ExtResource( 3 )
 text = "Play"
 
-[node name="Control" type="Control" parent="VBoxContainer"]
-margin_top = 85.0
-margin_right = 286.0
-margin_bottom = 135.0
-rect_min_size = Vector2( 0, 50 )
+[node name="Spacer1" type="Control" parent="VBox"]
+margin_top = 124.0
+margin_right = 400.0
+margin_bottom = 184.0
+rect_min_size = Vector2( 400, 60 )
 
-[node name="SettingButton" type="Button" parent="VBoxContainer"]
-margin_top = 139.0
-margin_right = 286.0
-margin_bottom = 220.0
+[node name="SettingButton" type="Button" parent="VBox"]
+margin_top = 188.0
+margin_right = 400.0
+margin_bottom = 308.0
+rect_min_size = Vector2( 400, 120 )
 theme = ExtResource( 3 )
-text = "Setting"
+text = "   Setting"
 
-[connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_OnPlayButtonPressed"]
-[connection signal="pressed" from="VBoxContainer/SettingButton" to="." method="_OnSettingButtonPressed"]
+[connection signal="pressed" from="VBox/PlayButton" to="." method="_OnPlayButtonPressed"]
+[connection signal="pressed" from="VBox/SettingButton" to="." method="_OnSettingButtonPressed"]

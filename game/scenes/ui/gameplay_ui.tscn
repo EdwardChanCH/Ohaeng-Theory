@@ -27,64 +27,42 @@ modulate_color = Color( 1, 0, 0, 1 )
 
 [node name="GameplayUI" type="CanvasLayer"]
 script = ExtResource( 3 )
-ScoreLabelPath = NodePath("HBoxContainer/ScoreNumber")
-WaveLabelPath = NodePath("WaveNumber")
-HighestWaveLabelPath = NodePath("HighestWaveNumber")
+HintLabelPath = NodePath("HintText")
+ScoreLabelPath = NodePath("HBox1/ScoreNumber")
+WaveLabelPath = NodePath("HBox2/VBoxRight/WaveNumber")
+HighestWaveLabelPath = NodePath("HBox2/VBoxRight/HighestNumber")
 PlayerHealthBarPath = NodePath("PlayerHealthBar")
 EnemyProgressBarPath = NodePath("EnemyProgressBar")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-margin_left = 156.0
-margin_top = 35.0
-margin_right = 466.0
-margin_bottom = 135.0
-
-[node name="TextureRect" type="TextureRect" parent="HBoxContainer"]
-margin_right = 100.0
-margin_bottom = 100.0
+[node name="TextureRect" type="TextureRect" parent="."]
+margin_left = 47.0
+margin_top = 26.0
+margin_right = 97.0
+margin_bottom = 76.0
 texture = ExtResource( 4 )
+expand = true
 
-[node name="ScoreText" type="Label" parent="HBoxContainer"]
-margin_left = 104.0
-margin_top = 21.0
-margin_right = 240.0
-margin_bottom = 78.0
+[node name="HBox1" type="HBoxContainer" parent="."]
+anchor_left = 0.06
+anchor_top = 0.025
+anchor_right = 0.06
+anchor_bottom = 0.025
+
+[node name="ScoreText" type="Label" parent="HBox1"]
+margin_right = 136.0
+margin_bottom = 57.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "Score: "
 valign = 1
 
-[node name="ScoreNumber" type="Label" parent="HBoxContainer"]
-margin_left = 244.0
-margin_top = 21.0
-margin_right = 310.0
-margin_bottom = 78.0
+[node name="ScoreNumber" type="Label" parent="HBox1"]
+margin_left = 140.0
+margin_right = 206.0
+margin_bottom = 57.0
 theme = ExtResource( 1 )
 custom_fonts/font = SubResource( 1 )
 text = "???"
-valign = 1
-
-[node name="WaveNumber" type="Label" parent="."]
-anchor_left = 0.5
-anchor_top = 0.06
-anchor_right = 0.5
-anchor_bottom = 0.07
-theme = ExtResource( 1 )
-custom_fonts/font = SubResource( 1 )
-text = "Wave ???"
-align = 1
-valign = 1
-
-[node name="HighestWaveNumber" type="Label" parent="."]
-modulate = Color( 1, 1, 1, 0.392157 )
-anchor_left = 0.5
-anchor_top = 0.01
-anchor_right = 0.5
-anchor_bottom = 0.01
-theme = ExtResource( 1 )
-custom_fonts/font = SubResource( 1 )
-text = "Best: ???"
-align = 1
 valign = 1
 
 [node name="PlayerHealthBar" type="ProgressBar" parent="."]
@@ -106,3 +84,69 @@ custom_styles/fg = SubResource( 4 )
 custom_styles/bg = SubResource( 3 )
 max_value = 1.0
 value = 1.0
+
+[node name="HBox2" type="HBoxContainer" parent="."]
+anchor_left = 0.38
+anchor_top = 0.02
+anchor_right = 0.38
+anchor_bottom = 0.02
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="VBoxLeft" type="VBoxContainer" parent="HBox2"]
+margin_right = 298.0
+margin_bottom = 118.0
+
+[node name="HighestText" type="Label" parent="HBox2/VBoxLeft"]
+self_modulate = Color( 1, 1, 1, 0.470588 )
+margin_right = 298.0
+margin_bottom = 57.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "Highest Wave: "
+valign = 1
+
+[node name="WaveText" type="Label" parent="HBox2/VBoxLeft"]
+margin_top = 61.0
+margin_right = 298.0
+margin_bottom = 118.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "Current Wave: "
+valign = 1
+
+[node name="VBoxRight" type="VBoxContainer" parent="HBox2"]
+margin_left = 302.0
+margin_right = 368.0
+margin_bottom = 118.0
+
+[node name="HighestNumber" type="Label" parent="HBox2/VBoxRight"]
+self_modulate = Color( 1, 1, 1, 0.470588 )
+margin_right = 66.0
+margin_bottom = 57.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "???"
+align = 1
+valign = 1
+
+[node name="WaveNumber" type="Label" parent="HBox2/VBoxRight"]
+margin_top = 61.0
+margin_right = 66.0
+margin_bottom = 118.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "???"
+align = 1
+valign = 1
+
+[node name="HintText" type="Label" parent="."]
+self_modulate = Color( 1, 1, 1, 0.470588 )
+margin_left = 174.0
+margin_top = 1023.0
+margin_right = 1718.0
+margin_bottom = 1080.0
+theme = ExtResource( 1 )
+custom_fonts/font = SubResource( 1 )
+text = "( - ) Previous Wave / Press ENTER to start the current wave \\ Next Wave ( + )"
+valign = 1
