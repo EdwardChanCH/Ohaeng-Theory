@@ -40,8 +40,10 @@ HealthComponentPath = NodePath("HealthComponent")
 HealthBarPath = NodePath("HealthBar")
 PlayerSpritePath = NodePath("PlayerSprite")
 KiteSpritePath = NodePath("PlayerSprite/McSpriteArtKiteKite")
+KiteRopeSpritePath = NodePath("PlayerSprite/KiteRope")
 ElementPath = NodePath("ElementCircle")
 HealthTextPath = NodePath("HealthBar/HealthRemaining")
+ProjectileClearZonePath = NodePath("ProjectileDeletionZone")
 ShootOffset = Vector2( 80, 0 )
 
 [node name="ElementCircle" parent="." instance=ExtResource( 6 )]
@@ -51,19 +53,20 @@ position = Vector2( 0, -1 )
 scale = Vector2( 0.6, 0.6 )
 texture = ExtResource( 5 )
 
+[node name="KiteRope" type="Sprite" parent="PlayerSprite"]
+position = Vector2( -2.1855e-06, 1.66669 )
+rotation = 1.48353
+scale = Vector2( 1.66667, 1.66667 )
+z_index = -1
+texture = SubResource( 5 )
+offset = Vector2( 1024, 0 )
+
 [node name="McSpriteArtKiteKite" type="Sprite" parent="PlayerSprite"]
 position = Vector2( -3.33333, 25 )
 scale = Vector2( 0.802, 0.802 )
 z_index = -1
 z_as_relative = false
 texture = ExtResource( 7 )
-
-[node name="KiteRope" type="Sprite" parent="PlayerSprite/McSpriteArtKiteKite"]
-position = Vector2( 4.15627, -29.0939 )
-rotation = 1.48353
-scale = Vector2( 2.07814, 2.07814 )
-texture = SubResource( 5 )
-offset = Vector2( 1024, 0 )
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 show_behind_parent = true

@@ -40,7 +40,7 @@ public class LesserEnemyCharacter : KinematicBody2D, IHarmful
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
-    private float _fireDelay = 1.5f;
+    private float _fireDelay = 3.0f;
     private float _fireTimer;
 
     public override void _Ready()

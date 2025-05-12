@@ -28,12 +28,20 @@ public class PlayerCharacter : KinematicBody2D
     private Sprite _KiteSprite;
 
     [Export]
+    public NodePath KiteRopeSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteRopeSprite;
+
+    [Export]
     public NodePath ElementPath { get; private set; } = new NodePath();
     private ElementCircle _elementCircle;
 
     [Export]
     public NodePath HealthTextPath { get; private set; } = new NodePath();
     private Label _healthText;
+
+    [Export]
+    public NodePath ProjectileClearZonePath { get; private set; } = new NodePath();
+    private Area2D _projectileClearZone;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; } = true;
@@ -111,8 +119,6 @@ public class PlayerCharacter : KinematicBody2D
     private float _elementCircleHideDelay = 1.0f;
     private float _elementCircleTimer = 0;
 
-    private System.Collections.Generic.List<IHarmful> _nearByHarmful = new System.Collections.Generic.List<IHarmful>();
-
     [Export]
     public Vector2 ShootOffset = Vector2.Zero;
 
@@ -178,6 +184,8 @@ public class PlayerCharacter : KinematicBody2D
         _elementCircle = GetNode<ElementCircle>(ElementPath);
         _KiteSprite = GetNode<Sprite>(KiteSpritePath);
         _healthText = GetNode<Label>(HealthTextPath);
+        _projectileClearZone = GetNode<Area2D>(ProjectileClearZonePath);
+        _KiteRopeSprite = GetNode< Sprite >(KiteRopeSpritePath);
 
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
@@ -310,6 +318,7 @@ public class PlayerCharacter : KinematicBody2D
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
         _KiteSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteSprite.GlobalRotationDegrees, SpriteTilt * -MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteRopeSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteRopeSprite.GlobalRotationDegrees, 85.0f + (SpriteTilt / 3) * -MoveDirection.x, delta * (SpriteTiltSpeed / 2));
 
         _elementCircleTimer -= delta;
         _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
@@ -376,18 +385,20 @@ public class PlayerCharacter : KinematicBody2D
             //harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
 
             CallDeferred("ClearBullets");
-
         }
     }
 
     public void ClearBullets()
     {
-        foreach(var harmful in _nearByHarmful)
+        foreach(PhysicsBody2D projectile in _projectileClearZone.GetOverlappingBodies())
         {
-            if(harmful != null)
+            GD.Print(projectile);
+            if (projectile is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
+            {
                 harmful.Kill();
+            }
         }
-        _nearByHarmful.Clear();
+
     }
 
     // Called when health value got change
@@ -408,26 +419,6 @@ public class PlayerCharacter : KinematicBody2D
     {
         PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
         Globals.AddScore(Globals.WaveCompleteReward);
-    }
-
-
-    public void _OnBodyEnterZone(Node body)
-    {
-        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
-        {
-
-            GD.Print("Enter");
-            _nearByHarmful.Add(harmful);
-
-        }
-    }
-
-    public void _OnBodyExitZone(Node body)
-    {
-        if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
-        {
-            _nearByHarmful.Remove(harmful);
-        }
     }
 
     // Called when any setting got change
