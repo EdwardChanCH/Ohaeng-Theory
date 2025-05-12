@@ -12,6 +12,8 @@ gradient = SubResource( 1 )
 [node name="EnemyManager" type="Node2D"]
 position = Vector2( 1400, 0 )
 script = ExtResource( 1 )
+MinSpawnNodePath = NodePath("MinSpawnBound")
+MaxSpawnNodePath = NodePath("MaxSpawnBound")
 
 [node name="MinSpawnBound" type="Node2D" parent="."]
 __meta__ = {

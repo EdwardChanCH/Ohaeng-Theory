@@ -13,7 +13,7 @@ public class ProjectileManager : Node
 
     private static Dictionary<string, Stack<Node>> _objectPools = new Dictionary<string, Stack<Node>>();
 
-    private static List<Node> _inactivePool= new List<Node>(); // TODO
+    private static List<Node> _spawnedBullets = new List<Node>();
 
     //private static HashSet<ulong> _despawnPool = new HashSet<ulong>();
 
@@ -37,19 +37,24 @@ public class ProjectileManager : Node
     public override void _ExitTree()
     {
         base._ExitTree();
+    }
 
-/*         foreach (string key in _objectPools.Keys)
+    // Free all bullets
+    public static void ClearBullets()
+    {
+        foreach (Node node in _spawnedBullets)
         {
-            GD.Print("");
-            GD.Print(key);
-            while (_objectPools[key].Count > 0)
+            if (node is Bullet bullet)
             {
-                GD.Print(_objectPools[key].Pop().GetInstanceId());
+                bullet.Kill();
             }
-            GD.Print("--- Stack Bottom ---");
-            GD.Print("");
-        } */
+        }
+        _spawnedBullets.Clear();
 
+        foreach (Stack<Node> stack in _objectPools.Values)
+        {
+            stack.Clear();
+        }
     }
 
     // Return a non-moving, non-parented projectile as template.
@@ -67,6 +72,11 @@ public class ProjectileManager : Node
         // Disable processing
         projectile.SetProcess(false);
         projectile.SetPhysicsProcess(false); // It reset to true in AddChild(projectile)
+
+        if (projectile is Bullet bullet)
+        {
+            bullet.Initalize();
+        }
 
         return projectile;
     }
@@ -100,11 +110,13 @@ public class ProjectileManager : Node
 
             // Make a new projectile
             projectile = _cachedScenes[scenePath].Instance();
+
+            _spawnedBullets.Add(projectile);
         }
 
-        // Attatch to parent at the end of frame (if exist)
+        // Attatch to parent
         projectile.GetParent()?.RemoveChild(projectile);
-        parentNode.AddChild(projectile);
+        parentNode.AddChild(projectile); // Must be done first
 
         // Caller should set the node owner when saving
 

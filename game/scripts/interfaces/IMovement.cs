@@ -12,4 +12,7 @@ public interface IMovement
     // Get a new movement vector in each physic tick
     // for calling MoveAndSlide(Vector2) in any character
     Vector2 CalculateVector(float delta);
+
+    // Reset any movement related data
+    void Reset();
 }

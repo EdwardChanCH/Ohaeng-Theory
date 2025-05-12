@@ -1,170 +1,222 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://assets/textures/white.png" type="Texture" id=1]
+[ext_resource path="res://assets/textures/baclground_layer_1.png" type="Texture" id=1]
 [ext_resource path="res://scripts/ui/SettingMenuUI.cs" type="Script" id=2]
 [ext_resource path="res://themes/setting_theme.tres" type="Theme" id=3]
+[ext_resource path="res://themes/gasalt/Gasalt-Regular.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://themes/gasalt/Gasalt-Black.ttf" type="DynamicFontData" id=5]
+[ext_resource path="res://themes/button_theme.tres" type="Theme" id=6]
+
+[sub_resource type="DynamicFont" id=2]
+size = 72
+font_data = ExtResource( 5 )
+
+[sub_resource type="DynamicFont" id=1]
+size = 34
+font_data = ExtResource( 4 )
 
 [node name="setting_menu_ui" type="CanvasLayer"]
 pause_mode = 2
+layer = 10
 script = ExtResource( 2 )
-MouseDirectedInputCheckBoxPath = NodePath("VBoxContainer/MouseDirectedInput")
-ToggleAttackCheckBoxPath = NodePath("VBoxContainer/ToggleAttack")
-ToggleSlowCheckBoxPath = NodePath("VBoxContainer/ToggleSlow")
-MasterSliderPath = NodePath("VBoxContainer/MasterSlider")
-SFXSliderPath = NodePath("VBoxContainer/SFXSlider")
-MusicSliderPath = NodePath("VBoxContainer/BGMSlider")
-MainMenuButtonPath = NodePath("HBoxContainer/MainMenuButton")
+MouseDirectedInputCheckBoxPath = NodePath("VBoxLeft/MouseDirectedInput")
+ToggleAttackCheckBoxPath = NodePath("VBoxLeft/ToggleAttack")
+ToggleSlowCheckBoxPath = NodePath("VBoxLeft/ToggleSlow")
+MasterSliderPath = NodePath("VBoxRight/MasterSlider")
+SFXSliderPath = NodePath("VBoxRight/SFXSlider")
+MusicSliderPath = NodePath("VBoxRight/BGMSlider")
+MainMenuButtonPath = NodePath("VBoxBottom/MainMenuButton")
 
-[node name="TextureRect" type="TextureRect" parent="."]
-modulate = Color( 0.0313726, 0.0313726, 0.0313726, 0.654902 )
+[node name="Background" type="TextureRect" parent="."]
+self_modulate = Color( 0.392157, 0.392157, 0.392157, 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 texture = ExtResource( 1 )
 expand = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="SettingsText" type="Label" parent="."]
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 0.1
 anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -169.0
-margin_top = -282.0
-margin_right = 215.0
-margin_bottom = 195.0
-
-[node name="Label4" type="Label" parent="VBoxContainer"]
-margin_right = 384.0
-margin_bottom = 37.0
-theme = ExtResource( 3 )
-text = "Use Mouse Directed Input"
-
-[node name="MouseDirectedInput" type="CheckBox" parent="VBoxContainer"]
-margin_top = 41.0
-margin_right = 384.0
-margin_bottom = 81.0
-rect_min_size = Vector2( 0, 30 )
-theme = ExtResource( 3 )
-
-[node name="Label5" type="Label" parent="VBoxContainer"]
-margin_top = 85.0
-margin_right = 384.0
-margin_bottom = 122.0
-theme = ExtResource( 3 )
-text = "Toggle Attack"
-
-[node name="ToggleAttack" type="CheckBox" parent="VBoxContainer"]
-margin_top = 126.0
-margin_right = 384.0
-margin_bottom = 166.0
-rect_min_size = Vector2( 0, 30 )
-theme = ExtResource( 3 )
-
-[node name="Label6" type="Label" parent="VBoxContainer"]
-margin_top = 170.0
-margin_right = 384.0
-margin_bottom = 207.0
-theme = ExtResource( 3 )
-text = "Toggle Slow"
-
-[node name="ToggleSlow" type="CheckBox" parent="VBoxContainer"]
-margin_top = 211.0
-margin_right = 384.0
-margin_bottom = 251.0
-rect_min_size = Vector2( 0, 30 )
-theme = ExtResource( 3 )
-
-[node name="Space" type="Control" parent="VBoxContainer"]
-margin_top = 255.0
-margin_right = 384.0
-margin_bottom = 295.0
-rect_min_size = Vector2( 0, 40 )
-
-[node name="Label" type="Label" parent="VBoxContainer"]
-margin_top = 299.0
-margin_right = 384.0
-margin_bottom = 336.0
-theme = ExtResource( 3 )
-text = "Master"
-
-[node name="MasterSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 340.0
-margin_right = 384.0
-margin_bottom = 372.0
-theme = ExtResource( 3 )
-max_value = 1.0
-step = 0.01
-
-[node name="Label2" type="Label" parent="VBoxContainer"]
-margin_top = 376.0
-margin_right = 384.0
-margin_bottom = 413.0
-theme = ExtResource( 3 )
-text = "SFX"
-
-[node name="SFXSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 417.0
-margin_right = 384.0
-margin_bottom = 449.0
-theme = ExtResource( 3 )
-max_value = 1.0
-step = 0.01
-
-[node name="Label3" type="Label" parent="VBoxContainer"]
-margin_top = 453.0
-margin_right = 384.0
-margin_bottom = 490.0
-theme = ExtResource( 3 )
-text = "BGM"
-
-[node name="BGMSlider" type="HSlider" parent="VBoxContainer"]
-margin_top = 494.0
-margin_right = 384.0
-margin_bottom = 526.0
-theme = ExtResource( 3 )
-max_value = 1.0
-step = 0.01
-
-[node name="Label" type="Label" parent="."]
-anchor_left = 0.5
-anchor_right = 0.5
+anchor_bottom = 0.1
 margin_left = -166.0
-margin_top = 158.0
-margin_right = 166.0
-margin_bottom = 284.0
+margin_right = 234.0
+margin_bottom = 100.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 2 )
 text = "Setting"
 align = 1
 valign = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-margin_left = -20.0
-margin_top = -228.0
-margin_right = 20.0
-margin_bottom = -188.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="VBoxLeft" type="VBoxContainer" parent="."]
+anchor_left = 0.25
+anchor_top = 0.3
+anchor_right = 0.25
+anchor_bottom = 0.3
+margin_right = 400.0
+margin_bottom = 245.0
 
-[node name="BackButton" type="Button" parent="HBoxContainer"]
-margin_right = 120.0
-margin_bottom = 50.0
-rect_min_size = Vector2( 120, 50 )
+[node name="MouseDirectedInputText" type="Label" parent="VBoxLeft"]
+margin_right = 400.0
+margin_bottom = 35.0
 theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Use Mouse Directed Movement"
+
+[node name="MouseDirectedInput" type="CheckBox" parent="VBoxLeft"]
+margin_top = 39.0
+margin_right = 400.0
+margin_bottom = 79.0
+rect_min_size = Vector2( 0, 30 )
+theme = ExtResource( 3 )
+
+[node name="Control1" type="Control" parent="VBoxLeft"]
+margin_top = 83.0
+margin_right = 400.0
+margin_bottom = 103.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="ToggleAttackText" type="Label" parent="VBoxLeft"]
+margin_top = 107.0
+margin_right = 400.0
+margin_bottom = 142.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Toggle Attack"
+
+[node name="ToggleAttack" type="CheckBox" parent="VBoxLeft"]
+margin_top = 146.0
+margin_right = 400.0
+margin_bottom = 186.0
+rect_min_size = Vector2( 0, 30 )
+theme = ExtResource( 3 )
+
+[node name="Control2" type="Control" parent="VBoxLeft"]
+margin_top = 190.0
+margin_right = 400.0
+margin_bottom = 210.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="ToggleSlowText" type="Label" parent="VBoxLeft"]
+margin_top = 214.0
+margin_right = 400.0
+margin_bottom = 249.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Toggle Slow"
+
+[node name="ToggleSlow" type="CheckBox" parent="VBoxLeft"]
+margin_top = 253.0
+margin_right = 400.0
+margin_bottom = 293.0
+rect_min_size = Vector2( 0, 30 )
+theme = ExtResource( 3 )
+
+[node name="VBoxRight" type="VBoxContainer" parent="."]
+anchor_left = 0.57
+anchor_top = 0.3
+anchor_right = 0.7
+anchor_bottom = 0.3
+margin_right = 150.4
+margin_bottom = 269.0
+
+[node name="MasterSliderText" type="Label" parent="VBoxRight"]
+margin_right = 400.0
+margin_bottom = 35.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Master Volume"
+
+[node name="MasterSlider" type="HSlider" parent="VBoxRight"]
+margin_top = 39.0
+margin_right = 400.0
+margin_bottom = 71.0
+theme = ExtResource( 3 )
+max_value = 1.0
+step = 0.01
+
+[node name="Control1" type="Control" parent="VBoxRight"]
+margin_top = 75.0
+margin_right = 400.0
+margin_bottom = 95.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="SFXSliderText" type="Label" parent="VBoxRight"]
+margin_top = 99.0
+margin_right = 400.0
+margin_bottom = 134.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Sound Effects"
+
+[node name="SFXSlider" type="HSlider" parent="VBoxRight"]
+margin_top = 138.0
+margin_right = 400.0
+margin_bottom = 170.0
+theme = ExtResource( 3 )
+max_value = 1.0
+step = 0.01
+
+[node name="Control2" type="Control" parent="VBoxRight"]
+margin_top = 174.0
+margin_right = 400.0
+margin_bottom = 194.0
+rect_min_size = Vector2( 0, 20 )
+
+[node name="BGMSliderText" type="Label" parent="VBoxRight"]
+margin_top = 198.0
+margin_right = 400.0
+margin_bottom = 233.0
+theme = ExtResource( 3 )
+custom_fonts/font = SubResource( 1 )
+text = "Background Music"
+
+[node name="BGMSlider" type="HSlider" parent="VBoxRight"]
+margin_top = 237.0
+margin_right = 400.0
+margin_bottom = 269.0
+theme = ExtResource( 3 )
+max_value = 1.0
+step = 0.01
+
+[node name="VBoxBottom" type="VBoxContainer" parent="."]
+anchor_left = 0.39
+anchor_top = 0.63
+anchor_right = 0.39
+anchor_bottom = 0.63
+margin_right = 500.0
+margin_bottom = 242.0
+rect_scale = Vector2( 1, 1.00581 )
+
+[node name="Control1" type="Control" parent="VBoxBottom"]
+margin_right = 500.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 0, 40 )
+
+[node name="BackButton" type="Button" parent="VBoxBottom"]
+margin_top = 44.0
+margin_right = 500.0
+margin_bottom = 119.0
+rect_min_size = Vector2( 120, 50 )
+theme = ExtResource( 6 )
 text = "Back"
 
-[node name="MainMenuButton" type="Button" parent="HBoxContainer"]
-margin_left = 124.0
-margin_right = 244.0
-margin_bottom = 50.0
+[node name="Control2" type="Control" parent="VBoxBottom"]
+margin_top = 123.0
+margin_right = 500.0
+margin_bottom = 163.0
+rect_min_size = Vector2( 0, 40 )
+
+[node name="MainMenuButton" type="Button" parent="VBoxBottom"]
+margin_top = 167.0
+margin_right = 500.0
+margin_bottom = 242.0
 rect_min_size = Vector2( 120, 50 )
-theme = ExtResource( 3 )
+theme = ExtResource( 6 )
 text = "Main Menu"
 
-[connection signal="toggled" from="VBoxContainer/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
-[connection signal="toggled" from="VBoxContainer/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
-[connection signal="toggled" from="VBoxContainer/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
-[connection signal="pressed" from="HBoxContainer/BackButton" to="." method="_OnBackButtonPressed"]
-[connection signal="pressed" from="HBoxContainer/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
+[connection signal="toggled" from="VBoxLeft/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
+[connection signal="toggled" from="VBoxLeft/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
+[connection signal="toggled" from="VBoxLeft/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
+[connection signal="pressed" from="VBoxBottom/BackButton" to="." method="_OnBackButtonPressed"]
+[connection signal="pressed" from="VBoxBottom/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]

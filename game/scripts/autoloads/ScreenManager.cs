@@ -10,14 +10,18 @@ public class ScreenManager : Node
     public static ScreenManager Singleton { get; private set; }
     
     // Screen paths
-    public const string MainMenuScreenPath = "res://scenes/ui/main_menu_ui.tscn";
-    public const string GameplayScreenPath = "res://scenes/Screens/gameplay_screen.tscn";
-    public const string WinScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
-    public const string LoseScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup?
-    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn";
+    public const string MainMenuScreenPath = "res://scenes/screens/main_menu_screen.tscn";
+    public const string GameplayScreenPath = "res://scenes/screens/gameplay_screen.tscn";
+    public const string WinScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup
+    public const string LoseScreenPath = "res://scenes/ui/end_game_ui.tscn"; // popup
+    public const string SettingsScreenPath = "res://scenes/ui/setting_menu_ui.tscn"; // popup
+    private const string _transitionScreenPath = "res://scenes/screens/transition_screen.tscn";
+
 
     // The current loaded screen (not a popup) (may add popups as children)
     public static Node CurrentScreen { get; private set; } = null;
+
+    private static TransitionScreen _transitionScreen { get; set; }
 
     // Optimization
     private static Dictionary<string, PackedScene> _cachedScenes = new Dictionary<string, PackedScene>();
@@ -28,8 +32,11 @@ public class ScreenManager : Node
     public override void _EnterTree()
     {
         base._EnterTree();
-
         Singleton = this;
+
+        _transitionScreen = (TransitionScreen)Load(_transitionScreenPath, GetTree().Root);
+        _transitionScreen.CallDeferred("FadeToNormal");
+        //_transitionScreen.FadeToNormal();
     }
 
     // Load a new screen or popup.
@@ -58,6 +65,8 @@ public class ScreenManager : Node
         _screenHistory.Push(scenePath);
 
         CurrentScreen = Load(scenePath, attachTo);
+
+        _transitionScreen.CallDeferred("FadeToNormal");
     }
 
     // Load the previous screen and mark as current screen, unload the current screen and update screen history.

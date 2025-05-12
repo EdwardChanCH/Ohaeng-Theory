@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using static Globals;
 
 // Note: NOT a singleton
 public class PlayerCharacter : KinematicBody2D
@@ -9,9 +8,12 @@ public class PlayerCharacter : KinematicBody2D
     [Signal]
     public delegate void PlayerDeath();
 
+    [Signal]
+    public delegate void HealthUpdate(int newHealth);
+
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
-    public HealthComponent PlayerHealthComponent;
+    public HealthComponent PlayerHealthComponent { get; private set; }
 
     [Export]
     public NodePath HealthBarPath { get; private set; } = new NodePath();
@@ -20,6 +22,26 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public NodePath PlayerSpritePath { get; private set; } = new NodePath();
     private Sprite _playerSprite;
+
+    [Export]
+    public NodePath KiteSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteSprite;
+
+    [Export]
+    public NodePath KiteRopeSpritePath { get; private set; } = new NodePath();
+    private Sprite _KiteRopeSprite;
+
+    [Export]
+    public NodePath ElementPath { get; private set; } = new NodePath();
+    private ElementCircle _elementCircle;
+
+    [Export]
+    public NodePath HealthTextPath { get; private set; } = new NodePath();
+    private Label _healthText;
+
+    [Export]
+    public NodePath ProjectileClearZonePath { get; private set; } = new NodePath();
+    private Area2D _projectileClearZone;
 
     [Export]
     public bool UseMouseDirectedInput { get; set; } = true;
@@ -37,7 +59,7 @@ public class PlayerCharacter : KinematicBody2D
     [Export]
     public float DefaultMoveSpeed { get; set; } = 800.0f;
     [Export]
-    public float SlowMoveSpeed { get; set; } = 400.0f;
+    public float SlowMoveSpeed { get; set; } = 200.0f;
     public Vector2 MoveDirection { get; private set; } = Vector2.Zero; // Always normalized
 
     [Export]
@@ -94,10 +116,16 @@ public class PlayerCharacter : KinematicBody2D
     private float _firingAudioDelay = 0.1f;
     private float _firingAudioTimer = 1f;
 
+    private float _elementCircleHideDelay = 1.0f;
+    private float _elementCircleTimer = 0;
+
+    [Export]
+    public Vector2 ShootOffset = Vector2.Zero;
+
     public override void _EnterTree()
     {
         base._EnterTree();
-
+        //GameplayScreen.PlayerRef = this;
         Globals.Singleton.Connect("GameDataChanged", this, "UpdateSetting");
         UseMouseDirectedInput = Globals.String2Bool(Globals.GameData["UseMouseDirectedInput"]);
         UseToggleShootInput = Globals.String2Bool(Globals.GameData["ToggleAttack"]);
@@ -122,15 +150,23 @@ public class PlayerCharacter : KinematicBody2D
             bullet.Damage = 5;
             bullet.Friendly = true;
             bullet.MovementNode.Direction = Vector2.Right;
-            bullet.MovementNode.Speed = 1000; // TODO tune speed
+            bullet.MovementNode.Speed = 2000; // TODO tune speed
         }
 
         // - - - Initialize Player Bullet Templates - - -
+
+
+
+
+
+
     }
 
     public override void _ExitTree()
     {
         base._ExitTree();
+        //if(GameplayScreen.PlayerRef == this)
+        //    GameplayScreen.PlayerRef = null;
 
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
@@ -145,6 +181,12 @@ public class PlayerCharacter : KinematicBody2D
         PlayerHealthComponent = GetNode<HealthComponent>(HealthComponentPath);
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _playerSprite = GetNode<Sprite>(PlayerSpritePath);
+        _elementCircle = GetNode<ElementCircle>(ElementPath);
+        _KiteSprite = GetNode<Sprite>(KiteSpritePath);
+        _healthText = GetNode<Label>(HealthTextPath);
+        _projectileClearZone = GetNode<Area2D>(ProjectileClearZonePath);
+        _KiteRopeSprite = GetNode< Sprite >(KiteRopeSpritePath);
+
         var minBound = GetNode<Node2D>(MinMovementBoundPath);
         var maxbound = GetNode<Node2D>(MaxMovementBoundPath);
 
@@ -155,12 +197,15 @@ public class PlayerCharacter : KinematicBody2D
         }
         else
         {
-            _minMovementBoundVector = Vector2.Zero;
-            _maxMovementBoundVector = new Vector2(1920, 1080);
+            _minMovementBoundVector = GetViewportRect().Position;
+            _maxMovementBoundVector = GetViewportRect().End;
         }
 
-            AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
+        _elementCircle.SetElement(_currentElement);
+
+        AudioManager.SetSFXChannelVolume("res://assets/sfx/test/bang.wav", 0.2f);
     }
+
     public override void _Input(InputEvent @event)
     {
         if(@event.IsActionPressed("Shoot") && UseToggleShootInput)
@@ -176,11 +221,17 @@ public class PlayerCharacter : KinematicBody2D
         if (@event.IsActionPressed("Previous_Element"))
         {
             _currentElement = Globals.PreviousElement(_currentElement);
+            _elementCircle.SetElement(_currentElement);
+            _elementCircleTimer = _elementCircleHideDelay;
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
         if (@event.IsActionPressed("Next_Element"))
         {
             _currentElement = Globals.NextElement(_currentElement);
+            _elementCircle.SetElement(_currentElement);
+            _elementCircleTimer = _elementCircleHideDelay;
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/092_Pause_04.wav");
         }
 
         if (@event.IsActionPressed("Open_Setting_Menu"))
@@ -195,6 +246,7 @@ public class PlayerCharacter : KinematicBody2D
             {
                 _CurrentPattern = 0;
             }
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/098_Unpause_04.wav");
         }
     }
 
@@ -265,7 +317,11 @@ public class PlayerCharacter : KinematicBody2D
 
 
         _playerSprite.RotationDegrees = Mathf.Lerp(_playerSprite.RotationDegrees, SpriteTilt * MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteSprite.GlobalRotationDegrees, SpriteTilt * -MoveDirection.x, delta * SpriteTiltSpeed);
+        _KiteRopeSprite.GlobalRotationDegrees = Mathf.Lerp(_KiteRopeSprite.GlobalRotationDegrees, 85.0f + (SpriteTilt / 3) * -MoveDirection.x, delta * (SpriteTiltSpeed / 2));
 
+        _elementCircleTimer -= delta;
+        _elementCircle.SetAlpha(Mathf.Clamp(_elementCircleTimer, 0, _elementCircleHideDelay) / _elementCircleHideDelay);
 
         //GD.Print($"{_xAxisMovement} , {_yAxisMovement}"); // TODO test
         //GD.Print($"{MoveDirection.x} , {MoveDirection.y}"); // TODO test
@@ -273,22 +329,19 @@ public class PlayerCharacter : KinematicBody2D
 
     public override void _PhysicsProcess(float delta)
     {
-        // TODO test only
-        //GD.Print(_bulletTemplates[$"Player_{Globals.Element.Water}_Bullet"].Position);
         float moveSpeed;
-        if (!_ShouldSlowMovement)
-        {
-            moveSpeed = DefaultMoveSpeed;
-        }
-        else
+        if (_ShouldSlowMovement)
         {
             moveSpeed = SlowMoveSpeed;
         }
-
+        else
+        {
+            moveSpeed = DefaultMoveSpeed;
+        }
 
 
         // Calculate player velocity
-        if (UseMouseDirectedInput) // TODO use Globals.GameData
+        if (UseMouseDirectedInput)
         {
             // Mouse control
             if (UseSmoothedMovemment)
@@ -319,8 +372,7 @@ public class PlayerCharacter : KinematicBody2D
             Velocity = MoveDirection * moveSpeed;
         }
 
-
-        MoveAndSlide(Velocity);
+        MoveAndSlide(Velocity); // Should be the last line in _PhysicsProcess()
     }
 
     // Called when other hitbody has enter the body
@@ -329,14 +381,32 @@ public class PlayerCharacter : KinematicBody2D
         if (body is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
         {
             PlayerHealthComponent.ApplyDamage(harmful.GetDamage());
-            harmful.Kill();
+            AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/61_Hit_03.wav");
+            //harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+
+            CallDeferred("ClearBullets");
         }
+    }
+
+    public void ClearBullets()
+    {
+        foreach(PhysicsBody2D projectile in _projectileClearZone.GetOverlappingBodies())
+        {
+            GD.Print(projectile);
+            if (projectile is IHarmful harmful && !harmful.IsFriendly() && harmful.IsActive())
+            {
+                harmful.Kill();
+            }
+        }
+
     }
 
     // Called when health value got change
     public void _OnHealthUpdate(int newHealth)
     {
         _healthBar.Value = (float)newHealth / (float)PlayerHealthComponent.MaxHealth;
+        _healthText.Text = newHealth.ToString() + " / " + PlayerHealthComponent.MaxHealth;
+        EmitSignal("HealthUpdate", newHealth);
     }
 
     // Called when health is deplated
@@ -345,9 +415,16 @@ public class PlayerCharacter : KinematicBody2D
         EmitSignal("PlayerDeath");
     }
     
+    public void _OnWaveComplete()
+    {
+        PlayerHealthComponent.SetHealth(PlayerHealthComponent.MaxHealth);
+        Globals.AddScore(Globals.WaveCompleteReward);
+    }
+
     // Called when any setting got change
     private void UpdateSetting(string key, string value)
     {
+        GD.Print(key);
         if(key == "ToggleSlow")
         {
             _ShouldSlowMovement = false;
@@ -369,26 +446,51 @@ public class PlayerCharacter : KinematicBody2D
         switch (_CurrentPattern)
         {
             case 0:
-                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(90));
+                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 4, 10);
                 break;
             case 1:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletWall(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, 10);
+                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 6, Mathf.Deg2Rad(45));
                 break;
             case 2:
-                // Edit the bullet template instead of the function parameters
-                ProjectileManager.EmitBulletConeNarrow(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, Position, 4, Mathf.Deg2Rad(45));
+                ProjectileManager.EmitBulletConeWide(_bulletTemplates[$"Player_{_currentElement}_Bullet"], GetTree().Root, GlobalPosition + ShootOffset, 6, Mathf.Deg2Rad(180));
                 break;
             default:
                 GD.PrintErr($"Error: Player cannot fire {_currentElement} bullet.");
-            break;
+                break;
         }
         
         if(_firingAudioTimer >= _firingAudioDelay)
         {
-            AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+
+            switch (_currentElement)
+            {
+                case Globals.Element.None:
+                    AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+                    break;
+
+                case Globals.Element.Water:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/22_Water_02.wav");
+                    break;
+
+                case Globals.Element.Wood:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/25_Wind_01.wav");
+                    break;
+
+                case Globals.Element.Fire:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/04_Fire_explosion_04_medium.wav");
+                    break;
+
+                case Globals.Element.Earth:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/30_Earth_02.wav");
+                    break;
+
+                case Globals.Element.Metal:
+                    AudioManager.PlaySFX("res://assets/sfx/rpg_essentials_free/8_Atk_Magic_SFX/13_Ice_explosion_01.wav");
+                    break;
+            }
+
+
             _firingAudioTimer = 0;
         }
     }
-
 }

@@ -4,6 +4,9 @@ using System;
 // This class is the entry point of the game.
 public class Bullet : KinematicBody2D, IHarmful
 {
+    [Signal]
+    public delegate void Killed(Bullet source);
+
     [Export]
     public Globals.Element Element { get; set; } = Globals.Element.None;
 
@@ -28,12 +31,16 @@ public class Bullet : KinematicBody2D, IHarmful
             {
                 // Queue activate
                 _activationTimer = 0; //  Start timer
+                SetProcess(true);
+                SetPhysicsProcess(true);
             }
             else
             {
                 // Immediately deactivate
                 _active = false; // Deactivate
                 _activationTimer = -1; // Stop timer
+                SetProcess(false);
+                SetPhysicsProcess(false);
             }
         }
     }
@@ -88,13 +95,18 @@ public class Bullet : KinematicBody2D, IHarmful
         MovementNode = GetNode<IMovement>(MovementNodePath);
         SpriteNode = GetNode<Sprite>(SpriteNodePath);
         CollisionShape2DNode = GetNode<CollisionShape2D>(CollisionShape2DNodePath);
-
-        if (MovementNode == null || SpriteNode == null || CollisionShape2DNode == null)
-        {
-            GD.PrintErr("Error: Invalid export node path in Bullet.");
-            return;
-        }
+        MovementNode.Reset();
     }
+    public void Clear()
+    {
+        SpriteNode.QueueFree();
+        CollisionShape2DNode.QueueFree();
+
+        SpriteNode = null;
+        CollisionShape2DNode = null;
+        MovementNode = null;
+    }
+
 
     // Copy data from another source bullet
     // Note: Export nodes are not copied, parent is not copied
@@ -138,6 +150,7 @@ public class Bullet : KinematicBody2D, IHarmful
 
     public void Kill()
     {
+        EmitSignal("Killed", this);
         ProjectileManager.QueueDespawnProjectile(this); // Return to object pool
     }
 

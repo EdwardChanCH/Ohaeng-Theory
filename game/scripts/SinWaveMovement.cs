@@ -1,7 +1,6 @@
 using Godot;
 using System;
 
-// This class is the entry point of the game.
 public class SinWaveMovement : BaseMovement
 {
     private Vector2 _crossDirection = Vector2.Zero;
@@ -46,4 +45,8 @@ public class SinWaveMovement : BaseMovement
         return (_direction * Speed) + (_crossDirection * Magnitude * Mathf.Cos(2 * Mathf.Pi * _cycle / Period));
     }
 
+    public override void Reset()
+    {
+        _cycle = Mathf.Deg2Rad(_phase);
+    }
 }

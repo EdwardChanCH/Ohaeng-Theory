@@ -1,11 +1,24 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+//using static Globals; // Please don't
 
 public class EnemyCharacter : KinematicBody2D
 {
     [Signal]
+    public delegate void Killed(EnemyCharacter source);
+
+    [Signal]
+    public delegate void SplitNeeded(EnemyCharacter source);
+
+    [Signal]
+    public delegate void MergeNeeded(EnemyCharacter source);
+
+    [Signal]
     public delegate void UpdateElement(Globals.Element element, int newCount);
+
+    [Signal]
+    public delegate void ReachedTarget(EnemyCharacter source);
 
     [Export]
     public NodePath HealthComponentPath { get; private set; } = new NodePath();
@@ -28,17 +41,59 @@ public class EnemyCharacter : KinematicBody2D
     private DamagePopup _damagePopup;
 
     [Export]
-    public Texture[] CharacterSpriteTexture { get; private set; } = new Texture[0];
+    public NodePath UIElementNode { get; private set; } = new NodePath();
+    private Node2D _uiElement;
 
-    // TODO Need a timer component
-    private float _fireDelay;
-    private float _fireTimer = 0.0f;
 
+    [Export]
+    public Texture[] CharacterSpriteTexture { get; set; } = new Texture[0];
+
+    [Export]
+    public Globals.Element DominantElement = Globals.Element.Water; // None would have out-of-bound error in switch sprite
+
+    [Export]
     public Dictionary<Globals.Element, int> ElementalCount { get; private set; } = new Dictionary<Globals.Element, int>();
-    private Globals.Element _dominantElement = Globals.Element.None;
+
+    [Export]
+    public float AttackBetweenDelay = 5.0f;
+    private float _attackBetweenTimer;
+
+    private float _fireDelay = 0.25f;
+    private float _fireTimer;
+    private bool _isAttacking = false;
+    private int _attackCounter = 0;
+
+    private float _attackPauseTimer = 0; // TODO
+    private bool _isAttackPause = false;
+
 
     private Dictionary<string, Bullet> _bulletTemplates = new Dictionary<string, Bullet>();
 
+    const int MAXPROJECTILEQUEUE = 4;
+    private Queue<Bullet>[] _projectileQueue = new Queue<Bullet>[MAXPROJECTILEQUEUE];
+
+
+    [Export]
+    public bool UseSmoothedMovemment { get; set; } = true;
+
+    public bool IsTargeting { get; private set; } = false; // Must be initialized to false
+    private Vector2 _moveDirection = Vector2.Zero; // Always normalized
+    private Vector2 _targetLocation = Vector2.Zero; // Global coordinate
+    public Vector2 TargetLocation
+    {
+        get { return _targetLocation; }
+        set
+        {
+            IsTargeting = _targetLocation != value; // Check if value changed
+            _targetLocation = value;
+            _moveDirection = GlobalPosition.DirectionTo(_targetLocation);
+        }
+    } 
+
+    [Export]
+    public float MaxMoveSpeed { get; set; } = 400.0f;
+
+    public Vector2 Velocity { get; private set; } = Vector2.Zero;
 
     public override void _EnterTree()
     {
@@ -58,7 +113,6 @@ public class EnemyCharacter : KinematicBody2D
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
             // Warning: DO NOT attach template nodes to a parent
-            bullet.Initalize();
             bullet.Position = Vector2.Zero;
             bullet.Damage = 1;
             bullet.Friendly = false;
@@ -66,7 +120,14 @@ public class EnemyCharacter : KinematicBody2D
             bullet.MovementNode.Speed = 200; // TODO tune speed
         }
 
+        for (int i = 0; i < MAXPROJECTILEQUEUE; i++)
+        {
+            _projectileQueue[i] = new Queue<Bullet>();
+        }
         // - - - Initialize Enemy Bullet Templates - - -
+        _attackBetweenTimer = AttackBetweenDelay;
+
+        Scale = Vector2.One;
     }
 
     public override void _ExitTree()
@@ -76,8 +137,23 @@ public class EnemyCharacter : KinematicBody2D
         // Free the bullet templates
         foreach (Bullet bullet in _bulletTemplates.Values)
         {
-            bullet.QueueFree(); 
+            bullet.Clear();
+            bullet.QueueFree();
         }
+
+        // Free projectile queue
+        foreach (Queue<Bullet> item in _projectileQueue)
+        {
+            while(item.Count > 0)
+            {
+                var projectileRef = item.Dequeue();
+                projectileRef.Clear();
+                projectileRef.QueueFree();
+                projectileRef = null;
+            }
+            item.Clear();
+        }
+        _projectileQueue = null;
     }
 
     public override void _Ready()
@@ -87,72 +163,231 @@ public class EnemyCharacter : KinematicBody2D
         _healthBar = GetNode<ProgressBar>(HealthBarPath);
         _healthText = GetNode<Label>(HealthTextPath);
         _damagePopup = GetNode<DamagePopup>(DamagePopupPath);
-        if (HealthComponent == null || _healthBar == null 
-            || _healthText == null || _damagePopup == null || CharacterSprite == null)
-        {
-            GD.PrintErr("Error: Enemy Controller Contrain Invalid Path");
-            return;
-        }
+        _uiElement = GetNode<Node2D>(UIElementNode);
 
-        _OnHealthUpdate(HealthComponent.CurrentHealth);
+        //_OnHealthUpdate(HealthComponent.CurrentHealth);
 
-        _fireDelay = (float)GD.RandRange(1.0, 5.0); // TODO for testing remove later
-
+        // TODO potentially dangerous
         foreach (Globals.Element element in Globals.AllElements)
         {
             ElementalCount[element] = 0;
             EmitSignal("UpdateElement", element, 0);
         }
 
-        _dominantElement = Globals.DominantElement(ElementalCount);
+        SwitchSprite(DominantElement);
 
-        // TODO for testing remove later
-        var rng = new RandomNumberGenerator();
-        rng.Randomize();
-        int loop = rng.RandiRange(1, 3);
-        for (int i = 0; i < loop; i++)
+        if (CharacterSpriteTexture.Length != 5)
         {
-            rng.Randomize();
-            int randomElement = rng.RandiRange(1, 5);
-            rng.Randomize();
-            AddToElement((Globals.Element)randomElement, rng.RandiRange(1, 100));
+            GD.PrintErr("Error: EnemyCharacter has missing sprites.");
+            return;
         }
     }
 
     public override void _Process(float delta)
     {
-        _fireTimer += delta;
-        if (_fireTimer >= _fireDelay)
+        _attackPauseTimer -= delta;
+
+        // TODO clean this
+        if (_attackPauseTimer < -1.0f)
         {
-            _fireTimer = 0;
-            Shoot();
+            _attackPauseTimer = -1.0f;
         }
+
+        _isAttackPause = _attackPauseTimer > 0.0f;
+        AttackLoop(delta);
+    }
+
+    public override void _PhysicsProcess(float delta)
+    {
+        base._PhysicsProcess(delta);
+
+        // Target movement
+        if (IsTargeting) {
+            float distanceToTarget = GlobalPosition.DistanceTo(TargetLocation);
+            float distanceAfter;
+
+            if (UseSmoothedMovemment)
+            {
+                // Smoothed movement
+                float smoothFactor = Mathf.Clamp(10 * distanceToTarget / MaxMoveSpeed, 0, 1); // Decelerate when close to target
+                Velocity = _moveDirection * MaxMoveSpeed * smoothFactor;
+                distanceAfter = MaxMoveSpeed * delta;
+            }
+            else
+            {
+                // Constant speed movement
+                Velocity = _moveDirection * MaxMoveSpeed;
+                distanceAfter = MaxMoveSpeed * delta;
+            }
+
+            // Check if it will overshoot
+            if (distanceAfter >= distanceToTarget)
+            {
+                // TargetLocation == Position + Velocity * delta == Position + _moveDirection * distanceToTarget
+                Velocity = _moveDirection * distanceToTarget / delta;
+                MoveAndSlide(Velocity);
+
+                GlobalPosition = TargetLocation; // Snap in place
+                Velocity = Vector2.Zero;
+                IsTargeting = false; // Stop moving
+
+                EmitSignal("ReachedTarget", this);
+            }
+        }
+        
+        MoveAndSlide(Velocity); // Should be the last line in _PhysicsProcess()
     }
 
     public void _OnHitboxBodyEntered(Node body)
     {
+        // Ignore bullets if physics is turned off
+        if (!IsPhysicsProcessing())
+        {
+            return;
+        }
+
+
         if (body is IHarmful harmful && harmful.IsFriendly() && harmful.IsActive())
         {
-            float floatDamage = (float)harmful.GetDamage();
-            float damageModifier = 1;
-
-            // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
-            if (harmful.GetElement() == _dominantElement || Globals.CounterToElement(harmful.GetElement()) == _dominantElement)
+            float damageModifier;
+            int scoreModifier;
+            
+            if (harmful.GetElement() == DominantElement || Globals.CounterToElement(harmful.GetElement()) == DominantElement)
             {
+                // Do 50% damage if the element of the bullet is the same or counter by the _dominantElement
                 damageModifier = 0.5f;
+                scoreModifier = 1;
             }
-
-            // Do 200% damage if the element of the bullet count the _dominantElement
-            if (harmful.GetElement() == Globals.CounterByElement(_dominantElement))
+            else if (harmful.GetElement() == Globals.CounterByElement(DominantElement))
             {
+                // Do 200% damage if the element of the bullet count the _dominantElement
                 damageModifier = 2f;
+                scoreModifier = 5; // 5x score
+            }
+            else
+            {
+                // Do 100% damage
+                damageModifier = 1f;
+                scoreModifier = 1;
             }
 
-            floatDamage *= damageModifier;
-            var damage = Mathf.CeilToInt(floatDamage);
+            float floatDamage = harmful.GetDamage() * damageModifier;
+            int damage = Mathf.CeilToInt(floatDamage);
+
+            float floatScore = Globals.EnemyHitReward * scoreModifier;
+            Globals.AddScore(Mathf.CeilToInt(floatScore));
+
             HealthComponent.ApplyDamage(damage);
             _damagePopup.AddToCumulativeDamage(damage);
-            harmful.Kill();
+
+            harmful.Kill(); // Works on Bullet, Enemy, and Lesser Enemy
+        }
+    }
+
+    public void AttackLoop(float delta)
+    {
+        if (_isAttackPause)
+        {
+            return;
+        }
+
+        // Shotting projectile from the queue
+        if (_isAttacking)
+        {
+            _fireTimer += delta;
+            if (_fireTimer >= _fireDelay)
+            {
+                _fireTimer = 0;
+                bool areAllQueueEmpty = true;
+                foreach (var queue in _projectileQueue)
+                {
+                    //GD.Print("Metal");
+                    if (queue.Count >= 1)
+                    {
+                        areAllQueueEmpty = false;
+                        var projectile = queue.Dequeue();
+                        //GD.Print(projectile.MovementNode.Direction);
+                        //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+
+                        switch (DominantElement)
+                        {
+                            case Globals.Element.Water:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+
+                            case Globals.Element.Wood:
+
+                                //45.0f
+                                //90.0f
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 15, 180.0f);
+                                break;
+
+                            case Globals.Element.Fire:
+                                ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+
+                            case Globals.Element.Earth:
+                                //ProjectileManager.EmitBulletRing
+                                ProjectileManager.EmitBulletConeWide(projectile, GetTree().Root, GlobalPosition, 5, 1.0f);
+                                break;
+
+                            case Globals.Element.Metal:
+                                ProjectileManager.EmitBulletWall(projectile, GetTree().Root, GlobalPosition, 1 + _attackCounter, 40);
+                                //ProjectileManager.EmitBulletLine(projectile, GetTree().Root, GlobalPosition);
+                                break;
+                        }
+
+                        projectile.Clear();
+                        projectile.QueueFree();
+                    }
+
+                }
+
+                _attackCounter++;
+                if (areAllQueueEmpty)
+                {
+                    _isAttacking = false;
+                    _attackBetweenTimer = 0;
+                    _attackCounter = 0;
+                }
+            }
+        }
+        else
+        {
+            _attackBetweenTimer += delta;
+        }
+        // Add projectile to the queue
+        if (_attackBetweenTimer >= AttackBetweenDelay && !_isAttacking)
+        {
+            _isAttacking = true;
+
+            //add a switch statment when got every pattern
+
+            switch (DominantElement)
+            {
+                case Globals.Element.Water:
+                    _fireDelay = 0.05f;
+                    WavePattern(50, 4, 5);
+                    break;
+                case Globals.Element.Wood:
+                    _fireDelay = 0.1f;
+                    SpherePattern(24, 15, 8, 100);
+                    break;
+                case Globals.Element.Fire:
+                    _fireDelay = 0.005f;
+                    SpinnyPattern(180, 4.3f);
+                    break;
+                case Globals.Element.Earth:
+                    _fireDelay = 0.1f;
+                    WallPattern(15, 15f, 150);
+                    break;
+                case Globals.Element.Metal:
+                    _fireDelay = 0.1f;
+                    WallPattern(10, -10f, 350);
+                    break;
+            }
+
+
         }
     }
 
@@ -160,61 +395,232 @@ public class EnemyCharacter : KinematicBody2D
     {
         _healthBar.Value = (float)newHealth / (float)HealthComponent.MaxHealth;
         _healthText.Text = newHealth.ToString() + " / " + HealthComponent.MaxHealth;
+
+        if (newHealth < HealthComponent.MaxHealth / 2)
+        {
+            EmitSignal("SplitNeeded", this);
+        }
     }
 
     public void _OnHealthDepleted()
     {
-        QueueFree(); // TODO Add a publlic Kill() function
+        Globals.AddScore(Globals.EnemyKillReward);
+        Kill();
+    }
+
+    public void Kill()
+    {
+        EmitSignal("Killed", this);
+        QueueFree();
     }
 
     public void AddToElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }    
-
-        ElementalCount[element] += count;
-        EmitSignal("UpdateElement", element, ElementalCount[element]);
-        if (Globals.DominantElement(ElementalCount) != _dominantElement)
+        if (ElementalCount.ContainsKey(element))
         {
-            _dominantElement = Globals.DominantElement(ElementalCount);
-            SwitchSprite(_dominantElement);
+            SetElementCount(element, ElementalCount[element] + count);
+        }
+        else // oldCount = 0
+        {
+            SetElementCount(element, count);
         }
     }
 
     public void SubtractFromElement(Globals.Element element, int count)
     {
-        if (element == 0) { return; }
-
-        ElementalCount[element] -= count;
-        if (ElementalCount[element] < 0)
+        if (ElementalCount.ContainsKey(element))
         {
-            ElementalCount[element] = 0;
+            SetElementCount(element, ElementalCount[element] - count);
         }
-        EmitSignal("UpdateElement", element, ElementalCount[element]);
-        _dominantElement = Globals.DominantElement(ElementalCount);
+        else // oldCount = 0
+        {
+            SetElementCount(element, 0);
+        }
     }
 
-    public void ResetElementalCount(Dictionary<Globals.Element, int> newValue)
+    public void SetElementCount(Globals.Element element, int newCount)
     {
-        foreach (Globals.Element key in newValue.Keys)
+        if (element == Globals.Element.None || newCount < 0)
         {
-            ElementalCount[key] = newValue[key];
+            GD.PrintErr($"Error: Cannot set {element} element to {newCount} count.");
+            return;
+        }
+
+        if (newCount < 0)
+        {
+            newCount = 0;
+        }
+
+        ElementalCount[element] = newCount;
+        EmitSignal("UpdateElement", element, ElementalCount[element]);
+
+        DominantElement = Globals.DominantElement(ElementalCount);
+
+        if (DominantElement == Globals.Element.None)
+        {
+            // No element left
+            Kill();
+            return;
+        }
+
+        SwitchSprite(DominantElement);
+    }
+
+    public void SetElementalCount(Dictionary<Globals.Element, int> values)
+    {
+        if (values.ContainsKey(Globals.Element.None))
+        {
+            values.Remove(Globals.Element.None);
+        }
+
+        foreach (Globals.Element key in values.Keys)
+        {
+            ElementalCount[key] = values[key];
             EmitSignal("UpdateElement", key, ElementalCount[key]);
         }
 
-        _dominantElement = Globals.DominantElement(ElementalCount);
+        DominantElement = Globals.DominantElement(ElementalCount);
+
+        if (DominantElement == Globals.Element.None)
+        {
+            GD.PrintErr($"Error: No remaining elemments in SetElementalCount().");
+            return;
+        }
+
+        SwitchSprite(DominantElement);
+    }
+
+    public int SumElementalCount()
+    {
+        return Globals.SumElements(ElementalCount);
     }
 
     public void SwitchSprite(Globals.Element element)
     {
-        if(CharacterSpriteTexture.Length >= 5)  
-            CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
+        if (element == Globals.Element.None)
+        {
+            GD.PrintErr($"Error: EnemyCharacter does not have texture for {element} element.");
+            return;
+        }
+
+        CharacterSprite.Texture = CharacterSpriteTexture[(int)element - 1];
     }
 
-    public void Shoot()
+
+    public void WavePattern(int spawnCount, float angle, float speedIncrease = 0)
     {
-        // Edit the bullet template instead of the function parameters
-        ProjectileManager.EmitBulletLine(_bulletTemplates[$"Enemy_{_dominantElement}_Bullet"], GetTree().Root, Position);
-        AudioManager.PlaySFX("res://assets/sfx/test/bang.wav");
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement); ;
+            var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
+
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(bulletAngle));
+            bulletCopy.MovementNode.Direction = direction;
+            bulletCopy.MovementNode.Speed += i * speedIncrease;
+            AddToProjecileQueue(bulletCopy);
+        }
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement); ;
+            var bulletAngle = (i - ((float)spawnCount / 2)) * angle;
+
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(-bulletAngle));
+            bulletCopy.MovementNode.Direction = direction;
+            bulletCopy.MovementNode.Speed += i * speedIncrease;
+            AddToProjecileQueue(bulletCopy, 1);
+        }
     }
 
+    public void SpinnyPattern(int spawnCount, float angle = 45)
+    {
+        _isAttacking = true;
+        var startingDirection = Vector2.Down;
+        var anglePerI = 360.0f / angle;
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(anglePerI * i));
+            bulletCopy.MovementNode.Direction = direction;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+    public void SpherePattern(int waves, float speedChangePerWave, float angle = 1, float startingSpeed = 150)
+    {
+        var startingDirection = Vector2.Left;
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            var direction = startingDirection.Rotated(Mathf.Deg2Rad(i * angle)); ;
+
+            bulletCopy.MovementNode.Direction = direction;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+    public void WallPattern(int waves, float speedChangePerWave, float startingSpeed = 100)
+    {
+        var startingDirection = Vector2.Left;
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            //var direction = startingDirection.Rotated(Mathf.Deg2Rad(i)); ;
+
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+    public void SinglePattern(int waves, float speedChangePerWave, float startingSpeed = 100)
+    {
+        var startingDirection = GlobalPosition.DirectionTo(GameplayScreen.PlayerRef.Position);
+        for (int i = 0; i < waves; i++)
+        {
+            var bulletCopy = MakeBulletCopy(DominantElement);
+            bulletCopy.MovementNode.Direction = startingDirection;
+            bulletCopy.MovementNode.Speed = startingSpeed + i * speedChangePerWave;
+            AddToProjecileQueue(bulletCopy);
+        }
+    }
+
+
+    public Bullet MakeBulletCopy(Globals.Element element)
+    {
+        var bulletCopy = (Bullet)ProjectileManager.LoadTemplate(ProjectileManager.BulletScenePath[element]);
+        Bullet.CopyData(_bulletTemplates[$"Enemy_{element}_Bullet"], bulletCopy);
+        return bulletCopy;
+    }
+
+    public void AddToProjecileQueue(Bullet projectile, int queue = 0)
+    {
+        if (MAXPROJECTILEQUEUE <= queue || queue <= -1)
+            return;
+
+        _projectileQueue[queue].Enqueue(projectile);
+        //GD.Print("Added");
+    }
+
+    public void SetScale(float scale)
+    {
+        Scale = new Vector2(scale, scale);
+        _uiElement.GlobalScale = Vector2.One;
+    }
+
+    public void SetScaleRelative(float scaleFactor)
+    {
+        Scale = Scale * scaleFactor;
+        _uiElement.GlobalScale = Vector2.One;
+    }
+
+    public void PauseShooting(float delay)
+    {
+        _attackPauseTimer = delay;
+    }
 }

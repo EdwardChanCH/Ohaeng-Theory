@@ -65,9 +65,21 @@ public class SettingMenuUI : Node
             _MainMenuButton.Visible = false;
         }
     }
+
+
+
     public override void _ExitTree()
     {
         GetTree().Paused = false;
+    }
+
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("Open_Setting_Menu"))
+        {
+            QueueFree();
+        }
     }
 
     public void _OnBackButtonPressed()
@@ -103,6 +115,9 @@ public class SettingMenuUI : Node
 
     private void _UpdateToggle(bool pressed, string data)
     {
-        Globals.ChangeGameData(data, Globals.Bool2String(pressed));
+        GD.Print("Update toggle");
+
+        if(Globals.String2Bool(Globals.GameData[data]) != pressed)
+            Globals.ChangeGameData(data, Globals.Bool2String(pressed));
     }
 }

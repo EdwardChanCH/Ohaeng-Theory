@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/03_Step_grass_03.wav-c1942488c80d92e39f06c7e152aad731.sample"
+
+[deps]
+
+source_file="res://assets/sfx/rpg_essentials_free/12_Player_Movement_SFX/03_Step_grass_03.wav"
+dest_files=[ "res://.import/03_Step_grass_03.wav-c1942488c80d92e39f06c7e152aad731.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 // This singleton class contains global constants.
 // Note: Godot autoload requires Node type.
@@ -9,6 +10,8 @@ public class Globals : Node
 {
     [Signal]
     public delegate void GameDataChanged(string key, string value);
+    [Signal]
+    public delegate void ScoreChanged();
 
     public static Globals Singleton { get; private set; }
 
@@ -16,7 +19,7 @@ public class Globals : Node
     public static Dictionary<string, string> GameData { get; private set; } = new Dictionary<string, string>();
 
     // Temporary Data (for passing data between screens)
-    public static Dictionary<string, string> TempData { get; set; } = new Dictionary<string, string>();
+    //public static Dictionary<string, string> TempData { get; set; } = new Dictionary<string, string>();
 
     // Element (ranked by importance)
     public enum Element
@@ -38,12 +41,22 @@ public class Globals : Node
         Element.Metal
     };
 
-    // Collision Layers
+    // - - - Collision Layers - - -
     public const int GroundLayerBit = 0; // Layer 1
     public const int PlayerLayerBit = 1; // Layer 2
     public const int PlayerProjectileLayerBit = 2; // Layer 3
     public const int EnemyLayerBit = 3; // Layer 4
     public const int EnemyProjectileLayerBit = 4; // Layer 5
+
+    // - - - Score Values - - -
+    public const int LesserEnemyHitReward = 1;
+    public const int LesserEnemyKillReward = 10;
+    public const int EnemyHitReward = 1;
+    public const int EnemyKillReward = 100;
+    public const int EnemyCritKillReward = 100;
+    public const int WaveCompleteReward = 1000;
+    public static Int64 Score { get; private set; } = 0;
+    public static Int64 HighestScore { get; private set; } = 0;
 
     public override void _EnterTree()
     {
@@ -57,7 +70,25 @@ public class Globals : Node
     {
         GameData.Add("UseMouseDirectedInput", "true");
         GameData.Add("ToggleAttack", "true");
-        GameData.Add("ToggleSlow", "true");
+        GameData.Add("ToggleSlow", "flse");
+        GameData.Add("HighestCompletedWave", "-1");
+    }
+
+    public static void AddScore(Int64 addValue)
+    {
+        SetScore(Score + addValue);
+    }
+
+    public static void SetScore(Int64 newValue)
+    {
+        if (newValue > HighestScore)
+        {
+            HighestScore = newValue;
+        }
+
+        Score = newValue;
+
+        Singleton.EmitSignal("ScoreChanged");
     }
 
     public static void ChangeGameData(string key, string value)
@@ -146,13 +177,14 @@ public class Globals : Node
     {
         if (elementCounts.ContainsKey(Element.None))
         {
-            return Element.None; // Undefined
+            elementCounts.Remove(Element.None);
         }
 
         int highestCount = elementCounts.Values.Max();
 
         if (highestCount == 0)
         {
+            GD.PrintErr($"Error: Highest element count is 0. Sum is {SumElements(elementCounts)}.");
             return Element.None; // Undefined
         }
 
@@ -162,7 +194,7 @@ public class Globals : Node
         {
             if (elementCounts[key] == highestCount)
             {
-                if (key > dominant)
+                if ((int)key > (int)dominant)
                 {
                     dominant = key; // The more important element
                 }
@@ -170,6 +202,95 @@ public class Globals : Node
         }
 
         return dominant;
+    }
+
+    // Return the sum of all element counts
+    public static int SumElements(Dictionary<Element, int> elementCounts)
+    {
+        int count = 0;
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts.ContainsKey(element))
+            {
+                count += elementCounts[element];
+            }
+        }
+
+        return count;
+    }
+
+    // Return a copy of all element counts
+    // Returns zero-initialized copy if elementCounts = null
+    public static Dictionary<Element, int> CopyElements(Dictionary<Element, int> elementCounts=null)
+    {
+        Dictionary<Element, int> newCopy = new Dictionary<Element, int>();
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts != null && elementCounts.ContainsKey(element))
+            {
+                newCopy[element] = elementCounts[element];
+            }
+            else
+            {
+                newCopy[element] = 0;
+            }
+        }
+
+        return newCopy;
+    }
+
+    public static string EncodeAllElement(Dictionary<Element, int> elementCounts)
+    {
+        string encoding = "";
+
+        foreach (Element element in AllElements)
+        {
+            if (elementCounts.ContainsKey(element))
+            {
+                encoding += $",{elementCounts[element]}";
+            }
+        }
+
+        if (encoding.StartsWith(","))
+        {
+            encoding = encoding.Remove(0, 1);
+        }
+
+        return encoding;
+    }
+
+    public static Dictionary<Element, int> DecodeAllElement(string encoding)
+    {
+        Dictionary<Element, int> elementCounts = new Dictionary<Element, int>();
+
+        foreach (Element element in AllElements)
+        {
+            elementCounts[element] = 0;
+        }
+
+        // - - - Start parsing data - - -
+
+        String[] parts = encoding.Split(",");
+
+        if (parts.Length != AllElements.Length)
+        {
+            GD.Print($"Warning: Failed to parse element data '{encoding}'.");
+            return elementCounts;
+        }
+
+        foreach (Element element in AllElements)
+        {
+            int count = 0;
+
+            if (Int32.TryParse(parts[(int)element - 1], out count))
+            {
+                elementCounts[element] += count;
+            }
+        }
+
+        return elementCounts;
     }
 
 }

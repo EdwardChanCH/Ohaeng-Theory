@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/051_use_item_01.wav-2a434fcdff868b921cc6f4359e9b9382.sample"
+
+[deps]
+
+source_file="res://assets/sfx/rpg_essentials_free/10_UI_Menu_SFX/051_use_item_01.wav"
+dest_files=[ "res://.import/051_use_item_01.wav-2a434fcdff868b921cc6f4359e9b9382.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0
