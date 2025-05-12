@@ -24,7 +24,7 @@ public class GameplayScreen : Node2D
         PlayerRef = GetNode<PlayerCharacter>(PlayerPath);
 
         EnemyManager.Connect("WaveComplete", PlayerRef, "_OnWaveComplete"); 
-        EnemyManager.Connect("WaveBegin", this, "_OnWaveBegin");
+        //EnemyManager.Connect("WaveBegin", this, "_OnWaveBegin");
         AudioManager.PlayBMG("res://assets/sfx/bgm/unwritten_return_fast.wav", 0.25f);
     }
 
@@ -32,11 +32,23 @@ public class GameplayScreen : Node2D
     public void _OnWaveBegin()
     {
         Globals.SetScore(0);
+        _gameplayUI.ToggleHintVisible(false);
+    }
+
+    public void _OnWaveCancel()
+    {
+        _gameplayUI.ToggleHintVisible(true);
+    }
+
+    public void _OnWaveComplete()
+    {
+        _gameplayUI.ToggleHintVisible(true);
     }
 
     public override void _Ready()
     {
         _gameplayUI.UpdateScoreLabel();
+        _gameplayUI.ToggleHintVisible(true);
     }
 
     public override void _ExitTree()

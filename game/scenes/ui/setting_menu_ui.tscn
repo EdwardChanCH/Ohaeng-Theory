@@ -17,6 +17,7 @@ font_data = ExtResource( 4 )
 
 [node name="setting_menu_ui" type="CanvasLayer"]
 pause_mode = 2
+layer = 10
 script = ExtResource( 2 )
 MouseDirectedInputCheckBoxPath = NodePath("VBoxLeft/MouseDirectedInput")
 ToggleAttackCheckBoxPath = NodePath("VBoxLeft/ToggleAttack")
@@ -184,7 +185,7 @@ anchor_top = 0.63
 anchor_right = 0.39
 anchor_bottom = 0.63
 margin_right = 500.0
-margin_bottom = 202.0
+margin_bottom = 242.0
 rect_scale = Vector2( 1, 1.00581 )
 
 [node name="Control1" type="Control" parent="VBoxBottom"]
@@ -192,13 +193,13 @@ margin_right = 500.0
 margin_bottom = 40.0
 rect_min_size = Vector2( 0, 40 )
 
-[node name="MainMenuButton" type="Button" parent="VBoxBottom"]
+[node name="BackButton" type="Button" parent="VBoxBottom"]
 margin_top = 44.0
 margin_right = 500.0
 margin_bottom = 119.0
 rect_min_size = Vector2( 120, 50 )
 theme = ExtResource( 6 )
-text = "Main Menu"
+text = "Back"
 
 [node name="Control2" type="Control" parent="VBoxBottom"]
 margin_top = 123.0
@@ -206,16 +207,16 @@ margin_right = 500.0
 margin_bottom = 163.0
 rect_min_size = Vector2( 0, 40 )
 
-[node name="BackButton" type="Button" parent="VBoxBottom"]
+[node name="MainMenuButton" type="Button" parent="VBoxBottom"]
 margin_top = 167.0
 margin_right = 500.0
 margin_bottom = 242.0
 rect_min_size = Vector2( 120, 50 )
 theme = ExtResource( 6 )
-text = "Back"
+text = "Main Menu"
 
 [connection signal="toggled" from="VBoxLeft/MouseDirectedInput" to="." method="_UpdateToggle" binds= [ "UseMouseDirectedInput" ]]
 [connection signal="toggled" from="VBoxLeft/ToggleAttack" to="." method="_UpdateToggle" binds= [ "ToggleAttack" ]]
 [connection signal="toggled" from="VBoxLeft/ToggleSlow" to="." method="_UpdateToggle" binds= [ "ToggleSlow" ]]
-[connection signal="pressed" from="VBoxBottom/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
 [connection signal="pressed" from="VBoxBottom/BackButton" to="." method="_OnBackButtonPressed"]
+[connection signal="pressed" from="VBoxBottom/MainMenuButton" to="." method="_OnMainMenuButtonPressed"]
