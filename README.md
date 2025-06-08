@@ -55,6 +55,8 @@ https://docs.godotengine.org/en/3.6/tutorials/scripting/c_sharp/c_sharp_basics.h
 * Winged Hatchling
   * art assets
 
+Special thanks to Chocolatez, ​Kahnue, and ​Robinaloft for playtesting our game!​
+
 ## 6. 3rd-Party Resources:
 
 > "Infinite Perspective" Kevin MacLeod (incompetech.com)
