@@ -17,8 +17,10 @@ This is a submission for the Bullet Hell Jam 6.
 
 Theme: Unstable.  
 
-> (insert lore here)
-> (insert lore here)
+> Through the process of spontaneous generation, these creatures have lived peacefully in the sky for years until the first kite was invented.
+> Since then, alchemists started to harvest them for their valuable pure element. 
+> 
+> By forcefully injecting elemental pellets to disturb their Ohaeng balance, these monsters split into two perfect halves, with any excess elements released as Elemental Spirits to be harvested. 
 
 ## 2. Required Libraries & 3rd Party Tools
 
