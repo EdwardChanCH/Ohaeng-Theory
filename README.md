@@ -1,3 +1,5 @@
+![Thumbnail](banner_ohaeng_theory.png)
+
 | [Itch.io](https://mynameisnotjones.itch.io/ohaeng-theory) | [Game Manual/ Wiki](https://docs.google.com/document/d/1PAuBFjET1WepqGIbUgpVj5Kay4G5USBJtCVM2sPDxTQ/edit?tab=t.0) | [YouTube](https://www.youtube.com/watch?v=z_Z3fEECPLE) |
 
 ## 0. Copyright
