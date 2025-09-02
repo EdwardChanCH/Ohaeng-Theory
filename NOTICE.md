@@ -1,4 +1,4 @@
-Copyright 2025 Acute Bee, Edward_shooter, Winged Hatchling
+Copyright 2025 Acute Bee, Edward Chan, Winged Hatchling
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
