@@ -5,13 +5,11 @@
 ## 0. Copyright
 
 * Acute Bee
-  * n/a
-
-* Edward_shooter
-  * edwardthearcherking@gmail.com
-
+  * N/A
+* Edward Chan
+  * edwardchanchunho@gmail.com
 * Winged Hatchling
-  * n/a
+  * N/A
 
 ## 1. Short Description
 
@@ -52,10 +50,8 @@ https://docs.godotengine.org/en/3.6/tutorials/scripting/c_sharp/c_sharp_basics.h
 
 * Acute Bee
   * programming
-
 * Edward_shooter
   * programming
-
 * Winged Hatchling
   * art assets
 
