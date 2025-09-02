@@ -1,13 +1,15 @@
+![Thumbnail](banner_ohaeng_theory.png)
+
+| [Itch.io](https://mynameisnotjones.itch.io/ohaeng-theory) | [Game Manual/ Wiki](https://docs.google.com/document/d/1PAuBFjET1WepqGIbUgpVj5Kay4G5USBJtCVM2sPDxTQ/edit?tab=t.0) | [YouTube](https://www.youtube.com/watch?v=z_Z3fEECPLE) |
+
 ## 0. Copyright
 
 * Acute Bee
-  * n/a
-
-* Edward_shooter
-  * edwardthearcherking@gmail.com
-
+  * N/A
+* Edward Chan
+  * edwardchanchunho@gmail.com
 * Winged Hatchling
-  * n/a
+  * N/A
 
 ## 1. Short Description
 
@@ -15,8 +17,10 @@ This is a submission for the Bullet Hell Jam 6.
 
 Theme: Unstable.  
 
-> (insert lore here)
-> (insert lore here)
+> Through the process of spontaneous generation, these creatures have lived peacefully in the sky for years until the first kite was invented.
+> Since then, alchemists started to harvest them for their valuable pure element. 
+> 
+> By forcefully injecting elemental pellets to disturb their Ohaeng balance, these monsters split into two perfect halves, with any excess elements released as Elemental Spirits to be harvested. 
 
 ## 2. Required Libraries & 3rd Party Tools
 
@@ -46,12 +50,12 @@ https://docs.godotengine.org/en/3.6/tutorials/scripting/c_sharp/c_sharp_basics.h
 
 * Acute Bee
   * programming
-
 * Edward_shooter
   * programming
-
 * Winged Hatchling
   * art assets
+
+Special thanks to Chocolatez, ​Kahnue, and ​Robinaloft for playtesting our game!​
 
 ## 6. 3rd-Party Resources:
 
